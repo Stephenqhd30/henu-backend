@@ -35,9 +35,8 @@ public class SaTokenConfiguration implements WebMvcConfigurer {
 		private static final long serialVersionUID = 5839574116900754104L;
 		{
 			add("/");
-			add("/user/register");
-			add("/user/login");
-			add("/user/get/login");
+			add("/admin/login");
+			add("/admin/get/login");
 			add("/swagger-ui/**");
 			add("/v2/api-docs/**");
 			add("/swagger-resources/**");
