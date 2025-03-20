@@ -1,0 +1,42 @@
+package com.henu.registration.config.websocket.modal.enums;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+import java.util.Arrays;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+/**
+ * Description: WebSocket推送类型枚举
+ *
+ * @author stephenqiu
+ */
+@AllArgsConstructor
+@Getter
+public enum WSPushTypeEnum {
+	USER(1, "个人"),
+	ALL(2, "全部连接用户"),
+	;
+	
+	/**
+	 * 类型
+	 */
+	private final Integer type;
+	
+	/**
+	 * 描述
+	 */
+	private final String desc;
+	
+	private static final Map<Integer, WSPushTypeEnum> cache;
+	
+	static {
+		cache = Arrays.stream(WSPushTypeEnum.values()).collect(Collectors.toMap(WSPushTypeEnum::getType, Function.identity()));
+	}
+	
+	public static WSPushTypeEnum of(Integer type) {
+		return cache.get(type);
+	}
+}

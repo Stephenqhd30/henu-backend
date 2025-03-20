@@ -1,0 +1,212 @@
+# 公共配置文件
+# @author stephenqiu
+spring:
+  application:
+    name: henu-backend
+  # 默认 dev 环境
+  config:
+    activate:
+      on-profile: default
+  # 支持 swagger3
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  # 缓存
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=500,expireAfterAccess=600s
+  # session 配置
+  session:
+    # 开启分布式 session（须先配置 Redis）
+    store-type: redis
+    # 30 天过期
+    timeout: 2592000
+  # 数据库配置
+  datasource:
+    driver-class-name: ${dev.mysql.datasource.driver-class-name}
+    url: ${dev.mysql.datasource.url}
+    username: ${dev.mysql.datasource.username}
+    password: ${dev.mysql.datasource.password}
+  # Redis 配置
+  # todo 需替换配置，然后取消注释
+  redis:
+    enabled: true
+    database: ${dev.redis.database}
+    host: ${dev.redis.host}
+    port: ${dev.redis.port}
+    timeout: ${dev.redis.timeout}
+  # Elasticsearch 配置
+  # todo 需替换配置，然后取消注释
+  elasticsearch:
+    uris: ${dev.elasticsearch.uris}
+    username: ${dev.elasticsearch.username}
+    password: ${dev.elasticsearch.password}
+  # 邮件配置
+  mail:
+    # todo 是否开启邮件功能
+    enable: true
+    # 邮件服务器配置
+    host: ${dev.mail.host}
+    # 端口号
+    port: ${dev.mail.port}
+    # 发送邮件的邮箱地址
+    username: ${dev.mail.username}
+    # 发送邮件的邮箱验证密码或者授权码
+    password: ${dev.mail.password}
+    # 邮件默认编码
+    default-encoding: UTF-8
+    # 邮箱通讯协议
+    protocol: smtp
+  # 文件上传
+  servlet:
+    multipart:
+      # 大小限制
+      max-file-size: 10MB
+
+# 日志配置
+server:
+  address: 0.0.0.0
+  port: 8080
+  servlet:
+    context-path: /api
+    # cookie 30 天过期
+    session:
+      cookie:
+        max-age: 2592000
+# MyBatis Plus 配置
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: false
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      logic-delete-field: is_delete # 全局逻辑删除的实体字段名
+      logic-delete-value: 1 # 逻辑已删除值（默认为 1）
+      logic-not-delete-value: 0 # 逻辑未删除值（默认为 0）
+
+# 腾讯云COS对象存储配置
+# todo 是否开启
+cos:
+  client:
+    enable: true
+    accessKey: ${dev.cos.client.accessKey}
+    secretKey: ${dev.cos.client.secretKey}
+    region: ${dev.cos.client.region}
+    bucket: ${dev.cos.client.bucket}
+
+# 接口文档配置
+knife4j:
+  enable: true
+  openapi:
+    title: "接口文档"
+    version: 1.0
+    description: "河南大学的接口文档信息。"
+    concat: "Stephen Qiu"
+    email: "popcornqhd@gmail.com"
+    url: "https://github.com/Stephenqhd30"
+    group:
+      default:
+        api-rule: package
+        api-rule-resources:
+          - com.henu.registration.controller
+          - com.henu.registration.elasticsearch.controller
+          - com.henu.registration.captcha.controller
+
+# Redisson 配置
+redisson:
+  enabled: true
+  database: ${dev.redisson.database}
+  host: ${dev.redisson.host}
+  port: ${dev.redisson.port}
+# 对象存储配置
+oss:
+  # MinIO OSS配置
+  minio:
+    # todo 是否开启
+    enable: false
+    # 域名（格式：【ip:port】）
+    endpoint: ${dev.oss.minio.endpoint}
+    # 用户的 AccessKey
+    accessKey: ${dev.oss.minio.accessKey}
+    # 用户的 SecretKey
+    secretKey: ${dev.oss.minio.secretKey}
+    # 桶名称
+    bucket: ${dev.oss.minio.bucket}
+  # 阿里云OSS配置
+  ali:
+    # todo 是否开启
+    enable: false
+    # 域名 以华东1（杭州）为例，Endpoint填写为https://oss-cn-hangzhou.aliyuncs.com。
+    endpoint: https://oss-xx-xxx.aliyuncs.com
+    # 用户的 SecretId
+    secret-id: xxxxxxxx
+    # 用户的 SecretKey
+    secret-key: xxxxxxxx
+    # 桶名称
+    bucket-name: xxxxxxxx
+
+# WebSocket配置
+websocket:
+  # todo 是否开启（预先关闭）
+  enable: true
+  # websocket服务端口
+  port: ${dev.websocket.port}
+  # BOSS线程组线程数
+  boss-thread: ${dev.websocket.boss-thread}
+  # WORKER线程组线程数
+  worker-thread: ${dev.websocket.worker-thread}
+
+
+#  Caffeine配置
+caffeine:
+  # todo 是否开启（预先关闭）
+  enable: true
+  # 最后一次写入或访问后经过固定时间过期，单位：秒
+  expired: 1000
+  # 缓存初始容量
+  initCapacity: 256
+  # 缓存最大容量，超过之后会按照最近最少策略进行缓存剔除
+  maxCapacity: 1000
+  # 是否允许空值null作为缓存的value
+  allowNullValue: true
+
+# 验证码配置
+captcha:
+  # todo 是否使用验证码（启用的前提是redisson配置完成，预先关闭）
+  enable: true
+  # 验证码类型：char 字符类型；math 数字类型。
+  type: char
+  # 验证码类别：line 线段干扰；circle 圆圈干扰；shear 扭曲干扰。
+  category: line
+  # 数字验证码位数（1-9，否则默认为1）
+  number-length: 1
+  # 字符验证码长度（1-99，否则默认为4）
+  char-length: 4
+  # 验证码存活时间（单位：秒）
+  expired: 180
+
+############## Sa-Token 配置 (文档: https://sa-token.cc) ##############
+sa-token:
+  # todo 是否启用SaToken认证鉴权功能（此处为false并不是禁用SaToken，而是让SaToken相关注解失效，预先开启）
+  enable-sa: true
+  # todo 是否使用JWT格式的Token（建议如果没有开启redis配置就不要开启JWT格式的Token，预先关闭）
+  enable-jwt: true
+  # token 名称（同时也是 cookie 名称）
+  token-name: Authorization
+  # token有效期，单位s 默认30天, -1代表永不过期
+  timeout: 2592000
+  # token 最低活跃频率（单位：秒），如果 token 超过此时间没有访问系统就会被冻结，默认-1 代表不限制，永不冻结
+  active-timeout: -1
+  # 是否允许同一账号多地同时登录 （为 true 时允许一起登录, 为 false 时新登录挤掉旧登录）
+  is-concurrent: false
+  # 在多人登录同一账号时，是否共用一个 token （为 true 时所有登录共用一个 token, 为 false 时每次登录新建一个 token）
+  is-share: true
+  # token 风格（默认可取值：uuid、simple-uuid、random-32、random-64、random-128、tik）
+  token-style: uuid
+  # 是否输出操作日志
+  is-log: true
+  # token前缀  注意必须是 Bearer {token}, Bearer后面加空格
+  token-prefix: Bearer
+  # jwt秘钥
+  jwt-secret-key: ${dev.sa-token.jwt-secret-key}

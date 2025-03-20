@@ -1,0 +1,81 @@
+package com.henu.registration.controller;
+
+import cn.hutool.core.io.FileUtil;
+import com.henu.registration.common.BaseResponse;
+import com.henu.registration.common.ErrorCode;
+import com.henu.registration.common.ResultUtils;
+import com.henu.registration.common.ThrowUtils;
+import com.henu.registration.common.exception.BusinessException;
+import com.henu.registration.model.dto.file.UploadFileRequest;
+import com.henu.registration.model.enums.FileUploadBizEnum;
+import com.henu.registration.utils.oss.CosUtils;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.Arrays;
+
+/**
+ * 文件接口
+ *
+ * @author stephenqiu
+ */
+@RestController
+@RequestMapping("/file")
+@Slf4j
+public class FileController {
+	
+	/**
+	 * 文件上传(使用COS对象存储)
+	 *
+	 * @param multipartFile     multipartFile
+	 * @param uploadFileRequest uploadFileRequest
+	 * @param request           request
+	 * @return BaseResponse<String>
+	 */
+	@PostMapping("/upload")
+	public BaseResponse<String> uploadFile(@RequestPart("file") MultipartFile multipartFile,
+	                                       UploadFileRequest uploadFileRequest, HttpServletRequest request) {
+		String biz = uploadFileRequest.getBiz();
+		FileUploadBizEnum fileUploadBizEnum = FileUploadBizEnum.getEnumByValue(biz);
+		ThrowUtils.throwIf(fileUploadBizEnum == null, ErrorCode.PARAMS_ERROR, "文件上传有误");
+		
+		// 校验文件类型
+		this.validFile(multipartFile, fileUploadBizEnum);
+		
+		// 文件目录：根据业务、用户来划分
+		String path = String.format("/%s/%s", "henu", fileUploadBizEnum.getValue());
+		
+		// 直接上传文件
+		String s = CosUtils.uploadFile(multipartFile, path);
+		// 返回可访问地址
+		return ResultUtils.success(s);
+		
+	}
+	
+	/**
+	 * 校验文件
+	 *
+	 * @param multipartFile     multipartFile
+	 * @param fileUploadBizEnum 业务类型
+	 */
+	public void validFile(MultipartFile multipartFile, FileUploadBizEnum fileUploadBizEnum) {
+		// 文件大小
+		long fileSize = multipartFile.getSize();
+		// 文件后缀
+		String fileSuffix = FileUtil.getSuffix(multipartFile.getOriginalFilename());
+		if (FileUploadBizEnum.USER_AVATAR.equals(fileUploadBizEnum)) {
+			long ONE_M = 5 * 1024 * 1024L;
+			if (fileSize > ONE_M) {
+				throw new BusinessException(ErrorCode.PARAMS_SIZE_ERROR, "文件大小不能超过 5M");
+			}
+			if (!Arrays.asList("jpeg", "jpg", "svg", "png", "webp").contains(fileSuffix)) {
+				throw new BusinessException(ErrorCode.PARAMS_ERROR, "文件类型错误");
+			}
+		}
+	}
+}
