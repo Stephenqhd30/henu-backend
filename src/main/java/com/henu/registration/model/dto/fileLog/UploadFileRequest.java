@@ -1,4 +1,4 @@
-package com.henu.registration.model.dto.file;
+package com.henu.registration.model.dto.fileLog;
 
 import lombok.Data;
 
