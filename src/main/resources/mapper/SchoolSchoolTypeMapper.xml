@@ -2,11 +2,12 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.henu.registration.mapper.SchoolMapper">
+<mapper namespace="com.henu.registration.mapper.SchoolSchoolTypeMapper">
 
-    <resultMap id="BaseResultMap" type="com.henu.registration.model.entity.School">
+    <resultMap id="BaseResultMap" type="com.henu.registration.model.entity.SchoolSchoolType">
             <id property="id" column="id" />
-            <result property="schoolName" column="school_name" />
+            <result property="schoolId" column="school_id" />
+            <result property="schoolTypeId" column="school_type_id" />
             <result property="adminId" column="admin_id" />
             <result property="createTime" column="create_time" />
             <result property="updateTime" column="update_time" />
@@ -14,7 +15,7 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id
-        ,school_name,admin_id,create_time,update_time,is_delete
+        id,school_id,school_type_id,admin_id,create_time,update_time,
+        is_delete
     </sql>
 </mapper>

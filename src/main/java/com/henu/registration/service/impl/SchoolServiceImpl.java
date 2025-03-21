@@ -114,7 +114,6 @@ public class SchoolServiceImpl extends ServiceImpl<SchoolMapper, School> impleme
 	public SchoolVO getSchoolVO(School school, HttpServletRequest request) {
 		// 对象转封装类
 		SchoolVO schoolVO = SchoolVO.objToVo(school);
-		
 		// todo 可以根据需要为封装对象补充值，不需要的内容可以删除
 		// region 可选
 		// 1. 关联查询用户信息

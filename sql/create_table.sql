@@ -70,18 +70,21 @@ create table school_type
 -- 高校与高校类型关联表（多对多关系）
 create table school_school_type
 (
-    id             bigint auto_increment comment 'id'
+    id              bigint auto_increment comment 'id'
         primary key,
-    school_id      bigint                             not null comment '高校id',
-    school_type_id bigint                             not null comment '高校类别id',
-    admin_id       bigint                             not null comment '管理员id',
-    create_time    datetime default CURRENT_TIMESTAMP not null comment '创建时间',
-    update_time    datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
-    is_delete      tinyint  default 0                 not null comment '是否逻辑删除',
-    constraint fk_school foreign key (school_id) references school (id) on delete cascade,
-    constraint fk_school_type foreign key (school_type_id) references school_type (id) on delete cascade,
-    unique (school_id, school_type_id) -- 确保同一高校和类型的组合不会重复
-) comment '高校与高校类型关联表' row_format = DYNAMIC;
+    school_id       bigint                             not null comment '高校id',
+    school_type_ids text                               not null comment '高校类别id列表(JSON存储)',
+    admin_id        bigint                             not null comment '管理员id',
+    create_time     datetime default CURRENT_TIMESTAMP not null comment '创建时间',
+    update_time     datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+    is_delete       tinyint  default 0                 not null comment '是否逻辑删除',
+    constraint school_id
+        unique (school_id),
+    constraint fk_school
+        foreign key (school_id) references school (id)
+            on delete cascade
+)
+    comment '高校与高校类型关联表' row_format = DYNAMIC;
 
 
 
