@@ -11,7 +11,7 @@ create table admin
     update_time    datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
     is_delete      tinyint  default 0                 not null comment '是否逻辑删除'
 )
-    row_format = DYNAMIC;
+    comment '管理员' row_format = DYNAMIC;
 
 -- 干部类型表
 create table cadre_type
@@ -28,4 +28,17 @@ create table cadre_type
 
 create index fk_cadre_type_to_registration
     on cadre_type (register_id);
+
+
+-- 截止时间
+create table deadline
+(
+    id            bigint auto_increment comment 'id'
+        primary key,
+    deadline_time datetime                           not null comment '截止日期',
+    create_time   datetime default CURRENT_TIMESTAMP not null comment '创建时间',
+    update_time   datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+    is_delete     tinyint  default 0                 not null comment '是否逻辑删除'
+)
+    comment '截止时间' row_format = DYNAMIC;
 

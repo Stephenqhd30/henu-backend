@@ -147,3 +147,6 @@ fabric.properties
 
 application.properties
 application-prod.properties
+
+src/main/resources/templates
+src/main/java/com/henu/registration/generate
