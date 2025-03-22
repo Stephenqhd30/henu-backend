@@ -1,6 +1,8 @@
 package com.henu.registration.controller;
 
 import cn.dev33.satoken.annotation.SaCheckRole;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.henu.registration.common.*;
 import com.henu.registration.common.exception.BusinessException;
@@ -8,11 +10,12 @@ import com.henu.registration.constants.AdminConstant;
 import com.henu.registration.model.dto.fileLog.FileLogQueryRequest;
 import com.henu.registration.model.dto.fileLog.UploadFileRequest;
 import com.henu.registration.model.entity.FileLog;
+import com.henu.registration.model.entity.FileType;
 import com.henu.registration.model.entity.User;
-import com.henu.registration.model.enums.FileUploadBizEnum;
 import com.henu.registration.model.vo.fileLog.FileLogVO;
 import com.henu.registration.service.AdminService;
 import com.henu.registration.service.FileLogService;
+import com.henu.registration.service.FileTypeService;
 import com.henu.registration.service.UserService;
 import com.henu.registration.utils.oss.CosUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +39,9 @@ public class FileLogController {
 	private FileLogService fileLogService;
 	
 	@Resource
+	private FileTypeService fileTypeService;
+	
+	@Resource
 	private UserService userService;
 	
 	@Resource
@@ -53,20 +59,22 @@ public class FileLogController {
 	public BaseResponse<String> uploadFile(@RequestPart("file") MultipartFile multipartFile,
 	                                       UploadFileRequest uploadFileRequest, HttpServletRequest request) {
 		String biz = uploadFileRequest.getBiz();
-		FileUploadBizEnum fileUploadBizEnum = FileUploadBizEnum.getEnumByValue(biz);
-		ThrowUtils.throwIf(fileUploadBizEnum == null, ErrorCode.PARAMS_ERROR, "文件上传有误");
+		LambdaQueryWrapper<FileType> eq = Wrappers.lambdaQuery(FileType.class)
+				.eq(FileType::getTypeName, biz);
+		FileType fileType = fileTypeService.getOne(eq);
+		ThrowUtils.throwIf(fileType == null, ErrorCode.PARAMS_ERROR, "文件上传有误");
 		// 校验文件类型
-		fileLogService.validFile(multipartFile, fileUploadBizEnum);
+		fileLogService.validFile(multipartFile, fileType);
 		// 获取当前登录用户信息
 		User loginUser = userService.getLoginUser(request);
 		// 文件目录：根据业务、用户来划分
-		String path = String.format("/%s/%s/%s", "henu", loginUser.getId(), fileUploadBizEnum.getValue());
+		String path = String.format("/%s/%s/%s", "henu", loginUser.getId(), fileType.getTypeName());
 		// 直接上传文件
 		String s = CosUtils.uploadFile(multipartFile, path);
 		// 记录日志
 		FileLog fileLog = new FileLog();
-		fileLog.setFileType(fileUploadBizEnum.getValue());
-		fileLog.setFileName(fileUploadBizEnum.getText());
+		fileLog.setFileTypeId(fileType.getId());
+		fileLog.setFileName(fileType.getTypeName());
 		fileLog.setFilePath(path);
 		fileLog.setUserId(loginUser.getId());
 		boolean save = fileLogService.save(fileLog);

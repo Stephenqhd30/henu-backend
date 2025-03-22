@@ -31,9 +31,9 @@ public class FileLogQueryRequest extends PageRequest implements Serializable {
 	private String searchText;
 	
 	/**
-	 * 附件类型编号
+	 * 附件类型id
 	 */
-	private String fileType;
+	private Long fileTypeId;
 	
 	/**
 	 * 附件名称

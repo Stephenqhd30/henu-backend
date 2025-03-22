@@ -146,7 +146,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 		if (StringUtils.isAnyBlank(userName, userIdCard)) {
 			throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数为空");
 		}
-		ThrowUtils.throwIf(RegexUtils.checkIdCard(userIdCard), ErrorCode.PARAMS_ERROR, "身份证号输入有误");
+		ThrowUtils.throwIf(!RegexUtils.checkIdCard(userIdCard), ErrorCode.PARAMS_ERROR, "身份证号输入有误");
 		// 2. 加密
 		String encryptIdCard = this.getEncryptIdCard(userIdCard);
 		// 查询用户是否存在

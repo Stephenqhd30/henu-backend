@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.henu.registration.model.dto.fileLog.FileLogQueryRequest;
 import com.henu.registration.model.entity.FileLog;
-import com.henu.registration.model.enums.FileUploadBizEnum;
+import com.henu.registration.model.entity.FileType;
 import com.henu.registration.model.vo.fileLog.FileLogVO;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,9 +22,9 @@ public interface FileLogService extends IService<FileLog> {
 	 * 校验文件
 	 *
 	 * @param multipartFile     multipartFile
-	 * @param fileUploadBizEnum 业务类型
+	 * @param fileType 文件类型
 	 */
-	void validFile(MultipartFile multipartFile, FileUploadBizEnum fileUploadBizEnum);
+	void validFile(MultipartFile multipartFile, FileType fileType);
 	
 	/**
 	 * 获取查询条件

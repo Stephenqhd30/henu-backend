@@ -25,9 +25,9 @@ public class FileLog implements Serializable {
 	private Long id;
 	
 	/**
-	 * 附件类型编号
+	 * 附件类型id
 	 */
-	private String fileType;
+	private Long fileTypeId;
 	
 	/**
 	 * 附件名称

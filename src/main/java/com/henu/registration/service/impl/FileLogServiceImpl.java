@@ -2,6 +2,7 @@ package com.henu.registration.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -11,8 +12,8 @@ import com.henu.registration.constants.CommonConstant;
 import com.henu.registration.mapper.FileLogMapper;
 import com.henu.registration.model.dto.fileLog.FileLogQueryRequest;
 import com.henu.registration.model.entity.FileLog;
+import com.henu.registration.model.entity.FileType;
 import com.henu.registration.model.entity.User;
-import com.henu.registration.model.enums.FileUploadBizEnum;
 import com.henu.registration.model.vo.fileLog.FileLogVO;
 import com.henu.registration.model.vo.user.UserVO;
 import com.henu.registration.service.FileLogService;
@@ -25,7 +26,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -46,32 +46,25 @@ public class FileLogServiceImpl extends ServiceImpl<FileLogMapper, FileLog>
 	 * 校验文件
 	 *
 	 * @param multipartFile     multipartFile
-	 * @param fileUploadBizEnum 业务类型
+	 * @param fileType 文件上传类型
 	 */
 	@Override
-	public void validFile(MultipartFile multipartFile, FileUploadBizEnum fileUploadBizEnum) {
+	public void validFile(MultipartFile multipartFile, FileType fileType) {
 		// 文件大小
 		long fileSize = multipartFile.getSize();
 		// 文件后缀
 		String fileSuffix = FileUtil.getSuffix(multipartFile.getOriginalFilename());
-		if (FileUploadBizEnum.USER_AVATAR.equals(fileUploadBizEnum)) {
-			long FIVE_M = 5 * 1024 * 1024L;
-			if (fileSize > FIVE_M) {
-				throw new BusinessException(ErrorCode.PARAMS_SIZE_ERROR, "文件大小不能超过 5M");
-			}
-			if (!Arrays.asList("jpeg", "jpg", "png", "webp").contains(fileSuffix)) {
-				throw new BusinessException(ErrorCode.PARAMS_ERROR, "文件类型错误");
-			}
-		} else {
-			// 除用户头像外，其他业务类型只支持 PDF 格式
-			if (!"pdf".equals(fileSuffix)) {
-				throw new BusinessException(ErrorCode.PARAMS_ERROR, "文件类型错误，仅支持 PDF 格式");
-			}
-			// 限制为最大10MB
-			long TEN_M = 10 * 1024 * 1024L;
-			if (fileSize > TEN_M) {
-				throw new BusinessException(ErrorCode.PARAMS_SIZE_ERROR, "文件大小不能超过 10M");
-			}
+		String typeValues = fileType.getTypeValues();
+		Long maxFileSize = fileType.getMaxFileSize();
+		List<String> allowedSuffixes = JSONUtil.toList(typeValues, String.class);
+		// 文件大小校验
+		if (fileSize > maxFileSize) {
+			throw new BusinessException(ErrorCode.PARAMS_SIZE_ERROR,
+					String.format("文件大小不能超过 %.2fMB", maxFileSize / (1024.0 * 1024)));
+		}
+		// 文件格式校验
+		if (!allowedSuffixes.contains(fileSuffix)) {
+			throw new BusinessException(ErrorCode.PARAMS_ERROR, "文件类型错误，仅支持：" + allowedSuffixes);
 		}
 	}
 	
@@ -92,7 +85,7 @@ public class FileLogServiceImpl extends ServiceImpl<FileLogMapper, FileLog>
 		Long id = fileLogQueryRequest.getId();
 		Long notId = fileLogQueryRequest.getNotId();
 		String searchText = fileLogQueryRequest.getSearchText();
-		String fileType = fileLogQueryRequest.getFileType();
+		Long fileTypeId = fileLogQueryRequest.getFileTypeId();
 		String fileName = fileLogQueryRequest.getFileName();
 		String filePath = fileLogQueryRequest.getFilePath();
 		Long userId = fileLogQueryRequest.getUserId();
@@ -112,7 +105,7 @@ public class FileLogServiceImpl extends ServiceImpl<FileLogMapper, FileLog>
 		queryWrapper.ne(ObjectUtils.isNotEmpty(notId), "id", notId);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(id), "id", id);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(userId), "userId", userId);
-		queryWrapper.eq(StringUtils.isNotBlank(fileType), "file_type", fileType);
+		queryWrapper.eq(ObjectUtils.isNotEmpty(fileTypeId), "file_type_id", fileTypeId);
 		// 排序规则
 		queryWrapper.orderBy(SqlUtils.validSortField(sortField),
 				sortOrder.equals(CommonConstant.SORT_ORDER_ASC),
