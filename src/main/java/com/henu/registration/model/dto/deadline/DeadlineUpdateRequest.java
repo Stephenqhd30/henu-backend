@@ -17,10 +17,16 @@ public class DeadlineUpdateRequest implements Serializable {
 	 * id
 	 */
 	private Long id;
+	
 	/**
 	 * 截止日期
 	 */
 	private Date deadlineTime;
+	
+	/**
+	 * 岗位信息id
+	 */
+	private Long jobId;
 	
 	private static final long serialVersionUID = 1L;
 }

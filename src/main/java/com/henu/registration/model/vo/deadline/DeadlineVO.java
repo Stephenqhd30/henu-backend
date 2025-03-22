@@ -2,6 +2,7 @@ package com.henu.registration.model.vo.deadline;
 
 import com.henu.registration.model.entity.Deadline;
 import com.henu.registration.model.vo.admin.AdminVO;
+import com.henu.registration.model.vo.job.JobVO;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
@@ -28,6 +29,11 @@ public class DeadlineVO implements Serializable {
 	private Date deadlineTime;
 	
 	/**
+	 * 岗位信息id
+	 */
+	private Long jobId;
+	
+	/**
 	 * 管理员id
 	 */
 	private Long adminId;
@@ -45,7 +51,7 @@ public class DeadlineVO implements Serializable {
 	/**
 	 * 创建用户信息
 	 */
-	private AdminVO adminVO;
+	private JobVO jobVO;
 	
 	/**
 	 * 封装类转对象

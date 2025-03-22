@@ -18,5 +18,10 @@ public class DeadlineAddRequest implements Serializable {
 	 */
 	private Date deadlineTime;
 	
+	/**
+	 * 岗位信息id
+	 */
+	private Long jobId;
+	
 	private static final long serialVersionUID = 1L;
 }

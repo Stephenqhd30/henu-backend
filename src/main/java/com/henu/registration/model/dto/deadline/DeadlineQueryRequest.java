@@ -32,6 +32,11 @@ public class DeadlineQueryRequest extends PageRequest implements Serializable {
     private Date deadlineTime;
     
     /**
+     * 岗位信息id
+     */
+    private Long jobId;
+    
+    /**
      * 管理员id
      */
     private Long adminId;
