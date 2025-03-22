@@ -1,4 +1,4 @@
-package com.henu.registration.model.dto.family;
+package com.henu.registration.model.dto.reviewLog;
 
 import com.henu.registration.common.PageRequest;
 import lombok.Data;
@@ -8,13 +8,13 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * 查询家庭关系请求
+ * 查询审核记录请求
  *
  * @author stephen qiu
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class FamilyQueryRequest extends PageRequest implements Serializable {
+public class ReviewLogQueryRequest extends PageRequest implements Serializable {
 
     /**
      * id
@@ -30,26 +30,26 @@ public class FamilyQueryRequest extends PageRequest implements Serializable {
      * 搜索词
      */
     private String searchText;
-
+    
     /**
-     * 标题
+     * 报名登记表id
      */
-    private String title;
-
+    private Long registrationId;
+    
     /**
-     * 内容
+     * 审核人id
      */
-    private String content;
-
+    private Long reviewerId;
+    
     /**
-     * 标签列表
+     * 审核状态(0-待审核,1-审核通过,2-审核不通过)
      */
-    private List<String> tags;
-
+    private Integer reviewStatus;
+    
     /**
-     * 创建用户 id
+     * 审核意见
      */
-    private Long userId;
+    private String reviewComments;
 
     private static final long serialVersionUID = 1L;
 }

@@ -222,6 +222,23 @@ create table family
 )
     comment '家庭关系表' row_format = DYNAMIC;
 
+-- 审核记录表（硬删除）
+create table review_log
+(
+    id              bigint auto_increment comment 'id'
+        primary key,
+    registration_id bigint                             not null comment '报名登记表id',
+    reviewer        varchar(255)                       not null comment '审核人姓名',
+    review_status   tinyint                            not null comment '审核状态(0-待审核,1-审核通过,2-审核不通过)',
+    review_comments text                               null comment '审核意见',
+    review_time     datetime default CURRENT_TIMESTAMP not null comment '审核时间',
+    is_delete       tinyint  default 0                 not null comment '是否逻辑删除(0-否,1-是)',
+    create_time     datetime default CURRENT_TIMESTAMP not null comment '创建时间',
+    update_time     datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+    constraint fk_review_log_registration
+        foreign key (registration_id) references registration_form (id)
+)
+    comment '审核记录表' row_format = DYNAMIC;
 -- 消息通知表
 create table message_notice
 (

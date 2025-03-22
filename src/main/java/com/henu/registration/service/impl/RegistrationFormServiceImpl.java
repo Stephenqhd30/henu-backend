@@ -114,6 +114,9 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		Long id = registrationFormQueryRequest.getId();
 		Long notId = registrationFormQueryRequest.getNotId();
 		String userIdCard = registrationFormQueryRequest.getUserIdCard();
+		if (StringUtils.isNotBlank(userIdCard)) {
+			userIdCard = userService.getEncryptIdCard(userIdCard);
+		}
 		String userName = registrationFormQueryRequest.getUserName();
 		String userEmail = registrationFormQueryRequest.getUserEmail();
 		String userPhone = registrationFormQueryRequest.getUserPhone();
@@ -151,7 +154,7 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		queryWrapper.eq(ObjectUtils.isNotEmpty(marryStatus), "marry_status", marryStatus);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(emergencyPhone), "emergency_phone", emergencyPhone);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(jobId), "job_id", jobId);
-		queryWrapper.eq(ObjectUtils.isNotEmpty(userIdCard), "user_id_card", userService.getEncryptIdCard(userIdCard));
+		queryWrapper.eq(ObjectUtils.isNotEmpty(userIdCard), "user_id_card", userIdCard);
 		// 排序规则
 		queryWrapper.orderBy(SqlUtils.validSortField(sortField),
 				sortOrder.equals(CommonConstant.SORT_ORDER_ASC),

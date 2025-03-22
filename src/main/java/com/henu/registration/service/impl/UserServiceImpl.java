@@ -309,6 +309,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 		Long id = userQueryRequest.getId();
 		Long notId = userQueryRequest.getNotId();
 		String userIdCard = userQueryRequest.getUserIdCard();
+		if (StringUtils.isNotBlank(userIdCard)) {
+			userIdCard = this.getEncryptIdCard(userIdCard);
+		}
 		String userName = userQueryRequest.getUserName();
 		String userEmail = userQueryRequest.getUserEmail();
 		String userPhone = userQueryRequest.getUserPhone();
@@ -319,7 +322,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 		// 精准查询
 		queryWrapper.eq(id != null, "id", id);
 		queryWrapper.ne(ObjectUtils.isNotEmpty(notId), "id", notId);
-		queryWrapper.eq(StringUtils.isNotBlank(userIdCard), "user_id_card", this.getEncryptIdCard(userIdCard));
+		queryWrapper.eq(StringUtils.isNotBlank(userIdCard), "user_id_card", userIdCard);
 		queryWrapper.eq(StringUtils.isNotBlank(userPhone), "user_phone", userPhone);
 		queryWrapper.eq(userGender != null, "user_gender", userGender);
 		// 模糊查询

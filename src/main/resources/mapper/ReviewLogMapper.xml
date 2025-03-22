@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.henu.registration.mapper.ReviewLogMapper">
+
+    <resultMap id="BaseResultMap" type="com.henu.registration.model.entity.ReviewLog">
+            <id property="id" column="id" />
+            <result property="registrationId" column="registration_id" />
+            <result property="reviewerId" column="reviewer_id" />
+            <result property="reviewStatus" column="review_status" />
+            <result property="reviewComments" column="review_comments" />
+            <result property="reviewTime" column="review_time" />
+            <result property="isDelete" column="is_delete" />
+            <result property="createTime" column="create_time" />
+            <result property="updateTime" column="update_time" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id
+        ,registration_id,reviewer_id,reviewer,review_status,review_comments,review_time,
+        is_delete,create_time,update_time
+    </sql>
+</mapper>

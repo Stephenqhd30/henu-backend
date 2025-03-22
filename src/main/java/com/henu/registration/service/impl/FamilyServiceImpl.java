@@ -5,10 +5,10 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.henu.registration.common.ErrorCode;
-import com.henu.registration.constants.CommonConstant;
 import com.henu.registration.common.ThrowUtils;
-import com.henu.registration.mapper.FamilyMapper;
 import com.henu.registration.common.exception.BusinessException;
+import com.henu.registration.constants.CommonConstant;
+import com.henu.registration.mapper.FamilyMapper;
 import com.henu.registration.model.dto.family.FamilyQueryRequest;
 import com.henu.registration.model.entity.Family;
 import com.henu.registration.model.entity.User;
@@ -24,15 +24,20 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
+
 /**
  * 家庭关系服务实现
  *
- * @author stephen qiu
+ * @author stephenqiu
+ * @description 针对表【family(家庭关系表)】的数据库操作Service实现
+ * @createDate 2025-03-23 00:15:52
  */
 @Service
 @Slf4j
