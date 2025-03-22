@@ -135,6 +135,24 @@ create table file_log
 )
     comment '文件上传日志表' row_format = DYNAMIC;
 
+-- 教育经历表
+create table education
+(
+    id                bigint auto_increment comment 'id'
+        primary key,
+    school_id         varchar(255)                       not null comment '高校编号',
+    educational_stage varchar(255)                       not null comment '教育阶段',
+    major             varchar(255)                       not null comment '专业',
+    study_time        varchar(512)                       not null comment '学习起止年月',
+    certifier         varchar(255)                       not null comment '证明人',
+    certifier_phone   varchar(255)                       not null comment '证明人联系电话',
+    user_id           bigint                             not null comment '用户id',
+    create_time       datetime default CURRENT_TIMESTAMP not null comment '创建时间',
+    update_time       datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+    is_delete         tinyint  default 0                 not null comment '是否逻辑删除'
+)
+    comment '教育经历表' row_format = DYNAMIC;
+
 -- 消息通知表
 create table message_notice
 (
@@ -162,12 +180,9 @@ create table message_notice_record
     status      varchar(255) not null comment '通知状态',
     create_time datetime     null comment '创建时间',
     update_time datetime     null comment '更新时间',
-    is_delete   int          null comment '是否逻辑删除',
-    constraint fk_message_notice_record_to_registration
-        foreign key (register_id) references registration (id)
+    is_delete int null comment '是否逻辑删除'
 )
     row_format = DYNAMIC;
-
 
 
 create table family
