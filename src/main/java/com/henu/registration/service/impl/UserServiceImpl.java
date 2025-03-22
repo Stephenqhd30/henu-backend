@@ -9,7 +9,6 @@ import com.henu.registration.common.ThrowUtils;
 import com.henu.registration.common.exception.BusinessException;
 import com.henu.registration.config.security.utils.DeviceUtils;
 import com.henu.registration.constants.CommonConstant;
-import com.henu.registration.constants.SaltConstant;
 import com.henu.registration.constants.UserConstant;
 import com.henu.registration.mapper.UserMapper;
 import com.henu.registration.model.dto.user.UserQueryRequest;
@@ -17,6 +16,7 @@ import com.henu.registration.model.entity.User;
 import com.henu.registration.model.vo.user.LoginUserVO;
 import com.henu.registration.model.vo.user.UserVO;
 import com.henu.registration.service.UserService;
+import com.henu.registration.utils.encrypt.EncryptionUtils;
 import com.henu.registration.utils.redisson.lock.LockUtils;
 import com.henu.registration.utils.regex.RegexUtils;
 import com.henu.registration.utils.satoken.StpKit;
@@ -26,7 +26,6 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.util.DigestUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
@@ -85,7 +84,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 	 */
 	@Override
 	public String getEncryptIdCard(String userIdCard) {
-		return DigestUtils.md5DigestAsHex((SaltConstant.SALT + userIdCard).getBytes());
+		return EncryptionUtils.encrypt(userIdCard);
+	}
+	
+	/**
+	 * 获得解密密码
+	 *
+	 * @param userIdCard userIdCard
+	 * @return String
+	 */
+	@Override
+	public String getDecryptIdCard(String userIdCard) {
+		return EncryptionUtils.decrypt(userIdCard);
 	}
 	
 	/**

@@ -197,3 +197,9 @@ sa-token:
   token-prefix: Bearer
   # jwt秘钥
   jwt-secret-key: ${dev.sa-token.jwt-secret-key}
+
+encrypt:
+  aes:
+    enabled: true
+    # 长度必须是16/24/32字节
+    secret-key: "1234567890123456"

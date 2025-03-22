@@ -12,6 +12,7 @@ import com.henu.registration.model.vo.user.LoginUserVO;
 import com.henu.registration.model.vo.user.UserVO;
 import com.henu.registration.service.AdminService;
 import com.henu.registration.service.UserService;
+import com.henu.registration.utils.encrypt.EncryptionUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -218,6 +219,7 @@ public class UserController {
 		ThrowUtils.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
 		User user = userService.getById(id);
 		ThrowUtils.throwIf(user == null, ErrorCode.NOT_FOUND_ERROR);
+		user.setUserIdCard(EncryptionUtils.decrypt(user.getUserIdCard()));
 		return ResultUtils.success(user);
 	}
 	
@@ -256,6 +258,9 @@ public class UserController {
 		// todo 在此处将实体类和 DTO 进行转换
 		Page<User> userPage = userService.page(new Page<>(current, size),
 				userService.getQueryWrapper(userQueryRequest));
+		userPage.getRecords().forEach(user -> {
+			user.setUserIdCard(EncryptionUtils.decrypt(user.getUserIdCard()));
+		});
 		return ResultUtils.success(userPage);
 	}
 	

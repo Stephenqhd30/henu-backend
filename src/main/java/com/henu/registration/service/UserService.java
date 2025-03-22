@@ -34,6 +34,8 @@ public interface UserService extends IService<User> {
 	 */
 	String getEncryptIdCard(String userPassword);
 	
+	String getDecryptIdCard(String userIdCard);
+	
 	/**
 	 * 用户注册
 	 *
