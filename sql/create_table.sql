@@ -207,6 +207,21 @@ create table registration_form
 )
     comment '报名登记表' row_format = DYNAMIC;
 
+-- 家庭关系表
+create table family
+(
+    id          bigint auto_increment comment 'id'
+        primary key,
+    appellation varchar(255)                       not null comment '称谓',
+    family_name varchar(255)                       not null comment '姓名',
+    work_detail varchar(255)                       not null comment '工作单位及职务',
+    user_id     bigint                             not null comment '创建用户id',
+    create_time datetime default CURRENT_TIMESTAMP not null comment '创建时间',
+    update_time datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+    is_delete   tinyint  default 0                 not null comment '是否逻辑删除(0-否,1-是)'
+)
+    comment '家庭关系表' row_format = DYNAMIC;
+
 -- 消息通知表
 create table message_notice
 (
@@ -237,20 +252,3 @@ create table message_notice_record
     is_delete int null comment '是否逻辑删除'
 )
     row_format = DYNAMIC;
-
-
-create table family
-(
-    register_id varchar(255) not null comment '报名编号',
-    id          bigint       not null comment 'id',
-    appellation varchar(255) not null comment '称谓',
-    family_name varchar(255) not null comment '姓名',
-    work_detail varchar(255) not null comment '工作单位及职务',
-    create_time datetime     null comment '创建时间',
-    update_time datetime     null comment '更新时间',
-    is_delete   int          null comment '是否逻辑删除',
-    primary key (register_id, id)
-)
-    row_format = DYNAMIC;
-
-

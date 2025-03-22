@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.henu.registration.mapper.FamilyMapper">
+
+    <resultMap id="BaseResultMap" type="com.henu.registration.model.entity.Family">
+            <id property="id" column="id" />
+            <result property="appellation" column="appellation" />
+            <result property="familyName" column="family_name" />
+            <result property="workDetail" column="work_detail" />
+            <result property="userId" column="user_id" />
+            <result property="createTime" column="create_time" />
+            <result property="updateTime" column="update_time" />
+            <result property="isDelete" column="is_delete" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,appellation,family_name,work_detail,user_id,create_time,
+        update_time,is_delete
+    </sql>
+</mapper>
