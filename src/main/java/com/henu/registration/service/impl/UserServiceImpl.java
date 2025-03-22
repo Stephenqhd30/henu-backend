@@ -57,8 +57,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 		String userName = user.getUserName();
 		String userEmail = user.getUserEmail();
 		String userPhone = user.getUserPhone();
-		String emergencyPhone = user.getEmergencyPhone();
-		
 		
 		// 创建数据时，参数不能为空
 		if (add) {
@@ -76,9 +74,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 		}
 		if (StringUtils.isNotBlank(userPhone)) {
 			ThrowUtils.throwIf(!RegexUtils.checkMobile(userPhone), ErrorCode.PARAMS_ERROR, "用户手机号码有误");
-		}
-		if (StringUtils.isNotBlank(emergencyPhone)) {
-			ThrowUtils.throwIf(!RegexUtils.checkMobile(emergencyPhone), ErrorCode.PARAMS_ERROR, "用户手机号码有误");
 		}
 	}
 	
@@ -305,14 +300,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 		String userEmail = userQueryRequest.getUserEmail();
 		String userPhone = userQueryRequest.getUserPhone();
 		Integer userGender = userQueryRequest.getUserGender();
-		String ethnic = userQueryRequest.getEthnic();
-		String partyTime = userQueryRequest.getPartyTime();
-		String birthDate = userQueryRequest.getBirthDate();
-		Integer marryStatus = userQueryRequest.getMarryStatus();
-		String emergencyPhone = userQueryRequest.getEmergencyPhone();
-		String address = userQueryRequest.getAddress();
-		String workExperience = userQueryRequest.getWorkExperience();
-		String studentLeaderAwards = userQueryRequest.getStudentLeaderAwards();
 		String sortField = userQueryRequest.getSortField();
 		String sortOrder = userQueryRequest.getSortOrder();
 		QueryWrapper<User> queryWrapper = new QueryWrapper<>();
@@ -321,18 +308,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 		queryWrapper.ne(ObjectUtils.isNotEmpty(notId), "id", notId);
 		queryWrapper.eq(StringUtils.isNotBlank(userIdCard), "user_id_card", this.getEncryptIdCard(userIdCard));
 		queryWrapper.eq(StringUtils.isNotBlank(userPhone), "user_phone", userPhone);
-		queryWrapper.eq(StringUtils.isNotBlank(emergencyPhone), "emergency_phone", emergencyPhone);
-		queryWrapper.eq(StringUtils.isNotBlank(ethnic), "ethnic", ethnic);
 		queryWrapper.eq(userGender != null, "user_gender", userGender);
-		queryWrapper.eq(marryStatus != null, "marry_status", marryStatus);
 		// 模糊查询
 		queryWrapper.like(StringUtils.isNotBlank(userName), "user_name", userName);
 		queryWrapper.like(StringUtils.isNotBlank(userEmail), "user_email", userEmail);
-		queryWrapper.like(StringUtils.isNotBlank(address), "address", address);
-		queryWrapper.like(StringUtils.isNotBlank(workExperience), "work_experience", workExperience);
-		queryWrapper.like(StringUtils.isNotBlank(studentLeaderAwards), "student_leader_awards", studentLeaderAwards);
-		queryWrapper.like(StringUtils.isNotBlank(partyTime), "party_time", partyTime);
-		queryWrapper.like(StringUtils.isNotBlank(birthDate), "birth_date", birthDate);
 		queryWrapper.orderBy(SqlUtils.validSortField(sortField), sortOrder.equals(CommonConstant.SORT_ORDER_ASC),
 				sortField);
 		return queryWrapper;

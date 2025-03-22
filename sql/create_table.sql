@@ -108,14 +108,6 @@ create table user
     user_phone            varchar(255)                           null comment '联系电话',
     user_gender           tinyint      default 0                 not null comment '性别(0-男,1-女)',
     user_avatar           varchar(1024)                          null comment '用户头像',
-    ethnic                varchar(255) default '汉族'            not null comment '民族',
-    party_time            varchar(255)                           null comment '入党时间',
-    birth_date            varchar(255)                           null comment '出生日期',
-    marry_status          tinyint      default 0                 not null comment '婚姻状况(0-未婚，1-已婚)',
-    emergency_phone       varchar(255)                           null comment '紧急联系电话',
-    address               varchar(512)                           null comment '家庭住址',
-    work_experience       longtext                               null comment '工作经历',
-    student_leader_awards longtext                               null comment '主要学生干部经历及获奖情况',
     create_time           datetime     default CURRENT_TIMESTAMP not null comment '创建时间',
     update_time           datetime     default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
     is_delete             tinyint      default 0                 not null comment '是否逻辑删除'
@@ -183,6 +175,30 @@ create table file_type
     is_delete     tinyint  default 0                 not null comment '是否逻辑删除'
 )
     comment '文件上传类型表' row_format = DYNAMIC;
+
+-- 报名登记表
+create table registration_form
+(
+    id                    bigint auto_increment comment 'id'
+        primary key,
+    user_id               bigint                                 not null comment '报名用户id',
+    ethnic                varchar(255) default '汉族'            not null comment '民族',
+    party_time            varchar(255)                           null comment '入党时间',
+    birth_date            varchar(255)                           null comment '出生日期',
+    marry_status          tinyint      default 0                 not null comment '婚姻状况(0-未婚，1-已婚)',
+    emergency_phone       varchar(255)                           null comment '紧急联系电话',
+    address               varchar(512)                           null comment '家庭住址',
+    work_experience       longtext                               null comment '工作经历',
+    student_leader_awards longtext                               null comment '主要学生干部经历及获奖情况',
+    review_status         tinyint      default 0                 not null comment '报名状态(0-待审核,1-审核通过,2-审核不通过)',
+    review_time           datetime                               null comment '审核时间',
+    reviewer              varchar(255)                           null comment '审核人姓名',
+    review_comments       text                                   null comment '审核意见',
+    create_time           datetime     default CURRENT_TIMESTAMP not null comment '创建时间',
+    update_time           datetime     default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+    is_delete             tinyint      default 0                 not null comment '是否逻辑删除(0-否,1-是)'
+)
+    comment '报名登记表' row_format = DYNAMIC;
 
 -- 消息通知表
 create table message_notice

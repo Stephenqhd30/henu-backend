@@ -56,46 +56,6 @@ public class User implements Serializable {
 	private String userAvatar;
 	
 	/**
-	 * 民族
-	 */
-	private String ethnic;
-	
-	/**
-	 * 入党时间
-	 */
-	private String partyTime;
-	
-	/**
-	 * 出生日期
-	 */
-	private String birthDate;
-	
-	/**
-	 * 婚姻状况(0-未婚，1-已婚)
-	 */
-	private Integer marryStatus;
-	
-	/**
-	 * 紧急联系电话
-	 */
-	private String emergencyPhone;
-	
-	/**
-	 * 家庭住址
-	 */
-	private String address;
-	
-	/**
-	 * 工作经历
-	 */
-	private String workExperience;
-	
-	/**
-	 * 主要学生干部经历及获奖情况
-	 */
-	private String studentLeaderAwards;
-	
-	/**
 	 * 创建时间
 	 */
 	private Date createTime;

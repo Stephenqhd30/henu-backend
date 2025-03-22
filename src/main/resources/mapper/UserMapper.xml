@@ -12,14 +12,6 @@
             <result property="userPhone" column="user_phone" />
             <result property="userGender" column="user_gender" />
             <result property="userAvatar" column="user_avatar" />
-            <result property="ethnic" column="ethnic" />
-            <result property="partyTime" column="party_time" />
-            <result property="birthDate" column="birth_date" />
-            <result property="marryStatus" column="marry_status" />
-            <result property="emergencyPhone" column="emergency_phone" />
-            <result property="address" column="address" />
-            <result property="workExperience" column="work_experience" />
-            <result property="studentLeaderAwards" column="student_leader_awards" />
             <result property="createTime" column="create_time" />
             <result property="updateTime" column="update_time" />
             <result property="isDelete" column="is_delete" />
@@ -28,8 +20,6 @@
     <sql id="Base_Column_List">
 	    id
 	    ,user_id_card,user_name,user_email,user_phone,user_gender,user_avatar,
-        ethnic,party_time,birth_date,marry_status,emergency_phone,
-        address,work_experience,student_leader_awards,create_time,update_time,
-        is_delete
+       create_time,update_time,is_delete
     </sql>
 </mapper>
