@@ -8,23 +8,25 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.henu.registration.common.ErrorCode;
 import com.henu.registration.common.exception.BusinessException;
 import com.henu.registration.constants.CommonConstant;
+import com.henu.registration.mapper.FileLogMapper;
 import com.henu.registration.model.dto.fileLog.FileLogQueryRequest;
 import com.henu.registration.model.entity.FileLog;
+import com.henu.registration.model.entity.User;
 import com.henu.registration.model.enums.FileUploadBizEnum;
 import com.henu.registration.model.vo.fileLog.FileLogVO;
+import com.henu.registration.model.vo.user.UserVO;
 import com.henu.registration.service.FileLogService;
-
-import com.henu.registration.mapper.FileLogMapper;
+import com.henu.registration.service.UserService;
 import com.henu.registration.utils.sql.SqlUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -37,6 +39,9 @@ import java.util.stream.Collectors;
 @Service
 public class FileLogServiceImpl extends ServiceImpl<FileLogMapper, FileLog>
 		implements FileLogService {
+	
+	@Resource
+	private UserService userService;
 	/**
 	 * 校验文件
 	 *
@@ -50,12 +55,22 @@ public class FileLogServiceImpl extends ServiceImpl<FileLogMapper, FileLog>
 		// 文件后缀
 		String fileSuffix = FileUtil.getSuffix(multipartFile.getOriginalFilename());
 		if (FileUploadBizEnum.USER_AVATAR.equals(fileUploadBizEnum)) {
-			long ONE_M = 5 * 1024 * 1024L;
-			if (fileSize > ONE_M) {
+			long FIVE_M = 5 * 1024 * 1024L;
+			if (fileSize > FIVE_M) {
 				throw new BusinessException(ErrorCode.PARAMS_SIZE_ERROR, "文件大小不能超过 5M");
 			}
-			if (!Arrays.asList("jpeg", "jpg", "svg", "png", "webp").contains(fileSuffix)) {
+			if (!Arrays.asList("jpeg", "jpg", "png", "webp").contains(fileSuffix)) {
 				throw new BusinessException(ErrorCode.PARAMS_ERROR, "文件类型错误");
+			}
+		} else {
+			// 除用户头像外，其他业务类型只支持 PDF 格式
+			if (!"pdf".equals(fileSuffix)) {
+				throw new BusinessException(ErrorCode.PARAMS_ERROR, "文件类型错误，仅支持 PDF 格式");
+			}
+			// 限制为最大10MB
+			long TEN_M = 10 * 1024 * 1024L;
+			if (fileSize > TEN_M) {
+				throw new BusinessException(ErrorCode.PARAMS_SIZE_ERROR, "文件大小不能超过 10M");
 			}
 		}
 	}
@@ -120,14 +135,13 @@ public class FileLogServiceImpl extends ServiceImpl<FileLogMapper, FileLog>
 		// todo 可以根据需要为封装对象补充值，不需要的内容可以删除
 		// region 可选
 		// 1. 关联查询用户信息
-		// Long userId = fileLog.getAdminId();
-		// Admin user = null;
-		// if (userId != null && userId > 0) {
-		// 	user = userService.getById(userId);
-		// }
-		// AdminVO userVO = userService.getAdminVO(user, request);
-		// fileLogVO.setAdminVO(userVO);
-		
+		Long userId = fileLog.getUserId();
+		User user = null;
+		if (userId != null && userId > 0) {
+			user = userService.getById(userId);
+		}
+		UserVO userVO = userService.getUserVO(user, request);
+		fileLogVO.setUserVO(userVO);
 		// endregion
 		return fileLogVO;
 	}

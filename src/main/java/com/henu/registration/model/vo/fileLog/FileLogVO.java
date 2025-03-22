@@ -2,6 +2,7 @@ package com.henu.registration.model.vo.fileLog;
 
 import cn.hutool.json.JSONUtil;
 import com.henu.registration.model.entity.FileLog;
+import com.henu.registration.model.vo.user.UserVO;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import cn.hutool.core.collection.CollUtil;
@@ -54,6 +55,11 @@ public class FileLogVO implements Serializable {
 	 * 更新时间
 	 */
 	private Date updateTime;
+	
+	/**
+	 * 用户
+	 */
+	private UserVO userVO;
 	
 	
 	/**

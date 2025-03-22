@@ -1,15 +1,20 @@
 package com.henu.registration.controller;
 
 import cn.dev33.satoken.annotation.SaCheckRole;
+import cn.hutool.core.io.FileUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.henu.registration.common.*;
 import com.henu.registration.common.exception.BusinessException;
+import com.henu.registration.constants.AdminConstant;
 import com.henu.registration.model.dto.fileLog.FileLogQueryRequest;
 import com.henu.registration.model.dto.fileLog.UploadFileRequest;
 import com.henu.registration.model.entity.FileLog;
+import com.henu.registration.model.entity.User;
 import com.henu.registration.model.enums.FileUploadBizEnum;
 import com.henu.registration.model.vo.fileLog.FileLogVO;
+import com.henu.registration.service.AdminService;
 import com.henu.registration.service.FileLogService;
+import com.henu.registration.service.UserService;
 import com.henu.registration.utils.oss.CosUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -32,6 +37,12 @@ public class FileLogController {
 	@Resource
 	private FileLogService fileLogService;
 	
+	@Resource
+	private UserService userService;
+	
+	@Resource
+	private AdminService adminService;
+	
 	/**
 	 * 文件上传(使用COS对象存储)
 	 *
@@ -48,41 +59,51 @@ public class FileLogController {
 		ThrowUtils.throwIf(fileUploadBizEnum == null, ErrorCode.PARAMS_ERROR, "文件上传有误");
 		// 校验文件类型
 		fileLogService.validFile(multipartFile, fileUploadBizEnum);
+		// 获取当前登录用户信息
+		User loginUser = userService.getLoginUser(request);
 		// 文件目录：根据业务、用户来划分
-		String path = String.format("/%s/%s", "henu", fileUploadBizEnum.getValue());
+		String path = String.format("/%s/%s/%s", "henu", loginUser.getId(), fileUploadBizEnum.getValue());
 		// 直接上传文件
 		String s = CosUtils.uploadFile(multipartFile, path);
+		// 记录日志
+		FileLog fileLog = new FileLog();
+		fileLog.setFileType(fileUploadBizEnum.getValue());
+		fileLog.setFileName(fileUploadBizEnum.getText());
+		fileLog.setFilePath(path);
+		fileLog.setUserId(loginUser.getId());
+		boolean save = fileLogService.save(fileLog);
+		ThrowUtils.throwIf(!save, ErrorCode.OPERATION_ERROR);
 		// 返回可访问地址
 		return ResultUtils.success(s);
 		
 	}
 	
-	// /**
-	//  * 删除文件上传日志表
-	//  *
-	//  * @param deleteRequest deleteRequest
-	//  * @param request request
-	//  * @return {@link BaseResponse<Boolean>}
-	//  */
-	// @PostMapping("/delete")
-	// public BaseResponse<Boolean> deleteFileLog(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
-	// 	if (deleteRequest == null || deleteRequest.getId() <= 0) {
-	// 		throw new BusinessException(ErrorCode.PARAMS_ERROR);
-	// 	}
-	// 	// User user = userService.getLoginUser(request);
-	// 	// long id = deleteRequest.getId();
-	// 	// 判断是否存在
-	// 	FileLog oldFileLog = fileLogService.getById(id);
-	// 	ThrowUtils.throwIf(oldFileLog == null, ErrorCode.NOT_FOUND_ERROR);
-	// 	// 仅本人或管理员可删除
-	// 	if (!oldFileLog.getUserId().equals(user.getId()) && !userService.isAdmin(request)) {
-	// 		throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
-	// 	}
-	// 	// 操作数据库
-	// 	boolean result = fileLogService.removeById(id);
-	// 	ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
-	// 	return ResultUtils.success(true);
-	// }
+	/**
+	 * 删除文件上传日志表
+	 *
+	 * @param deleteRequest deleteRequest
+	 * @param request       request
+	 * @return {@link BaseResponse<Boolean>}
+	 */
+	@PostMapping("/delete")
+	public BaseResponse<Boolean> deleteFileLog(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
+		if (deleteRequest == null || deleteRequest.getId() <= 0) {
+			throw new BusinessException(ErrorCode.PARAMS_ERROR);
+		}
+		User user = userService.getLoginUser(request);
+		long id = deleteRequest.getId();
+		// 判断是否存在
+		FileLog oldFileLog = fileLogService.getById(id);
+		ThrowUtils.throwIf(oldFileLog == null, ErrorCode.NOT_FOUND_ERROR);
+		// 仅本人或管理员可删除
+		if (!oldFileLog.getUserId().equals(user.getId()) && !adminService.isAdmin(request)) {
+			throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+		}
+		// 操作数据库
+		boolean result = fileLogService.removeById(id);
+		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+		return ResultUtils.success(true);
+	}
 	
 	
 	/**
@@ -108,6 +129,7 @@ public class FileLogController {
 	 * @return {@link BaseResponse<Page<FileLog>>}
 	 */
 	@PostMapping("/list/page")
+	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Page<FileLog>> listFileLogByPage(@RequestBody FileLogQueryRequest fileLogQueryRequest) {
 		long current = fileLogQueryRequest.getCurrent();
 		long size = fileLogQueryRequest.getPageSize();
