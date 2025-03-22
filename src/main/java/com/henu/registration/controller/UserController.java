@@ -1,12 +1,10 @@
 package com.henu.registration.controller;
 
 import cn.dev33.satoken.annotation.SaCheckRole;
-import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.henu.registration.common.*;
 import com.henu.registration.common.exception.BusinessException;
 import com.henu.registration.constants.AdminConstant;
-import com.henu.registration.constants.UserConstant;
 import com.henu.registration.model.dto.user.*;
 import com.henu.registration.model.entity.Admin;
 import com.henu.registration.model.entity.User;

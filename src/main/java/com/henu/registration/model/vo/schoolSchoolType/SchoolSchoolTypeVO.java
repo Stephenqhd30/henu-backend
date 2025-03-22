@@ -4,7 +4,6 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.json.JSONUtil;
 import com.henu.registration.model.entity.SchoolSchoolType;
 import com.henu.registration.model.vo.school.SchoolVO;
-import com.henu.registration.model.vo.schoolType.SchoolTypeVO;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;

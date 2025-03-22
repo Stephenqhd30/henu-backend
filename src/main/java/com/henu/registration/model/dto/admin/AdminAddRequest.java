@@ -3,7 +3,6 @@ package com.henu.registration.model.dto.admin;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.util.List;
 
 /**
  * 创建管理员请求

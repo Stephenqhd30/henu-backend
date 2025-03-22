@@ -1,22 +1,18 @@
 package com.henu.registration.controller;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import cn.dev33.satoken.annotation.SaCheckRole;
-import com.henu.registration.common.BaseResponse;
-import com.henu.registration.common.DeleteRequest;
-import com.henu.registration.common.ErrorCode;
-import com.henu.registration.common.ResultUtils;
-import com.henu.registration.constants.AdminConstant;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.henu.registration.common.*;
 import com.henu.registration.common.exception.BusinessException;
-import com.henu.registration.common.ThrowUtils;
+import com.henu.registration.constants.AdminConstant;
 import com.henu.registration.model.dto.job.JobAddRequest;
 import com.henu.registration.model.dto.job.JobQueryRequest;
 import com.henu.registration.model.dto.job.JobUpdateRequest;
-import com.henu.registration.model.entity.Job;
 import com.henu.registration.model.entity.Admin;
+import com.henu.registration.model.entity.Job;
 import com.henu.registration.model.vo.job.JobVO;
-import com.henu.registration.service.JobService;
 import com.henu.registration.service.AdminService;
+import com.henu.registration.service.JobService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;

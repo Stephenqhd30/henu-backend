@@ -1,7 +1,6 @@
 package com.henu.registration.controller;
 
 import cn.dev33.satoken.annotation.SaCheckRole;
-import cn.hutool.core.io.FileUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.henu.registration.common.*;
 import com.henu.registration.common.exception.BusinessException;
@@ -17,7 +16,6 @@ import com.henu.registration.service.FileLogService;
 import com.henu.registration.service.UserService;
 import com.henu.registration.utils.oss.CosUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 

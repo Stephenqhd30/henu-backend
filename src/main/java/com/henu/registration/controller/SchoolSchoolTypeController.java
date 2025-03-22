@@ -1,25 +1,20 @@
 package com.henu.registration.controller;
 
+import cn.dev33.satoken.annotation.SaCheckRole;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import cn.dev33.satoken.annotation.SaCheckRole;
-import com.henu.registration.common.BaseResponse;
-import com.henu.registration.common.DeleteRequest;
-import com.henu.registration.common.ErrorCode;
-import com.henu.registration.common.ResultUtils;
-import com.henu.registration.constants.AdminConstant;
+import com.henu.registration.common.*;
 import com.henu.registration.common.exception.BusinessException;
-import com.henu.registration.common.ThrowUtils;
+import com.henu.registration.constants.AdminConstant;
 import com.henu.registration.model.dto.schoolSchoolType.SchoolSchoolTypeAddRequest;
 import com.henu.registration.model.dto.schoolSchoolType.SchoolSchoolTypeEditRequest;
 import com.henu.registration.model.dto.schoolSchoolType.SchoolSchoolTypeQueryRequest;
 import com.henu.registration.model.dto.schoolSchoolType.SchoolSchoolTypeUpdateRequest;
-import com.henu.registration.model.entity.SchoolSchoolType;
 import com.henu.registration.model.entity.Admin;
-import com.henu.registration.model.entity.SchoolType;
+import com.henu.registration.model.entity.SchoolSchoolType;
 import com.henu.registration.model.vo.schoolSchoolType.SchoolSchoolTypeVO;
-import com.henu.registration.service.SchoolSchoolTypeService;
 import com.henu.registration.service.AdminService;
+import com.henu.registration.service.SchoolSchoolTypeService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
@@ -27,7 +22,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 高校与高校类型关联信息接口

@@ -5,20 +5,17 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.henu.registration.common.ErrorCode;
-import com.henu.registration.constants.CommonConstant;
 import com.henu.registration.common.ThrowUtils;
-
 import com.henu.registration.common.exception.BusinessException;
+import com.henu.registration.constants.CommonConstant;
 import com.henu.registration.mapper.SchoolMapper;
 import com.henu.registration.model.dto.school.SchoolQueryRequest;
 import com.henu.registration.model.entity.Admin;
 import com.henu.registration.model.entity.School;
-
 import com.henu.registration.model.vo.admin.AdminVO;
 import com.henu.registration.model.vo.school.SchoolVO;
 import com.henu.registration.service.AdminService;
 import com.henu.registration.service.SchoolService;
-
 import com.henu.registration.utils.sql.SqlUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -27,7 +24,9 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;

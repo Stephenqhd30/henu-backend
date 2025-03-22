@@ -7,7 +7,6 @@ import com.henu.registration.model.dto.job.JobQueryRequest;
 import com.henu.registration.model.entity.Job;
 import com.henu.registration.model.vo.job.JobVO;
 
-
 import javax.servlet.http.HttpServletRequest;
 
 /**

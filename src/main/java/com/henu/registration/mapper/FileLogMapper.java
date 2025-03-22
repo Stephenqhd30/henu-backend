@@ -1,7 +1,7 @@
 package com.henu.registration.mapper;
 
-import com.henu.registration.model.entity.FileLog;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.henu.registration.model.entity.FileLog;
 
 /**
 * @author stephenqiu

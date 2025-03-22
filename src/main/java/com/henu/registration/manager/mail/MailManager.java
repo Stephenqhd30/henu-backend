@@ -1,12 +1,12 @@
 package com.henu.registration.manager.mail;
 
-import com.henu.registration.config.mail.condition.MailCondition;
 import com.henu.registration.common.ErrorCode;
 import com.henu.registration.common.ThrowUtils;
+import com.henu.registration.common.exception.BusinessException;
 import com.henu.registration.config.mail.MailAsyncMethod;
+import com.henu.registration.config.mail.condition.MailCondition;
 import com.henu.registration.config.mail.properties.MailProperties;
 import com.henu.registration.constants.CommonConstant;
-import com.henu.registration.common.exception.BusinessException;
 import com.henu.registration.utils.regex.RegexUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;

@@ -3,7 +3,6 @@ package com.henu.registration.model.dto.job;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.util.List;
 
 /**
  * 创建岗位信息表请求

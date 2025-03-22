@@ -1,7 +1,7 @@
 package com.henu.registration.config.captcha;
 
-import com.henu.registration.config.captcha.condition.CaptchaCondition;
 import com.henu.registration.captcha.aop.CaptchaInterceptor;
+import com.henu.registration.config.captcha.condition.CaptchaCondition;
 import com.henu.registration.config.captcha.properties.CaptchaProperties;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;

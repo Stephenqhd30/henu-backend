@@ -1,15 +1,15 @@
 package com.henu.registration.utils.oss;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.henu.registration.common.ErrorCode;
+import com.henu.registration.common.exception.BusinessException;
+import com.henu.registration.config.bean.SpringContextHolder;
+import com.henu.registration.manager.oss.CosManager;
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.transfer.Transfer;
 import com.qcloud.cos.transfer.TransferManager;
 import com.qcloud.cos.transfer.TransferManagerConfiguration;
 import com.qcloud.cos.transfer.TransferProgress;
-import com.henu.registration.common.ErrorCode;
-import com.henu.registration.common.exception.BusinessException;
-import com.henu.registration.config.bean.SpringContextHolder;
-import com.henu.registration.manager.oss.CosManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ThreadUtils;
 import org.springframework.web.multipart.MultipartFile;

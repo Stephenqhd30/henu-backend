@@ -3,7 +3,6 @@ package com.henu.registration.model.dto.school;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.util.List;
 
 /**
  * 更新高校信息请求

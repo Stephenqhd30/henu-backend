@@ -1,16 +1,12 @@
 package com.henu.registration.model.vo.school;
 
-import cn.hutool.json.JSONUtil;
 import com.henu.registration.model.entity.School;
 import com.henu.registration.model.vo.admin.AdminVO;
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
-import cn.hutool.core.collection.CollUtil;
 import org.springframework.beans.BeanUtils;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
 
 /**
  * 高校信息视图

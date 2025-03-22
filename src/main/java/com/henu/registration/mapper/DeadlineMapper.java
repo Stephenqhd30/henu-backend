@@ -1,7 +1,7 @@
 package com.henu.registration.mapper;
 
-import com.henu.registration.model.entity.Deadline;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.henu.registration.model.entity.Deadline;
 
 /**
  * @author stephenqiu

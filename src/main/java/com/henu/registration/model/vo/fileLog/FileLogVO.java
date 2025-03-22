@@ -1,16 +1,12 @@
 package com.henu.registration.model.vo.fileLog;
 
-import cn.hutool.json.JSONUtil;
 import com.henu.registration.model.entity.FileLog;
 import com.henu.registration.model.vo.user.UserVO;
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
-import cn.hutool.core.collection.CollUtil;
 import org.springframework.beans.BeanUtils;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
 
 /**
  * 文件上传日志表视图

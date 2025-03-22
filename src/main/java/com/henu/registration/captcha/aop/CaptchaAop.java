@@ -1,11 +1,11 @@
 package com.henu.registration.captcha.aop;
 
 
+import com.henu.registration.captcha.model.entity.Captcha;
+import com.henu.registration.captcha.service.CaptchaService;
 import com.henu.registration.common.ErrorCode;
 import com.henu.registration.common.exception.BusinessException;
 import com.henu.registration.config.captcha.condition.CaptchaCondition;
-import com.henu.registration.captcha.model.entity.Captcha;
-import com.henu.registration.captcha.service.CaptchaService;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;

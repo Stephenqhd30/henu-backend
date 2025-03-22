@@ -1,12 +1,12 @@
 package com.henu.registration.config.oss.cos;
 
+import com.henu.registration.config.oss.cos.condition.CosCondition;
+import com.henu.registration.config.oss.cos.properties.CosProperties;
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.ClientConfig;
 import com.qcloud.cos.auth.BasicCOSCredentials;
 import com.qcloud.cos.auth.COSCredentials;
 import com.qcloud.cos.region.Region;
-import com.henu.registration.config.oss.cos.condition.CosCondition;
-import com.henu.registration.config.oss.cos.properties.CosProperties;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;

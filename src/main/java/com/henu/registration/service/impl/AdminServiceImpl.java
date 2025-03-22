@@ -21,7 +21,6 @@ import com.henu.registration.model.enums.AdminTyprEnum;
 import com.henu.registration.model.vo.admin.AdminVO;
 import com.henu.registration.model.vo.admin.LoginAdminVO;
 import com.henu.registration.service.AdminService;
-import com.henu.registration.utils.satoken.StpKit;
 import com.henu.registration.utils.sql.SqlUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;

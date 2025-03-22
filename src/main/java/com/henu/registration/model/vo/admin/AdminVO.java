@@ -1,15 +1,11 @@
 package com.henu.registration.model.vo.admin;
 
-import cn.hutool.json.JSONUtil;
 import com.henu.registration.model.entity.Admin;
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
-import cn.hutool.core.collection.CollUtil;
 import org.springframework.beans.BeanUtils;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
 
 /**
  * 管理员视图
