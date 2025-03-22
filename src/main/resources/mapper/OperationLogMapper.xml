@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.henu.registration.mapper.OperationLogMapper">
+
+    <resultMap id="BaseResultMap" type="com.henu.registration.model.entity.OperationLog">
+            <id property="id" column="id" />
+            <result property="requestId" column="request_id" />
+            <result property="requestPath" column="request_path" />
+            <result property="requestMethod" column="request_method" />
+            <result property="requestIp" column="request_ip" />
+            <result property="requestParams" column="request_params" />
+            <result property="responseTime" column="response_time" />
+            <result property="userAgent" column="user_agent" />
+            <result property="createTime" column="create_time" />
+            <result property="isDelete" column="is_delete" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,request_id,request_path,request_method,request_ip,request_params,
+        response_time,user_agent,create_time,is_delete
+    </sql>
+</mapper>

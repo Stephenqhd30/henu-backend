@@ -153,6 +153,22 @@ create table education
 )
     comment '教育经历表' row_format = DYNAMIC;
 
+-- 操作日志表
+create table operation_log
+(
+    id             bigint auto_increment comment 'id' primary key,
+    request_id     varchar(255)                       not null comment '请求唯一id',
+    request_path   varchar(1024)                      not null comment '请求路径',
+    request_method varchar(32)                        not null comment '请求方法（GET, POST等）',
+    request_ip     varchar(255)                       not null comment '请求IP地址',
+    request_params text                               not null comment '请求参数',
+    response_time  bigint                             not null comment '响应时间（毫秒）',
+    user_agent     varchar(512)                       not null comment '用户代理（浏览器信息）',
+    create_time    datetime default CURRENT_TIMESTAMP not null comment '操作时间',
+    is_delete      tinyint  default 0                 not null comment '是否逻辑删除'
+)
+    comment '操作日志表' row_format = DYNAMIC;
+
 -- 消息通知表
 create table message_notice
 (
