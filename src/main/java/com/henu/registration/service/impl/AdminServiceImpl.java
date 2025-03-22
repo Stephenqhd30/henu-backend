@@ -11,9 +11,9 @@ import com.henu.registration.common.ErrorCode;
 import com.henu.registration.common.ThrowUtils;
 import com.henu.registration.common.exception.BusinessException;
 import com.henu.registration.config.security.utils.DeviceUtils;
+import com.henu.registration.constants.AdminConstant;
 import com.henu.registration.constants.CommonConstant;
 import com.henu.registration.constants.SaltConstant;
-import com.henu.registration.constants.UserConstant;
 import com.henu.registration.mapper.AdminMapper;
 import com.henu.registration.model.dto.admin.AdminQueryRequest;
 import com.henu.registration.model.entity.Admin;
@@ -21,6 +21,7 @@ import com.henu.registration.model.enums.AdminTyprEnum;
 import com.henu.registration.model.vo.admin.AdminVO;
 import com.henu.registration.model.vo.admin.LoginAdminVO;
 import com.henu.registration.service.AdminService;
+import com.henu.registration.utils.satoken.StpKit;
 import com.henu.registration.utils.sql.SqlUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -59,7 +60,7 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin>
 		}
 		// 2. 加密
 		String encryptPassword = this.getEncryptPassword(adminPassword);
-		// 查询用户是否存在
+		// 3. 查询用户是否存在
 		LambdaQueryWrapper<Admin> eq = Wrappers.lambdaQuery(Admin.class)
 				.eq(Admin::getAdminNumber, adminNumber)
 				.eq(Admin::getAdminPassword, encryptPassword);
@@ -69,11 +70,88 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin>
 			log.info("user login failed, userAccount cannot match userPassword");
 			throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户不存在或密码错误");
 		}
-		// 3. 记录用户的登录态
-		// 使用Sa-Token登录，并指定设备同端登录互斥
+		// 4. 记录管理员的登录态（避免和普通用户冲突）
 		StpUtil.login(admin.getId(), DeviceUtils.getRequestDevice(request));
-		StpUtil.getSession().set(UserConstant.USER_LOGIN_STATE, admin);
+		StpUtil.getSession().set(AdminConstant.ADMIN_LOGIN_STATE, admin);
 		return this.getLoginAdminVO(admin);
+	}
+	
+	
+	/**
+	 * 获取当前登录的管理员
+	 *
+	 * @param request request
+	 * @return {@link Admin}
+	 */
+	@Override
+	public Admin getLoginAdmin(HttpServletRequest request) {
+		// 先判断管理员是否已经登录
+		Object loginAdminId = StpUtil.getLoginIdDefaultNull();
+		if (loginAdminId == null) {
+			throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR, "管理员未登录");
+		}
+		// 从数据库查询（可优化为缓存）
+		Admin currentAdmin = this.getById((String) loginAdminId);
+		if (currentAdmin == null || currentAdmin.getId() == null) {
+			throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+		}
+		return currentAdmin;
+	}
+	
+	/**
+	 * 获取当前登录管理员（允许未登录）
+	 *
+	 * @param request request
+	 * @return {@link Admin}
+	 */
+	@Override
+	public Admin getLoginAdminPermitNull(HttpServletRequest request) {
+		// 先判断是否登录
+		if (!StpUtil.isLogin()) {
+			return null;
+		}
+		// 直接获取用户 ID
+		long adminId = StpUtil.getLoginIdAsLong();
+		return this.getById(adminId);
+	}
+	
+	
+	/**
+	 * 是否为系统管理员
+	 *
+	 * @param request request
+	 * @return boolean 是否为管理员
+	 */
+	@Override
+	public boolean isAdmin(HttpServletRequest request) {
+		Admin admin = (Admin) StpUtil.getSession().get(AdminConstant.ADMIN_LOGIN_STATE);
+		return admin != null && isAdmin(admin);
+	}
+	
+	/**
+	 * 是否为管理员
+	 *
+	 * @param admin admin
+	 * @return boolean 是否为管理员
+	 */
+	@Override
+	public boolean isAdmin(Admin admin) {
+		return !AdminTyprEnum.SYSTEM_ADMIN.getValue().equals(admin.getAdminType());
+	}
+	
+	/**
+	 * 管理员注销
+	 *
+	 * @param request request
+	 * @return boolean 是否退出成功
+	 */
+	@Override
+	public boolean AdminLogout(HttpServletRequest request) {
+		// 先检查管理员是否登录
+		StpUtil.checkLogin();
+		// 移除管理员登录态
+		StpUtil.logout();
+		return true;
 	}
 	
 	/**
@@ -113,68 +191,7 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin>
 	 */
 	@Override
 	public String getEncryptPassword(String adminPassword) {
-		return DigestUtils.md5DigestAsHex((SaltConstant.SALT + adminPassword).getBytes());
-	}
-	
-	/**
-	 * 获取当前登录的管理员
-	 *
-	 * @param request request
-	 * @return {@link Admin}
-	 */
-	@Override
-	public Admin getLoginAdmin(HttpServletRequest request) {
-		// 先判断是否已经登录
-		Object loginAdminId = StpUtil.getLoginIdDefaultNull();
-		if (loginAdminId == null) {
-			throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR, "用户未登录");
-		}
-		// 从数据库查询（追求性能的话可以注释，直接走缓存）
-		Admin currentAdmin = this.getById((String) loginAdminId);
-		if (currentAdmin == null || currentAdmin.getId() == null) {
-			throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
-		}
-		return currentAdmin;
-	}
-	
-	
-	/**
-	 * 是否为系统管理员
-	 *
-	 * @param request request
-	 * @return boolean 是否为管理员
-	 */
-	@Override
-	public boolean isAdmin(HttpServletRequest request) {
-		// 仅系统管理员可查询
-		Admin Admin = (Admin) StpUtil.getSession().get(UserConstant.USER_LOGIN_STATE);
-		return isAdmin(Admin);
-	}
-	
-	/**
-	 * 是否为管理员
-	 *
-	 * @param admin admin
-	 * @return boolean 是否为管理员
-	 */
-	@Override
-	public boolean isAdmin(Admin admin) {
-		return !AdminTyprEnum.SYSTEM_ADMIN.getValue().equals(admin.getAdminType());
-	}
-	
-	/**
-	 * 管理员注销
-	 *
-	 * @param request request
-	 * @return boolean 是否退出成功
-	 */
-	@Override
-	public boolean AdminLogout(HttpServletRequest request) {
-		// 判断是否登录
-		StpUtil.checkLogin();
-		// 移除登录态
-		StpUtil.logout();
-		return true;
+		return DigestUtils.md5DigestAsHex((SaltConstant.ADMIN_SALT + adminPassword).getBytes());
 	}
 	
 	/**

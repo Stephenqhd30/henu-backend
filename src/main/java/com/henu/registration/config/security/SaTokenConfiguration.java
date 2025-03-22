@@ -3,6 +3,7 @@ package com.henu.registration.config.security;
 import cn.dev33.satoken.context.SaHolder;
 import cn.dev33.satoken.filter.SaServletFilter;
 import cn.dev33.satoken.interceptor.SaInterceptor;
+import cn.dev33.satoken.strategy.SaAnnotationStrategy;
 import cn.dev33.satoken.util.SaResult;
 import cn.hutool.json.JSONUtil;
 import com.henu.registration.config.security.condition.SaCondition;
@@ -10,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -37,6 +39,8 @@ public class SaTokenConfiguration implements WebMvcConfigurer {
 			add("/");
 			add("/admin/login");
 			add("/admin/get/login");
+			add("/user/login");
+			add("/user/get/login");
 			add("/swagger-ui/**");
 			add("/v2/api-docs/**");
 			add("/swagger-resources/**");
@@ -101,6 +105,12 @@ public class SaTokenConfiguration implements WebMvcConfigurer {
 					;
 				});
 		
+	}
+	
+	@PostConstruct
+	public void rewriteSaStrategy() {
+		// 重写Sa-Token的注解处理器，增加注解合并功能
+		SaAnnotationStrategy.instance.getAnnotation = AnnotatedElementUtils::getMergedAnnotation;
 	}
 	
 	/**

@@ -8,5 +8,12 @@ public interface SaltConstant {
 	/**
 	 * 盐值，混淆密码
 	 */
-	String SALT = "henu-registration";
+	String ADMIN_SALT = "henu-registration";
+	
+	/**
+	 * 盐值，混淆密码
+	 */
+	String SALT = "henu-user-registration";
+	
+	
 }

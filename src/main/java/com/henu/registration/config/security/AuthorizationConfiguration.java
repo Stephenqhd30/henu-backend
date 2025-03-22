@@ -4,15 +4,13 @@ import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.StpInterface;
 import cn.dev33.satoken.stp.StpUtil;
 import com.henu.registration.config.security.condition.SaCondition;
-import com.henu.registration.constants.UserConstant;
+import com.henu.registration.constants.AdminConstant;
 import com.henu.registration.model.entity.Admin;
-import com.henu.registration.service.AdminService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -60,8 +58,8 @@ public class AuthorizationConfiguration implements StpInterface {
 		// 由于此处设计主要针对于用户角色，所以角色通常只有一个，个别情况除外
 		// "*"表示上帝角色
 		SaSession saSession = StpUtil.getSessionByLoginId(loginId);
-		Admin user = (Admin) saSession.get(UserConstant.USER_LOGIN_STATE);
-		return Collections.singletonList(user.getAdminType());
+		Admin admin = (Admin) saSession.get(AdminConstant.ADMIN_LOGIN_STATE);
+		return Collections.singletonList(admin.getAdminType());
 	}
 	
 	

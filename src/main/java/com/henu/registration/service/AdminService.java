@@ -45,6 +45,14 @@ public interface AdminService extends IService<Admin> {
 	Admin getLoginAdmin(HttpServletRequest request);
 	
 	/**
+	 * 获取当前登录管理员（允许未登录）
+	 *
+	 * @param request request
+	 * @return {@link Admin}
+	 */
+	Admin getLoginAdminPermitNull(HttpServletRequest request);
+	
+	/**
 	 * 是否为系统管理员
 	 *
 	 * @param request request

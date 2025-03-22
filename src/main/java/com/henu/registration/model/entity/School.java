@@ -11,6 +11,7 @@ import lombok.Data;
 
 /**
  * 高校信息
+ * @author stephenqiu
  * @TableName school
  */
 @TableName(value ="school")

@@ -12,8 +12,10 @@ import com.henu.registration.common.exception.BusinessException;
 import com.henu.registration.common.ThrowUtils;
 import com.henu.registration.model.dto.admin.*;
 import com.henu.registration.model.entity.Admin;
+import com.henu.registration.model.entity.User;
 import com.henu.registration.model.vo.admin.AdminVO;
 import com.henu.registration.model.vo.admin.LoginAdminVO;
+import com.henu.registration.model.vo.user.LoginUserVO;
 import com.henu.registration.service.AdminService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -44,7 +46,7 @@ public class AdminController {
 	 * @return BaseResponse<LoginUserVO>
 	 */
 	@PostMapping("/login")
-	public BaseResponse<LoginAdminVO> userLogin(@RequestBody AdminLoginRequest adminLoginRequest, HttpServletRequest request) {
+	public BaseResponse<LoginAdminVO> adminLogin(@RequestBody AdminLoginRequest adminLoginRequest, HttpServletRequest request) {
 		if (adminLoginRequest == null) {
 			throw new BusinessException(ErrorCode.PARAMS_ERROR);
 		}
@@ -53,6 +55,18 @@ public class AdminController {
 		ThrowUtils.throwIf(StringUtils.isAnyBlank(adminNumber, adminPassword), ErrorCode.PARAMS_ERROR);
 		LoginAdminVO loginAdminVO = adminService.adminLogin(adminNumber, adminPassword, request);
 		return ResultUtils.success(loginAdminVO);
+	}
+	
+	/**
+	 * 获取当前登录的管理员
+	 *
+	 * @param request request
+	 * @return BaseResponse<LoginUserVO>
+	 */
+	@GetMapping("/get/login")
+	public BaseResponse<LoginAdminVO> getLoginAdmin(HttpServletRequest request) {
+		Admin admin = adminService.getLoginAdmin(request);
+		return ResultUtils.success(adminService.getLoginAdminVO(admin));
 	}
 	// region 增删改查
 	

@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 
+import java.io.Serializable;
 import java.util.Date;
 
 import lombok.Data;
@@ -16,7 +17,8 @@ import lombok.Data;
  */
 @TableName(value = "school_school_type")
 @Data
-public class SchoolSchoolType {
+public class SchoolSchoolType implements Serializable {
+	private static final long serialVersionUID = -6599046967577690210L;
 	/**
 	 * id
 	 */

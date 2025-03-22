@@ -16,4 +16,9 @@ public interface AdminConstant {
 	 * 被封号
 	 */
 	String ADMIN = "admin";
+	
+	/**
+	 * 管理员登录态键
+	 */
+	String ADMIN_LOGIN_STATE = "admin_login";
 }

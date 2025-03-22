@@ -97,6 +97,31 @@ create table job
 )
     comment '岗位信息表' row_format = DYNAMIC;
 
+-- 用户信息表
+create table user
+(
+    id                    bigint auto_increment comment 'id'
+        primary key,
+    user_id_card          varchar(1024)                          not null comment '身份证号码',
+    user_name             varchar(255)                           not null comment '姓名',
+    user_email            varchar(255)                           null comment '邮箱地址',
+    user_phone            varchar(255)                           null comment '联系电话',
+    user_gender           tinyint      default 0                 not null comment '性别(0-男,1-女)',
+    user_avatar           varchar(1024)                          null comment '用户头像',
+    ethnic                varchar(255) default '汉族'            not null comment '民族',
+    party_time            varchar(255)                           null comment '入党时间',
+    birth_date            varchar(255)                           null comment '出生日期',
+    marry_status          tinyint      default 0                 not null comment '婚姻状况(0-未婚，1-已婚)',
+    emergency_phone       varchar(255)                           null comment '紧急联系电话',
+    address               varchar(512)                           null comment '家庭住址',
+    work_experience       longtext                               null comment '工作经历',
+    student_leader_awards longtext                               null comment '主要学生干部经历及获奖情况',
+    create_time           datetime     default CURRENT_TIMESTAMP not null comment '创建时间',
+    update_time           datetime     default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+    is_delete             tinyint      default 0                 not null comment '是否逻辑删除'
+)
+    comment '用户信息表' row_format = DYNAMIC;
+
 -- 文件上传日志表
 create table file_log
 (
@@ -155,36 +180,8 @@ create table family
     create_time datetime     null comment '创建时间',
     update_time datetime     null comment '更新时间',
     is_delete   int          null comment '是否逻辑删除',
-    primary key (register_id, id),
-    constraint fk_family_to_registration
-        foreign key (register_id) references registration (id)
+    primary key (register_id, id)
 )
     row_format = DYNAMIC;
 
-create table registration
-(
-    id                    varchar(255) not null comment '报名编号'
-        primary key,
-    id_card               varchar(255) null comment '身份证号码',
-    name                  varchar(255) null comment '姓名',
-    email                 varchar(255) null comment '邮箱地址',
-    phone                 varchar(255) null comment '联系电话',
-    password              varchar(255) null comment '登录密码',
-    job_id                varchar(255) null comment '岗位编号',
-    check_status          varchar(255) null comment '审核状态',
-    gender                varchar(255) null comment '性别',
-    ethnic                varchar(255) null comment '民族',
-    party_time            varchar(255) null comment '入党时间',
-    birth_date            varchar(255) null comment '出生日期',
-    marry_status          varchar(255) null comment '婚姻状况',
-    emergency_phone       varchar(255) null comment '紧急联系电话',
-    address               varchar(255) null comment '家庭住址',
-    work_experience       text         null comment '工作经历',
-    student_leader_awards text         null comment '主要学生干部经历及获奖情况',
-    create_time           datetime     null comment '创建时间',
-    update_time           datetime     null comment '更新时间',
-    is_delete             int          null comment '是否逻辑删除',
-    constraint fk_registration_to_job
-        foreign key (job_id) references job (id)
-)
-    row_format = DYNAMIC;
+
