@@ -169,6 +169,21 @@ create table operation_log
 )
     comment '操作日志表' row_format = DYNAMIC;
 
+-- 文件上传类型表
+create table file_type
+(
+    id            bigint auto_increment comment 'id'
+        primary key,
+    type_name     varchar(255)                       not null comment '文件上传类型名称',
+    type_value    varchar(255)                       not null comment '文件上传类型值',
+    max_file_size bigint   default 5242880           not null comment '最大可上传文件大小（字节）',
+    admin_id      bigint                             not null comment '创建人id',
+    create_time   datetime default CURRENT_TIMESTAMP not null comment '记录创建时间',
+    update_time   datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '记录更新时间',
+    is_delete     tinyint  default 0                 not null comment '是否逻辑删除'
+)
+    comment '文件上传类型表' row_format = DYNAMIC;
+
 -- 消息通知表
 create table message_notice
 (
