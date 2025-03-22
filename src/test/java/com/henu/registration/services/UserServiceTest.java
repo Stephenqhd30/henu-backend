@@ -25,7 +25,7 @@ public class UserServiceTest {
 	
 	@Test
 	public void getDecryptUserIdCardTest() {
-		String password = userService.getDecryptIdCard("");
+		String password = userService.getDecryptIdCard("e0b2089d54fab95e9e08cc8391cc04b4");
 		System.out.println(password);
 	}
 	

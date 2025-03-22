@@ -113,6 +113,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 		if (!userIdCard.equals(checkUserIdCard)) {
 			throw new BusinessException(ErrorCode.PARAMS_ERROR, "两次输入的身份证号不一致");
 		}
+		if (StringUtils.isNotBlank(userIdCard)) {
+			ThrowUtils.throwIf(!RegexUtils.checkIdCard(userIdCard), ErrorCode.PARAMS_ERROR, "身份证号输入有误");
+		}
 		return LockUtils.lockEvent(userIdCard.intern(), () -> {
 			// 账户不能重复
 			QueryWrapper<User> queryWrapper = new QueryWrapper<>();

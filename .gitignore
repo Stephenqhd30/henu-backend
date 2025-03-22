@@ -150,4 +150,4 @@ application-prod.properties
 
 src/main/resources/templates
 src/main/java/com/henu/registration/generate
-src/main/java/com/henu/registration/constants
+src/main/java/com/henu/registration/constants/SaltConstant.java

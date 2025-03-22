@@ -34,6 +34,12 @@ public interface AdminService extends IService<Admin> {
 	 */
 	void validAdmin(Admin admin, boolean add);
 	
+	/**
+	 * 获得加密密码
+	 *
+	 * @param userPassword userPassword
+	 * @return String
+	 */
 	String getEncryptPassword(String userPassword);
 	
 	/**
