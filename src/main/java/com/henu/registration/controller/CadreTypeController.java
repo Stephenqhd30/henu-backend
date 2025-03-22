@@ -6,7 +6,6 @@ import com.henu.registration.common.*;
 import com.henu.registration.common.exception.BusinessException;
 import com.henu.registration.constants.AdminConstant;
 import com.henu.registration.model.dto.cadreType.CadreTypeAddRequest;
-import com.henu.registration.model.dto.cadreType.CadreTypeEditRequest;
 import com.henu.registration.model.dto.cadreType.CadreTypeQueryRequest;
 import com.henu.registration.model.dto.cadreType.CadreTypeUpdateRequest;
 import com.henu.registration.model.entity.Admin;
@@ -94,7 +93,7 @@ public class CadreTypeController {
 	}
 	
 	/**
-	 * 更新干部类型（仅管理员可用）
+	 * 更新干部类型（仅系统管理员可用）
 	 *
 	 * @param cadreTypeUpdateRequest cadreTypeUpdateRequest
 	 * @return {@link BaseResponse<Boolean>}
@@ -138,7 +137,7 @@ public class CadreTypeController {
 	}
 	
 	/**
-	 * 分页获取干部类型列表（仅管理员可用）
+	 * 分页获取干部类型列表（仅系统管理员可用）
 	 *
 	 * @param cadreTypeQueryRequest cadreTypeQueryRequest
 	 * @return {@link BaseResponse<Page<CadreType>>}
@@ -176,7 +175,7 @@ public class CadreTypeController {
 	}
 	
 	/**
-	 * 分页获取当前登录用户创建的干部类型列表
+	 * 分页获取当前登录管理员创建的干部类型列表
 	 *
 	 * @param cadreTypeQueryRequest cadreTypeQueryRequest
 	 * @param request               request
@@ -198,38 +197,6 @@ public class CadreTypeController {
 				cadreTypeService.getQueryWrapper(cadreTypeQueryRequest));
 		// 获取封装类
 		return ResultUtils.success(cadreTypeService.getCadreTypeVOPage(cadreTypePage, request));
-	}
-	
-	/**
-	 * 编辑干部类型（给用户使用）
-	 *
-	 * @param cadreTypeEditRequest cadreTypeEditRequest
-	 * @param request              request
-	 * @return {@link BaseResponse<Boolean>}
-	 */
-	@PostMapping("/edit")
-	public BaseResponse<Boolean> editCadreType(@RequestBody CadreTypeEditRequest cadreTypeEditRequest, HttpServletRequest request) {
-		if (cadreTypeEditRequest == null || cadreTypeEditRequest.getId() <= 0) {
-			throw new BusinessException(ErrorCode.PARAMS_ERROR);
-		}
-		// todo 在此处将实体类和 DTO 进行转换
-		CadreType cadreType = new CadreType();
-		BeanUtils.copyProperties(cadreTypeEditRequest, cadreType);
-		// 数据校验
-		cadreTypeService.validCadreType(cadreType, false);
-		Admin loginAdmin = adminService.getLoginAdmin(request);
-		// 判断是否存在
-		long id = cadreTypeEditRequest.getId();
-		CadreType oldCadreType = cadreTypeService.getById(id);
-		ThrowUtils.throwIf(oldCadreType == null, ErrorCode.NOT_FOUND_ERROR);
-		// 仅本人或管理员可编辑
-		if (!oldCadreType.getAdminId().equals(loginAdmin.getId()) && !adminService.isAdmin(loginAdmin)) {
-			throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
-		}
-		// 操作数据库
-		boolean result = cadreTypeService.updateById(cadreType);
-		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
-		return ResultUtils.success(true);
 	}
 	
 	// endregion

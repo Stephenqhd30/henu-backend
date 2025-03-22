@@ -6,7 +6,6 @@ import com.henu.registration.common.*;
 import com.henu.registration.common.exception.BusinessException;
 import com.henu.registration.constants.AdminConstant;
 import com.henu.registration.model.dto.school.SchoolAddRequest;
-import com.henu.registration.model.dto.school.SchoolEditRequest;
 import com.henu.registration.model.dto.school.SchoolQueryRequest;
 import com.henu.registration.model.dto.school.SchoolUpdateRequest;
 import com.henu.registration.model.entity.Admin;
@@ -93,7 +92,7 @@ public class SchoolController {
 	}
 	
 	/**
-	 * 更新高校信息（仅管理员可用）
+	 * 更新高校信息（仅系统管理员可用）
 	 *
 	 * @param schoolUpdateRequest schoolUpdateRequest
 	 * @return {@link BaseResponse<Boolean>}
@@ -136,7 +135,7 @@ public class SchoolController {
 	}
 	
 	/**
-	 * 分页获取高校信息列表（仅管理员可用）
+	 * 分页获取高校信息列表（仅系统管理员可用）
 	 *
 	 * @param schoolQueryRequest schoolQueryRequest
 	 * @return {@link BaseResponse<Page<School>>}
@@ -196,38 +195,6 @@ public class SchoolController {
 				schoolService.getQueryWrapper(schoolQueryRequest));
 		// 获取封装类
 		return ResultUtils.success(schoolService.getSchoolVOPage(schoolPage, request));
-	}
-	
-	/**
-	 * 编辑高校信息
-	 *
-	 * @param schoolEditRequest schoolEditRequest
-	 * @param request           request
-	 * @return {@link BaseResponse<Boolean>}
-	 */
-	@PostMapping("/edit")
-	public BaseResponse<Boolean> editSchool(@RequestBody SchoolEditRequest schoolEditRequest, HttpServletRequest request) {
-		if (schoolEditRequest == null || schoolEditRequest.getId() <= 0) {
-			throw new BusinessException(ErrorCode.PARAMS_ERROR);
-		}
-		// todo 在此处将实体类和 DTO 进行转换
-		School school = new School();
-		BeanUtils.copyProperties(schoolEditRequest, school);
-		// 数据校验
-		schoolService.validSchool(school, false);
-		Admin loginAdmin = adminService.getLoginAdmin(request);
-		// 判断是否存在
-		long id = schoolEditRequest.getId();
-		School oldSchool = schoolService.getById(id);
-		ThrowUtils.throwIf(oldSchool == null, ErrorCode.NOT_FOUND_ERROR);
-		// 仅本人或管理员可编辑
-		if (!oldSchool.getAdminId().equals(loginAdmin.getId()) && !adminService.isAdmin(loginAdmin)) {
-			throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
-		}
-		// 操作数据库
-		boolean result = schoolService.updateById(school);
-		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
-		return ResultUtils.success(true);
 	}
 	
 	// endregion

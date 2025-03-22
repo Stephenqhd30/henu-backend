@@ -98,7 +98,7 @@ public class EducationController {
 	}
 	
 	/**
-	 * 更新教育经历表（仅管理员可用）
+	 * 更新教育经历表（仅系统管理员可用）
 	 *
 	 * @param educationUpdateRequest educationUpdateRequest
 	 * @return {@link BaseResponse<Boolean>}
@@ -142,7 +142,7 @@ public class EducationController {
 	}
 	
 	/**
-	 * 分页获取教育经历表列表（仅管理员可用）
+	 * 分页获取教育经历表列表（仅系统管理员可用）
 	 *
 	 * @param educationQueryRequest educationQueryRequest
 	 * @return {@link BaseResponse<Page<Education>>}

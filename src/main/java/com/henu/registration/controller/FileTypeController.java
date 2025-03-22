@@ -7,7 +7,6 @@ import com.henu.registration.common.*;
 import com.henu.registration.common.exception.BusinessException;
 import com.henu.registration.constants.AdminConstant;
 import com.henu.registration.model.dto.fileType.FileTypeAddRequest;
-import com.henu.registration.model.dto.fileType.FileTypeEditRequest;
 import com.henu.registration.model.dto.fileType.FileTypeQueryRequest;
 import com.henu.registration.model.dto.fileType.FileTypeUpdateRequest;
 import com.henu.registration.model.entity.Admin;
@@ -203,40 +202,6 @@ public class FileTypeController {
 				fileTypeService.getQueryWrapper(fileTypeQueryRequest));
 		// 获取封装类
 		return ResultUtils.success(fileTypeService.getFileTypeVOPage(fileTypePage, request));
-	}
-	
-	/**
-	 * 编辑文件上传类型（给用户使用）
-	 *
-	 * @param fileTypeEditRequest fileTypeEditRequest
-	 * @param request             request
-	 * @return {@link BaseResponse<Boolean>}
-	 */
-	@PostMapping("/edit")
-	public BaseResponse<Boolean> editFileType(@RequestBody FileTypeEditRequest fileTypeEditRequest, HttpServletRequest request) {
-		if (fileTypeEditRequest == null || fileTypeEditRequest.getId() <= 0) {
-			throw new BusinessException(ErrorCode.PARAMS_ERROR);
-		}
-		// todo 在此处将实体类和 DTO 进行转换
-		FileType fileType = new FileType();
-		BeanUtils.copyProperties(fileTypeEditRequest, fileType);
-		String typeValues = JSONUtil.toJsonStr(fileTypeEditRequest.getTypeValues());
-		fileType.setTypeValues(typeValues);
-		// 数据校验
-		fileTypeService.validFileType(fileType, false);
-		Admin loginAdmin = adminService.getLoginAdmin(request);
-		// 判断是否存在
-		long id = fileTypeEditRequest.getId();
-		FileType oldFileType = fileTypeService.getById(id);
-		ThrowUtils.throwIf(oldFileType == null, ErrorCode.NOT_FOUND_ERROR);
-		// 仅本人或管理员可编辑
-		if (!oldFileType.getAdminId().equals(loginAdmin.getId()) && !adminService.isAdmin(loginAdmin)) {
-			throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
-		}
-		// 操作数据库
-		boolean result = fileTypeService.updateById(fileType);
-		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
-		return ResultUtils.success(true);
 	}
 	
 	// endregion

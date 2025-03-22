@@ -32,7 +32,7 @@ public class AdminController {
 	private AdminService adminService;
 	
 	/**
-	 * 用户登录
+	 * 管理员登录
 	 *
 	 * @param adminLoginRequest userLoginRequest
 	 * @param request           request
@@ -163,7 +163,7 @@ public class AdminController {
 	}
 	
 	/**
-	 * 分页获取管理员列表（仅管理员可用）
+	 * 分页获取管理员列表（仅系统管理员可用）
 	 *
 	 * @param adminQueryRequest adminQueryRequest
 	 * @return {@link BaseResponse<Page<Admin>>}
@@ -201,7 +201,7 @@ public class AdminController {
 	}
 	
 	/**
-	 * 编辑管理员（给自己使用）
+	 * 编辑管理员信息（给自己使用）
 	 *
 	 * @param adminEditRequest adminEditRequest
 	 * @param request          request

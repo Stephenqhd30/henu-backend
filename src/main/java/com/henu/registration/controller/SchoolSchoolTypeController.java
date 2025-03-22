@@ -7,7 +7,6 @@ import com.henu.registration.common.*;
 import com.henu.registration.common.exception.BusinessException;
 import com.henu.registration.constants.AdminConstant;
 import com.henu.registration.model.dto.schoolSchoolType.SchoolSchoolTypeAddRequest;
-import com.henu.registration.model.dto.schoolSchoolType.SchoolSchoolTypeEditRequest;
 import com.henu.registration.model.dto.schoolSchoolType.SchoolSchoolTypeQueryRequest;
 import com.henu.registration.model.dto.schoolSchoolType.SchoolSchoolTypeUpdateRequest;
 import com.henu.registration.model.entity.Admin;
@@ -102,7 +101,7 @@ public class SchoolSchoolTypeController {
 	}
 	
 	/**
-	 * 更新高校与高校类型关联信息（仅管理员可用）
+	 * 更新高校与高校类型关联信息（仅系统管理员可用）
 	 *
 	 * @param schoolSchoolTypeUpdateRequest schoolSchoolTypeUpdateRequest
 	 * @return {@link BaseResponse<Boolean>}
@@ -148,7 +147,7 @@ public class SchoolSchoolTypeController {
 	}
 	
 	/**
-	 * 分页获取高校与高校类型关联信息列表（仅管理员可用）
+	 * 分页获取高校与高校类型关联信息列表（仅系统管理员可用）
 	 *
 	 * @param schoolSchoolTypeQueryRequest schoolSchoolTypeQueryRequest
 	 * @return {@link BaseResponse<Page<SchoolSchoolType>>}
@@ -209,40 +208,5 @@ public class SchoolSchoolTypeController {
 		// 获取封装类
 		return ResultUtils.success(schoolSchoolTypeService.getSchoolSchoolTypeVOPage(schoolSchoolTypePage, request));
 	}
-	
-	/**
-	 * 编辑高校与高校类型关联信息（给管理员使用）
-	 *
-	 * @param schoolSchoolTypeEditRequest schoolSchoolTypeEditRequest
-	 * @param request                     request
-	 * @return {@link BaseResponse<Boolean>}
-	 */
-	@PostMapping("/edit")
-	public BaseResponse<Boolean> editSchoolSchoolType(@RequestBody SchoolSchoolTypeEditRequest schoolSchoolTypeEditRequest, HttpServletRequest request) {
-		if (schoolSchoolTypeEditRequest == null || schoolSchoolTypeEditRequest.getId() <= 0) {
-			throw new BusinessException(ErrorCode.PARAMS_ERROR);
-		}
-		// todo 在此处将实体类和 DTO 进行转换
-		SchoolSchoolType schoolSchoolType = new SchoolSchoolType();
-		BeanUtils.copyProperties(schoolSchoolTypeEditRequest, schoolSchoolType);
-		String schoolTypes = JSONUtil.toJsonStr(schoolSchoolTypeEditRequest.getSchoolTypes());
-		schoolSchoolType.setSchoolTypes(schoolTypes);
-		// 数据校验
-		schoolSchoolTypeService.validSchoolSchoolType(schoolSchoolType, false);
-		Admin loginAdmin = adminService.getLoginAdmin(request);
-		// 判断是否存在
-		long id = schoolSchoolTypeEditRequest.getId();
-		SchoolSchoolType oldSchoolSchoolType = schoolSchoolTypeService.getById(id);
-		ThrowUtils.throwIf(oldSchoolSchoolType == null, ErrorCode.NOT_FOUND_ERROR);
-		// 仅本人或管理员可编辑
-		if (!oldSchoolSchoolType.getAdminId().equals(loginAdmin.getId()) && !adminService.isAdmin(loginAdmin)) {
-			throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
-		}
-		// 操作数据库
-		boolean result = schoolSchoolTypeService.updateById(schoolSchoolType);
-		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
-		return ResultUtils.success(true);
-	}
-	
 	// endregion
 }

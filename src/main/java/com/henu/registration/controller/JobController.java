@@ -93,7 +93,7 @@ public class JobController {
     }
 
     /**
-     * 更新岗位信息表（仅管理员可用）
+     * 更新岗位信息表（仅系统管理员可用）
      *
      * @param jobUpdateRequest jobUpdateRequest
      * @return {@link BaseResponse<Boolean>}
@@ -137,7 +137,7 @@ public class JobController {
     }
 
     /**
-     * 分页获取岗位信息表列表（仅管理员可用）
+     * 分页获取岗位信息表列表（仅系统管理员可用）
      *
      * @param jobQueryRequest jobQueryRequest
      * @return {@link BaseResponse<Page<Job>>}

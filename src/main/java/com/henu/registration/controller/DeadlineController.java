@@ -6,7 +6,6 @@ import com.henu.registration.common.*;
 import com.henu.registration.common.exception.BusinessException;
 import com.henu.registration.constants.AdminConstant;
 import com.henu.registration.model.dto.deadline.DeadlineAddRequest;
-import com.henu.registration.model.dto.deadline.DeadlineEditRequest;
 import com.henu.registration.model.dto.deadline.DeadlineQueryRequest;
 import com.henu.registration.model.dto.deadline.DeadlineUpdateRequest;
 import com.henu.registration.model.entity.Admin;
@@ -175,7 +174,7 @@ public class DeadlineController {
 	}
 	
 	/**
-	 * 分页获取当前登录用户创建的截止时间列表
+	 * 分页获取当前登录管理员创建的截止时间列表
 	 *
 	 * @param deadlineQueryRequest deadlineQueryRequest
 	 * @param request              request
@@ -197,38 +196,6 @@ public class DeadlineController {
 				deadlineService.getQueryWrapper(deadlineQueryRequest));
 		// 获取封装类
 		return ResultUtils.success(deadlineService.getDeadlineVOPage(deadlinePage, request));
-	}
-	
-	/**
-	 * 编辑截止时间（给用户使用）
-	 *
-	 * @param deadlineEditRequest deadlineEditRequest
-	 * @param request             request
-	 * @return {@link BaseResponse<Boolean>}
-	 */
-	@PostMapping("/edit")
-	public BaseResponse<Boolean> editDeadline(@RequestBody DeadlineEditRequest deadlineEditRequest, HttpServletRequest request) {
-		if (deadlineEditRequest == null || deadlineEditRequest.getId() <= 0) {
-			throw new BusinessException(ErrorCode.PARAMS_ERROR);
-		}
-		// todo 在此处将实体类和 DTO 进行转换
-		Deadline deadline = new Deadline();
-		BeanUtils.copyProperties(deadlineEditRequest, deadline);
-		// 数据校验
-		deadlineService.validDeadline(deadline, false);
-		Admin loginAdmin = adminService.getLoginAdmin(request);
-		// 判断是否存在
-		long id = deadlineEditRequest.getId();
-		Deadline oldDeadline = deadlineService.getById(id);
-		ThrowUtils.throwIf(oldDeadline == null, ErrorCode.NOT_FOUND_ERROR);
-		// 仅本人或管理员可编辑
-		if (!oldDeadline.getAdminId().equals(loginAdmin.getId()) && !adminService.isAdmin(loginAdmin)) {
-			throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
-		}
-		// 操作数据库
-		boolean result = deadlineService.updateById(deadline);
-		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
-		return ResultUtils.success(true);
 	}
 	
 	// endregion

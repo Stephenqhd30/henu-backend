@@ -178,8 +178,8 @@ public class FileLogController {
 	                                                           HttpServletRequest request) {
 		ThrowUtils.throwIf(fileLogQueryRequest == null, ErrorCode.PARAMS_ERROR);
 		// 补充查询条件，只查询当前登录用户的数据
-		// User loginUser = userService.getLoginUser(request);
-		// fileLogQueryRequest.setUserId(loginUser.getId());
+		User loginUser = userService.getLoginUser(request);
+		fileLogQueryRequest.setUserId(loginUser.getId());
 		long current = fileLogQueryRequest.getCurrent();
 		long size = fileLogQueryRequest.getPageSize();
 		// 限制爬虫
