@@ -6,13 +6,10 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.henu.registration.common.ErrorCode;
 import com.henu.registration.common.ThrowUtils;
-import com.henu.registration.common.exception.BusinessException;
 import com.henu.registration.constants.CommonConstant;
 import com.henu.registration.mapper.SchoolTypeMapper;
 import com.henu.registration.model.dto.schoolType.SchoolTypeQueryRequest;
-import com.henu.registration.model.entity.Admin;
 import com.henu.registration.model.entity.SchoolType;
-import com.henu.registration.model.vo.admin.AdminVO;
 import com.henu.registration.model.vo.schoolType.SchoolTypeVO;
 import com.henu.registration.service.AdminService;
 import com.henu.registration.service.SchoolTypeService;
@@ -25,10 +22,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 /**
@@ -39,9 +32,6 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class SchoolTypeServiceImpl extends ServiceImpl<SchoolTypeMapper, SchoolType> implements SchoolTypeService {
-	
-	@Resource
-	private AdminService adminService;
 	
 	/**
 	 * 校验数据
@@ -111,21 +101,7 @@ public class SchoolTypeServiceImpl extends ServiceImpl<SchoolTypeMapper, SchoolT
 	@Override
 	public SchoolTypeVO getSchoolTypeVO(SchoolType schoolType, HttpServletRequest request) {
 		// 对象转封装类
-		SchoolTypeVO schoolTypeVO = SchoolTypeVO.objToVo(schoolType);
-		
-		// todo 可以根据需要为封装对象补充值，不需要的内容可以删除
-		// region 可选
-		// 1. 关联查询用户信息
-		Long adminId = schoolType.getAdminId();
-		Admin admin = null;
-		if (adminId != null && adminId > 0) {
-			admin = adminService.getById(adminId);
-		}
-		AdminVO adminVO = adminService.getAdminVO(admin, request);
-		schoolTypeVO.setAdminVO(adminVO);
-		
-		// endregion
-		return schoolTypeVO;
+		return SchoolTypeVO.objToVo(schoolType);
 	}
 	
 	/**
@@ -146,31 +122,6 @@ public class SchoolTypeServiceImpl extends ServiceImpl<SchoolTypeMapper, SchoolT
 		List<SchoolTypeVO> schoolTypeVOList = schoolTypeList.stream()
 				.map(SchoolTypeVO::objToVo)
 				.collect(Collectors.toList());
-		// todo 可以根据需要为封装对象补充值，不需要的内容可以删除
-		// region 可选
-		// 1. 关联查询用户信息
-		Set<Long> adminIdSet = schoolTypeList.stream().map(SchoolType::getAdminId).collect(Collectors.toSet());
-		// 填充信息
-		if (CollUtil.isNotEmpty(adminIdSet)) {
-			CompletableFuture<Map<Long, List<Admin>>> mapCompletableFuture = CompletableFuture.supplyAsync(() -> adminService.listByIds(adminIdSet).stream()
-					.collect(Collectors.groupingBy(Admin::getId)));
-			try {
-				Map<Long, List<Admin>> adminIdAdminListMap = mapCompletableFuture.get();
-				// 填充信息
-				schoolTypeVOList.forEach(schoolTypeVO -> {
-					Long adminId = schoolTypeVO.getAdminId();
-					Admin admin = null;
-					if (adminIdAdminListMap.containsKey(adminId)) {
-						admin = adminIdAdminListMap.get(adminId).get(0);
-					}
-					schoolTypeVO.setAdminVO(adminService.getAdminVO(admin, request));
-				});
-			} catch (InterruptedException | ExecutionException e) {
-				Thread.currentThread().interrupt();
-				throw new BusinessException(ErrorCode.SYSTEM_ERROR, "获取信息失败" + e.getMessage());
-			}
-		}
-		// endregion
 		schoolTypeVOPage.setRecords(schoolTypeVOList);
 		return schoolTypeVOPage;
 	}

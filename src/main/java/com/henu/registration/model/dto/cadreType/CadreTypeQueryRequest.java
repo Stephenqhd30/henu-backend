@@ -7,7 +7,7 @@ import lombok.EqualsAndHashCode;
 import java.io.Serializable;
 
 /**
- * 查询管理员请求
+ * 查询干部类型请求
  *
  * @author stephen qiu
  */

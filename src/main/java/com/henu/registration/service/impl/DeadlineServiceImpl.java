@@ -10,13 +10,10 @@ import com.henu.registration.common.exception.BusinessException;
 import com.henu.registration.constants.CommonConstant;
 import com.henu.registration.mapper.DeadlineMapper;
 import com.henu.registration.model.dto.deadline.DeadlineQueryRequest;
-import com.henu.registration.model.entity.Admin;
 import com.henu.registration.model.entity.Deadline;
 import com.henu.registration.model.entity.Job;
-import com.henu.registration.model.vo.admin.AdminVO;
 import com.henu.registration.model.vo.deadline.DeadlineVO;
 import com.henu.registration.model.vo.job.JobVO;
-import com.henu.registration.service.AdminService;
 import com.henu.registration.service.DeadlineService;
 import com.henu.registration.service.JobService;
 import com.henu.registration.utils.sql.SqlUtils;
@@ -42,9 +39,6 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class DeadlineServiceImpl extends ServiceImpl<DeadlineMapper, Deadline> implements DeadlineService {
-
-    @Resource
-    private AdminService adminService;
     
     @Resource
     private JobService jobService;

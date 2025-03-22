@@ -5,7 +5,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 /**
- * 创建管理员请求
+ * 创建干部类型请求
  *
  * @author stephen qiu
  */

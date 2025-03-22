@@ -6,15 +6,11 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.henu.registration.common.ErrorCode;
 import com.henu.registration.common.ThrowUtils;
-import com.henu.registration.common.exception.BusinessException;
 import com.henu.registration.constants.CommonConstant;
 import com.henu.registration.mapper.JobMapper;
 import com.henu.registration.model.dto.job.JobQueryRequest;
-import com.henu.registration.model.entity.Admin;
 import com.henu.registration.model.entity.Job;
-import com.henu.registration.model.vo.admin.AdminVO;
 import com.henu.registration.model.vo.job.JobVO;
-import com.henu.registration.service.AdminService;
 import com.henu.registration.service.JobService;
 import com.henu.registration.utils.sql.SqlUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -22,13 +18,8 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 
@@ -42,9 +33,6 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class JobServiceImpl extends ServiceImpl<JobMapper, Job> implements JobService {
-	
-	@Resource
-	private AdminService adminService;
 	
 	/**
 	 * 校验数据
@@ -124,21 +112,7 @@ public class JobServiceImpl extends ServiceImpl<JobMapper, Job> implements JobSe
 	@Override
 	public JobVO getJobVO(Job job, HttpServletRequest request) {
 		// 对象转封装类
-		JobVO jobVO = JobVO.objToVo(job);
-		
-		// todo 可以根据需要为封装对象补充值，不需要的内容可以删除
-		// region 可选
-		// 1. 关联查询用户信息
-		Long adminId = job.getAdminId();
-		Admin admin = null;
-		if (adminId != null && adminId > 0) {
-			admin = adminService.getById(adminId);
-		}
-		AdminVO adminVO = adminService.getAdminVO(admin, request);
-		jobVO.setAdminVO(adminVO);
-		
-		// endregion
-		return jobVO;
+		return JobVO.objToVo(job);
 	}
 	
 	/**
@@ -159,31 +133,6 @@ public class JobServiceImpl extends ServiceImpl<JobMapper, Job> implements JobSe
 		List<JobVO> jobVOList = jobList.stream()
 				.map(JobVO::objToVo)
 				.collect(Collectors.toList());
-		// todo 可以根据需要为封装对象补充值，不需要的内容可以删除
-		// region 可选
-		// 1. 关联查询用户信息
-		Set<Long> adminIdSet = jobList.stream().map(Job::getAdminId).collect(Collectors.toSet());
-		// 填充信息
-		if (CollUtil.isNotEmpty(adminIdSet)) {
-			CompletableFuture<Map<Long, List<Admin>>> mapCompletableFuture = CompletableFuture.supplyAsync(() -> adminService.listByIds(adminIdSet).stream()
-					.collect(Collectors.groupingBy(Admin::getId)));
-			try {
-				Map<Long, List<Admin>> adminIdAdminListMap = mapCompletableFuture.get();
-				// 填充信息
-				jobVOList.forEach(jobVO -> {
-					Long adminId = jobVO.getAdminId();
-					Admin admin = null;
-					if (adminIdAdminListMap.containsKey(adminId)) {
-						admin = adminIdAdminListMap.get(adminId).get(0);
-					}
-					jobVO.setAdminVO(adminService.getAdminVO(admin, request));
-				});
-			} catch (InterruptedException | ExecutionException e) {
-				Thread.currentThread().interrupt();
-				throw new BusinessException(ErrorCode.SYSTEM_ERROR, "获取信息失败" + e.getMessage());
-			}
-		}
-		// endregion
 		jobVOPage.setRecords(jobVOList);
 		return jobVOPage;
 	}

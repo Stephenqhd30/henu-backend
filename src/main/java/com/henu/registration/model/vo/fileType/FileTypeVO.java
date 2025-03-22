@@ -57,11 +57,6 @@ public class FileTypeVO implements Serializable {
 	private Date updateTime;
 	
 	/**
-	 * 创建用户信息
-	 */
-	private AdminVO adminVO;
-	
-	/**
 	 * 封装类转对象
 	 *
 	 * @param fileTypeVO fileTypeVO
