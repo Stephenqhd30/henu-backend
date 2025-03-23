@@ -245,12 +245,11 @@ create table message_notice
 (
     id              bigint auto_increment comment 'id'
         primary key,
-    registration_id bigint                               not null comment '报名登记表id',
-    user_id         bigint                               not null comment '用户id',
     title           varchar(255)                         not null comment '通知标题',
     content         text                                 not null comment '通知内容',
     read_status     tinyint(1) default 0                 not null comment '阅读状态(0-未读,1-已读)',
     admin_id        bigint                               null comment '管理员id',
+    registration_id bigint not null comment '报名登记表id',
     create_time     datetime   default CURRENT_TIMESTAMP not null comment '创建时间',
     update_time     datetime   default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
     is_delete       tinyint(1) default 0                 not null comment '是否逻辑删除(0-否,1-是)'
