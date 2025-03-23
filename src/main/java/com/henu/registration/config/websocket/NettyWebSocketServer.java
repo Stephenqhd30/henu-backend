@@ -5,8 +5,8 @@ import com.henu.registration.config.websocket.properties.WebSocketProperties;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
@@ -72,56 +72,41 @@ public class NettyWebSocketServer {
 					}
 				})
 				// 配置workerGroup的处理器
-				.childHandler(new ChannelInitializer<NioSocketChannel>() {
+				.childHandler(new ChannelInitializer<SocketChannel>() {
 					@Override
-					protected void initChannel(NioSocketChannel nioSocketChannel) {
-						ChannelPipeline pipeline = nioSocketChannel.pipeline();
-						
+					protected void initChannel(SocketChannel ch) {
+						ChannelPipeline pipeline = ch.pipeline();
 						// 添加HTTP编解码器，用于WebSocket协议的升级过程
 						pipeline.addLast(new HttpServerCodec());
-						
 						// 添加ChunkedWriteHandler，用于大文件传输
 						pipeline.addLast(new ChunkedWriteHandler());
-                        
-                        /*
-                        HttpObjectAggregator用于聚合HTTP请求的多个块，以便构建完整的HTTP请求。
-                        maxContentLength设定单次聚合的最大内容长度。
-                        */
+						/*
+						HttpObjectAggregator用于聚合HTTP请求的多个块，以便构建完整的HTTP请求。
+						maxContentLength设定单次聚合的最大内容长度。
+						 */
 						pipeline.addLast(new HttpObjectAggregator(8192));
-                        
-                        /*
+						/*
                         WebSocketServerProtocolHandler用于将HTTP协议升级为WebSocket协议，
                         并且支持保持WebSocket长连接。它会自动处理WebSocket握手过程。
                         升级路径配置为“/websocket”，即客户端必须以ws://localhost:39999/websocket格式连接。
                         */
-						pipeline.addLast(new WebSocketServerProtocolHandler("/websocket"));
-						
+						pipeline.addLast(new WebSocketServerProtocolHandler("/websocket", null, true));
 						// 添加自定义的WebSocket数据处理器，处理具体的消息逻辑
 						pipeline.addLast(new TextWebSocketFrameHandler());
 					}
 				});
-		
-		// 异步绑定端口并启动服务器
-		ChannelFuture bindFuture = serverBootstrap.bind(webSocketProperties.getPort());
-		
-		// 监听绑定端口后的操作结果
-		bindFuture.addListener((ChannelFutureListener) channelFuture -> {
-			if (channelFuture.isSuccess()) {
-				log.info("WebSocket 服务器启动成功，监听端口：{}", webSocketProperties.getPort());
-			} else {
-				log.error("WebSocket 服务器启动失败：{}", channelFuture.cause().getMessage());
-			}
-		});
-		
-		// 异步监听服务器关闭事件
-		ChannelFuture closeFuture = bindFuture.channel().closeFuture();
-		closeFuture.addListener((ChannelFutureListener) channelFuture -> {
-			if (channelFuture.isSuccess()) {
-				log.info("WebSocket 服务器正在关闭...");
-			} else {
-				log.error("WebSocket 服务器关闭失败：{}", channelFuture.cause().getMessage());
-			}
-		});
+		try {
+			// 绑定端口，并同步等待成功
+			ChannelFuture bindFuture = serverBootstrap.bind(webSocketProperties.getPort()).sync();
+			log.info("WebSocket 服务器启动成功，监听端口：{}", webSocketProperties.getPort());
+			
+			// 监听关闭事件
+			bindFuture.channel().closeFuture().addListener((ChannelFutureListener) channelFuture -> {
+				log.info("WebSocket 服务器已关闭");
+			});
+		} catch (InterruptedException e) {
+			log.error("WebSocket 服务器启动失败", e);
+		}
 	}
 	
 	/**

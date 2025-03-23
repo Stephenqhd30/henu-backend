@@ -2,12 +2,12 @@ package com.henu.registration.model.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Date;
-
-import lombok.Data;
 
 /**
  * 审核记录表
@@ -63,6 +63,7 @@ public class ReviewLog implements Serializable {
 	/**
 	 * 是否逻辑删除(0-否,1-是)
 	 */
+	@TableLogic
 	private Integer isDelete;
 	
 }

@@ -239,33 +239,48 @@ create table review_log
         foreign key (registration_id) references registration_form (id)
 )
     comment '审核记录表' row_format = DYNAMIC;
+
 -- 消息通知表
 create table message_notice
 (
-    id          bigint auto_increment comment 'id'
+    id              bigint auto_increment comment 'id'
         primary key,
-    register_id varchar(255)                       not null comment '报名编号',
-    message_id  varchar(255)                       not null comment '系统消息编号',
-    read_status varchar(255)                       not null comment '阅读状态',
-    admin_id    bigint                             not null comment '管理员id',
-    create_time datetime default CURRENT_TIMESTAMP not null comment '创建时间',
-    update_time datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
-    is_delete   tinyint  default 0                 not null comment '是否逻辑删除'
+    registration_id bigint                               not null comment '报名登记表id',
+    user_id         bigint                               not null comment '用户id',
+    title           varchar(255)                         not null comment '通知标题',
+    content         text                                 not null comment '通知内容',
+    read_status     tinyint(1) default 0                 not null comment '阅读状态(0-未读,1-已读)',
+    admin_id        bigint                               null comment '管理员id',
+    create_time     datetime   default CURRENT_TIMESTAMP not null comment '创建时间',
+    update_time     datetime   default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+    is_delete       tinyint(1) default 0                 not null comment '是否逻辑删除(0-否,1-是)'
 )
-    row_format = DYNAMIC;
+    comment '消息通知表';
 
-
-create table message_notice_record
+-- 消息通知记录表（存发送情况）
+CREATE TABLE message_notice_record
 (
-    id          varchar(255) not null comment '消息通知记录编号'
+    id          BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT 'id',
+    message_id  BIGINT                                                           NOT NULL COMMENT '消息通知id',
+    way         varchar(255)                                                     NOT NULL COMMENT '通知方式',
+    user_id     VARCHAR(255)                                                     NOT NULL COMMENT '通知用户id',
+    status      TINYINT(1)                                                       NOT NULL COMMENT '通知状态(0=失败,1=成功)',
+    create_time DATETIME   DEFAULT CURRENT_TIMESTAMP                             NOT NULL COMMENT '创建时间',
+    update_time DATETIME   DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL COMMENT '更新时间',
+    is_delete   TINYINT(1) DEFAULT 0                                             NOT NULL COMMENT '是否逻辑删除(0-否,1-是)',
+    FOREIGN KEY (message_id) REFERENCES message_notice (id) ON DELETE CASCADE
+) COMMENT = '消息通知记录表';
+
+create table system_messages
+(
+    id           varchar(255)                                                     not null comment '系统消息编号'
         primary key,
-    register_id varchar(255) not null comment '报名编号',
-    way         varchar(255) not null comment '通知方式',
-    account     varchar(255) not null comment '通知账号',
-    notice_time varchar(255) not null comment '通知时间',
-    status      varchar(255) not null comment '通知状态',
-    create_time datetime     null comment '创建时间',
-    update_time datetime     null comment '更新时间',
-    is_delete int null comment '是否逻辑删除'
+    content      varchar(255)                                                     not null comment '消息内容',
+    publish_time varchar(255)                                                     not null comment '发布时间',
+    status       varchar(255)                                                     not null comment '消息状态',
+    type         varchar(255)                                                     not null comment '消息类型',
+    create_time  DATETIME   DEFAULT CURRENT_TIMESTAMP                             NOT NULL COMMENT '创建时间',
+    update_time  DATETIME   DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL COMMENT '更新时间',
+    is_delete    TINYINT(1) DEFAULT 0
 )
     row_format = DYNAMIC;
