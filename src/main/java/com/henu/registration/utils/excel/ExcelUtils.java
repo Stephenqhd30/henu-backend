@@ -1,134 +1,422 @@
 package com.henu.registration.utils.excel;
 
-import cn.hutool.core.collection.CollUtil;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.support.ExcelTypeEnum;
+import com.alibaba.excel.write.style.column.LongestMatchColumnWidthStyleStrategy;
 import com.henu.registration.common.ErrorCode;
 import com.henu.registration.common.exception.BusinessException;
+import com.henu.registration.config.easyexcel.convert.date.ExcelDateConverter;
+import com.henu.registration.config.easyexcel.convert.date.ExcelLocalDateTimeConverter;
+import com.henu.registration.config.easyexcel.convert.floatNum.ExcelDoubleConverter;
+import com.henu.registration.config.easyexcel.convert.floatNum.ExcelFloatConverter;
+import com.henu.registration.config.easyexcel.convert.intNum.ExcelByteConverter;
+import com.henu.registration.config.easyexcel.convert.intNum.ExcelIntegerConverter;
+import com.henu.registration.config.easyexcel.convert.intNum.ExcelLongConverter;
+import com.henu.registration.config.easyexcel.convert.intNum.ExcelShortConverter;
+import com.henu.registration.config.easyexcel.core.ExcelListener;
+import com.henu.registration.config.easyexcel.core.ExcelResult;
+import com.henu.registration.config.easyexcel.core.impl.DefaultExcelListener;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.web.multipart.MultipartFile;
+import org.springframework.core.io.ClassPathResource;
 
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 /**
- * Excel 工具类，提供 Excel 文件的创建、响应设置等功能
+ * Excel工具类
+ * 注意：
+ * 1、下面的“同步”方法适用于“小型”Excel，因为文件过大耗时，就会很长。
+ * 2、非“同步”思想只适用于带有监听器的方法，因为是异步的，就需要一个回调机制响应结果。
+ * 3、import表示从Excel->内存，export表示从内存->Excel
  *
  * @author stephenqiu
  */
 @Slf4j
 public class ExcelUtils {
-	
-	/**
-	 * 获取当前类的资源路径
-	 *
-	 * @return 当前路径
-	 */
-	public static String getPath() {
-		return Objects.requireNonNull(ExcelUtils.class.getResource("/")).getPath();
-	}
-	
-	/**
-	 * 创建新的文件，若文件已存在则删除旧文件
-	 *
-	 * @param pathName 文件名
-	 * @return 新创建的文件
-	 */
-	public static File createNewFile(String pathName) {
-		File file = new File(getPath() + pathName);
-		
-		// 如果文件已存在，尝试删除旧文件并检查是否成功
-		if (file.exists()) {
-			boolean deleted = file.delete();
-			if (!deleted) {
-				throw new BusinessException(ErrorCode.OPERATION_ERROR, "无法删除文件: " + file.getPath());
-			}
-		} else {
-			// 创建父目录（如果不存在），并检查是否成功
-			if (!file.getParentFile().exists()) {
-				boolean dirsCreated = file.getParentFile().mkdirs();
-				if (!dirsCreated) {
-					throw new BusinessException(ErrorCode.OPERATION_ERROR, "无法创建目录: " + file.getParentFile().getPath());
-				}
-			}
-		}
-		return file;
-	}
-	
-	/**
-	 * 设置 HTTP 响应属性，以便下载 Excel 文件
-	 *
-	 * @param response    HTTP 响应对象
-	 * @param rawFileName 导出的文件名
-	 */
-	public static void setExcelResponseProp(HttpServletResponse response, String rawFileName) {
-		// 设置内容类型和字符编码
-		response.setContentType("application/vnd.vnd.ms-excel");
-		response.setCharacterEncoding("utf-8");
-		
-		// 对文件名进行编码，避免中文乱码
-		String fileName = URLEncoder.encode(rawFileName.concat(".xlsx"), StandardCharsets.UTF_8);
-		response.setHeader("Content-Disposition", "attachment;filename*=utf-8''" + fileName);
-	}
-	
-	/**
-	 * 将 Date 对象转换为字符串格式
-	 *
-	 * @param date 日期对象
-	 * @return 转换后的日期字符串
-	 * @throws BusinessException 如果日期为 null
-	 */
-	public static String dateToString(Date date) {
-		if (date == null) {
-			throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "日期不可为 null");
-		}
-		// 使用指定格式转换日期为字符串
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-		return sdf.format(date);
-	}
-	
-	/**
-	 * 将 excel 文件转换为 csv
-	 *
-	 * @param multipartFile multipartFile
-	 * @return {@link String}
-	 */
-	public static String excelToCsv(MultipartFile multipartFile) {
-		List<Map<Integer, String>> list = null;
-		try {
-			list = EasyExcel.read(multipartFile.getInputStream())
-					.excelType(ExcelTypeEnum.XLSX)
-					.sheet()
-					.headRowNumber(0)
-					.doReadSync();
-		} catch (IOException e) {
-			log.error("表格处理错误 :{}", e.getMessage());
-			throw new RuntimeException(e);
-		}
-		
-		if (CollUtil.isEmpty(list)) {
-			return "";
-		}
-		// 转换为 csv
-		StringBuilder stringBuilder = new StringBuilder();
-		// 读取表头
-		LinkedHashMap<Integer, String> headerMap = (LinkedHashMap) list.get(0);
-		List<String> headerList = headerMap.values().stream().filter(ObjectUtils::isNotEmpty).collect(Collectors.toList());
-		stringBuilder.append(StringUtils.join(headerList, ",")).append("\n");
-		// 读取数据
-		for (int i = 1; i < list.size(); i++) {
-			LinkedHashMap<Integer, String> dataMap = (LinkedHashMap) list.get(i);
-			List<String> dataList = dataMap.values().stream().filter(ObjectUtils::isNotEmpty).collect(Collectors.toList());
-			stringBuilder.append(StringUtils.join(dataList, ",")).append("\n");
-		}
-		return stringBuilder.toString();
-	}
+    
+    /**
+     * 同步导入小型Excel数据流，同时关闭流
+     *
+     * @param inputStream 输入流
+     * @param sheetName   工作表名
+     * @param clazz       Excel转换实体类
+     * @return Excel -> Java 结果
+     */
+    public static <T> List<T> importStreamSync(InputStream inputStream, String sheetName, Class<T> clazz) {
+        return EasyExcel
+                .read(inputStream)
+                .head(clazz)
+                .sheet(sheetName)
+                .doReadSync();
+    }
+    
+    /**
+     * 同步导入小型Excel文件
+     *
+     * @param excelFile 输入Excel文件
+     * @param sheetName 工作表名
+     * @param clazz     Excel转换实体类
+     * @return Excel -> Java 结果
+     */
+    public static <T> List<T> importFileSync(File excelFile, String sheetName, Class<T> clazz) {
+        return EasyExcel
+                .read(excelFile)
+                .head(clazz)
+                .sheet(sheetName)
+                .doReadSync();
+    }
+    
+    /**
+     * 异步导入Excel数据流，并且使用默认监听器，同时关闭流
+     *
+     * @param inputStream 输入流
+     * @param sheetName   工作表名
+     * @param clazz       Excel转换实体类
+     * @param <T>         泛型T
+     * @return Excel -> Java 结果
+     */
+    public static <T> ExcelResult<T> importStreamWithListener(InputStream inputStream, String sheetName, Class<T> clazz) {
+        DefaultExcelListener<T> listener = new DefaultExcelListener<T>();
+        EasyExcel
+                .read(inputStream, clazz, listener)
+                .sheet(sheetName)
+                .doRead();
+        return listener.getExcelResult();
+    }
+    
+    /**
+     * 异步导入Excel数据流，并且使用自定义监听器，同时关闭流
+     * 自定义监听器需要实现模板中的ExcelListener接口，构造出类似于DefaultExcelListener类的回执参数
+     *
+     * @param inputStream 输入流
+     * @param sheetName   工作表名
+     * @param clazz       Excel转换实体类
+     * @param <T>         泛型T
+     * @return Excel -> Java 结果
+     */
+    public static <T> ExcelResult<T> importStreamWithListener(InputStream inputStream, String sheetName, Class<T> clazz, ExcelListener<T> listener) {
+        EasyExcel
+                .read(inputStream, clazz, listener)
+                .sheet(sheetName)
+                .doRead();
+        return listener.getExcelResult();
+    }
+    
+    /**
+     * 同步导入小型Excel数据流，并且使用默认监听器，同时关闭流
+     *
+     * @param inputStream 输入流
+     * @param sheetName   工作表名
+     * @param clazz       Excel转换实体类
+     * @param <T>         泛型T
+     * @return Excel -> Java 结果
+     */
+    public static <T> ExcelResult<T> importStreamSyncWithListener(InputStream inputStream, String sheetName, Class<T> clazz) {
+        DefaultExcelListener<T> listener = new DefaultExcelListener<T>();
+        EasyExcel
+                .read(inputStream, clazz, listener)
+                .sheet(sheetName)
+                .doReadSync();
+        return listener.getExcelResult();
+    }
+    
+    /**
+     * 同步导入小型Excel数据流，并且使用自定义监听器，同时关闭流
+     * 自定义监听器需要实现模板中的ExcelListener接口，构造出类似于DefaultExcelListener类的回执参数
+     *
+     * @param inputStream 输入流
+     * @param sheetName   工作表名
+     * @param clazz       Excel转换实体类
+     * @param <T>         泛型T
+     * @return Excel -> Java 结果
+     */
+    public static <T> ExcelResult<T> importStreamSyncWithListener(InputStream inputStream, String sheetName, Class<T> clazz, ExcelListener<T> listener) {
+        EasyExcel
+                .read(inputStream, clazz, listener)
+                .sheet(sheetName)
+                .doReadSync();
+        return listener.getExcelResult();
+    }
+    
+    /**
+     * 异步导入Excel文件，并且使用默认监听器
+     *
+     * @param excelFile 输入Excel文件
+     * @param sheetName 工作表名
+     * @param clazz     Excel转换实体类
+     * @param <T>       泛型T
+     * @return Excel -> Java 结果
+     */
+    public static <T> ExcelResult<T> importFileWithListener(File excelFile, String sheetName, Class<T> clazz) {
+        DefaultExcelListener<T> listener = new DefaultExcelListener<T>();
+        EasyExcel
+                .read(excelFile, clazz, listener)
+                .sheet(sheetName)
+                .doRead();
+        return listener.getExcelResult();
+    }
+    
+    /**
+     * 异步导入Excel文件，并且使用自定义监听器
+     * 自定义监听器需要实现模板中的ExcelListener接口，构造出类似于DefaultExcelListener类的回执参数
+     *
+     * @param excelFile 输入Excel文件
+     * @param sheetName 工作表名
+     * @param clazz     Excel转换实体类
+     * @param <T>       泛型T
+     * @return Excel -> Java 结果
+     */
+    public static <T> ExcelResult<T> importFileWithListener(File excelFile, String sheetName, Class<T> clazz, ExcelListener<T> listener) {
+        EasyExcel
+                .read(excelFile, clazz, listener)
+                .sheet(sheetName)
+                .doRead();
+        return listener.getExcelResult();
+    }
+    
+    /**
+     * 同步导入小型Excel文件，并且使用默认监听器
+     *
+     * @param excelFile 输入Excel文件
+     * @param sheetName 工作表名
+     * @param clazz     Excel转换实体类
+     * @param <T>       泛型T
+     * @return Excel -> Java 结果
+     */
+    public static <T> ExcelResult<T> importFileSyncWithListener(File excelFile, String sheetName, Class<T> clazz) {
+        DefaultExcelListener<T> listener = new DefaultExcelListener<T>();
+        EasyExcel
+                .read(excelFile, clazz, listener)
+                .sheet(sheetName)
+                .doReadSync();
+        return listener.getExcelResult();
+    }
+    
+    /**
+     * 同步导入小型Excel文件，并且使用自定义监听器
+     * 自定义监听器需要实现模板中的ExcelListener接口，构造出类似于DefaultExcelListener类的回执参数
+     *
+     * @param excelFile 输入Excel文件
+     * @param sheetName 工作表名
+     * @param clazz     Excel转换实体类
+     * @param <T>       泛型T
+     * @return Excel -> Java 结果
+     */
+    public static <T> ExcelResult<T> importFileSyncWithListener(File excelFile, String sheetName, Class<T> clazz, ExcelListener<T> listener) {
+        EasyExcel
+                .read(excelFile, clazz, listener)
+                .sheet(sheetName)
+                .doReadSync();
+        return listener.getExcelResult();
+    }
+    
+    /**
+     * 导出Excel本地文件（智能）
+     *
+     * @param list      输出Excel数据集合
+     * @param sheetName 工作表名
+     * @param clazz     Excel转换实体类
+     * @param pathName  输出文件名有三种情况：
+     *                  1、filePath如果不带有后缀，那就表示该File是一个目录，系统会自动将Excel命名为sheetName.xlsx存储在该File目录下。
+     *                  2、filePath如果带有后缀，那就表示该File是一个文件，后缀不是“xlsx”，就会将后缀转换成“xlsx”。
+     *                  3、filePath如果带有后缀，那就表示该File是一个文件，后缀是“xlsx”，那么就存放于该File文件中。
+     *                  注意：上述情况目录名都不允许带有“.”！如果有这样的需求，请自行使用exportFileOutputStream或者exportFileOutputStream进行导出
+     * @param <T>       泛型T
+     * @return 返回本地文件绝对路径
+     */
+    public static <T> String exportLocalFile(List<T> list, String sheetName, Class<T> clazz, String pathName) {
+        try {
+            if (StringUtils.isEmpty(pathName)) {
+                throw new BusinessException(ErrorCode.EXCEL_ERROR, "未找到该Excel文件所在路径");
+            }
+            String extension = FilenameUtils.getExtension(pathName);
+            File file = new File(pathName);
+            if (extension.isEmpty()) {
+                if (!file.exists()) {
+                    Files.createDirectory(file.toPath());
+                }
+                pathName = pathName + "/" + (StringUtils.isEmpty(sheetName) ? "defaultName" : sheetName) + ExcelTypeEnum.XLSX.getValue();
+            } else {
+                String fullName = file.getName();
+                String parent = file.getParent();
+                String name = fullName.substring(0, fullName.lastIndexOf("."));
+                if (name.isEmpty()) {
+                    name = (StringUtils.isEmpty(sheetName) ? "defaultName" : sheetName);
+                }
+                pathName = parent + "/" + name + ExcelTypeEnum.XLSX.getValue();
+            }
+            file = new File(pathName);
+            EasyExcel
+                    .write(file, clazz)
+                    .registerWriteHandler(new LongestMatchColumnWidthStyleStrategy())
+                    .registerConverter(new ExcelByteConverter())
+                    .registerConverter(new ExcelShortConverter())
+                    .registerConverter(new ExcelIntegerConverter())
+                    .registerConverter(new ExcelLongConverter())
+                    .registerConverter(new ExcelFloatConverter())
+                    .registerConverter(new ExcelDoubleConverter())
+                    .registerConverter(new ExcelDateConverter())
+                    .registerConverter(new ExcelLocalDateTimeConverter())
+                    .sheet(sheetName)
+                    .doWrite(list);
+            return file.getAbsolutePath();
+        } catch (IOException e) {
+            throw new BusinessException(ErrorCode.EXCEL_ERROR, "Excel文件路径[" + pathName + "]异常");
+        }
+    }
+    
+    /**
+     * 导出Excel文件输出流，同时关闭文件输出流
+     *
+     * @param list             输出Excel数据集合
+     * @param sheetName        工作表名
+     * @param clazz            Excel转换实体类
+     * @param fileOutputStream 文件输出流
+     * @param <T>              泛型T
+     */
+    public static <T> void exportFileOutputStream(List<T> list, String sheetName, Class<T> clazz, FileOutputStream fileOutputStream) {
+        exportOutputStream(list, sheetName, clazz, fileOutputStream);
+    }
+    
+    /**
+     * 导出Excel请求响应流，同时关闭请求响应流并提交响应
+     * 在Controller中建议直接返回void，如果想要统一返回响应类型R<T>，可以使用R.empty()方法。
+     *
+     * @param list      输出Excel数据集合
+     * @param sheetName 工作表名
+     * @param clazz     Excel转换实体类
+     * @param response  请求响应流
+     * @param <T>       泛型T
+     */
+    public static <T> void exportHttpServletResponse(List<T> list, String sheetName, Class<T> clazz, HttpServletResponse response) {
+        try {
+            handleResponse(sheetName, response);
+            ServletOutputStream outputStream = response.getOutputStream();
+            exportOutputStream(list, sheetName, clazz, outputStream);
+        } catch (IOException e) {
+            throw new BusinessException(ErrorCode.EXCEL_ERROR);
+        }
+    }
+    
+    /**
+     * 根据类型导出Excel模板输出流，同时关闭输出流
+     *
+     * @param templateName 工作表名
+     * @param clazz        Excel转换实体类
+     * @param outputStream 输出流
+     * @param <T>          泛型T
+     */
+    public static <T> void exportTemplateOutputStream(String templateName, Class<T> clazz, OutputStream outputStream) {
+        exportOutputStream(new ArrayList<T>(), templateName, clazz, outputStream);
+    }
+    
+    
+    /**
+     * 根据类型导出Excel模板请求响应流，同时关闭请求响应流并提交响应
+     * 在Controller中建议直接返回void，如果想要统一返回响应类型R<T>，可以使用R.empty()方法。
+     *
+     * @param templateName 工作表名
+     * @param clazz        Excel转换实体类
+     * @param response     请求响应流
+     * @param <T>          泛型T
+     */
+    public static <T> void exportTemplateHttpServletResponse(String templateName, Class<T> clazz, HttpServletResponse response) {
+        try {
+            handleResponse(templateName, response);
+            ServletOutputStream outputStream = response.getOutputStream();
+            exportOutputStream(new ArrayList<T>(), templateName, clazz, outputStream);
+        } catch (IOException e) {
+            throw new BusinessException(ErrorCode.EXCEL_ERROR);
+        }
+    }
+    
+    /**
+     * 导出Excel.xlsx模板目录下的模板文件，同时关闭请求响应流并提交响应，模板目录一定是resources文件夹下templates/excel目录
+     * 在Controller中建议直接返回void，如果想要统一返回响应类型R<T>，可以使用R.empty()方法。
+     *
+     * @param templateName resource模板名称（不带后缀）
+     * @param response     请求响应流
+     */
+    public static void exportTemplateHttpServletResponse(String templateName, HttpServletResponse response) {
+        try {
+            ClassPathResource classPathResource = new ClassPathResource("templates/excel/" + templateName + ExcelTypeEnum.XLSX.getValue());
+            if (!classPathResource.exists()) {
+                throw new BusinessException(ErrorCode.EXCEL_ERROR, "模板文件[" + templateName + ".xlsx]未找到");
+            }
+            InputStream inputStream = classPathResource.getInputStream();
+            handleResponse(templateName, response);
+            int len = 0;
+            byte[] buffer = new byte[1024];
+            ServletOutputStream outputStream = response.getOutputStream();
+            while ((len = inputStream.read(buffer)) > 0) {
+                outputStream.write(buffer, 0, len);
+            }
+            inputStream.close();
+            outputStream.close();
+        } catch (FileNotFoundException e) {
+            throw new BusinessException(ErrorCode.EXCEL_ERROR, "模板文件[" + templateName + ".xlsx]未找到");
+        } catch (IOException e) {
+            throw new BusinessException(ErrorCode.EXCEL_ERROR);
+        }
+        
+    }
+    
+    
+    /**
+     * 导出Excel输出流，同时关闭输出流
+     *
+     * @param list         输出Excel数据集合
+     * @param sheetName    工作表名
+     * @param clazz        Excel转换实体类
+     * @param outputStream 输出流
+     * @param <T>          泛型T
+     */
+    public static <T> void exportOutputStream(List<T> list, String sheetName, Class<T> clazz, OutputStream outputStream) {
+        EasyExcel
+                .write(outputStream, clazz)
+                .registerWriteHandler(new LongestMatchColumnWidthStyleStrategy())
+                .registerConverter(new ExcelByteConverter())
+                .registerConverter(new ExcelShortConverter())
+                .registerConverter(new ExcelIntegerConverter())
+                .registerConverter(new ExcelLongConverter())
+                .registerConverter(new ExcelFloatConverter())
+                .registerConverter(new ExcelDoubleConverter())
+                .registerConverter(new ExcelDateConverter())
+                .registerConverter(new ExcelLocalDateTimeConverter())
+                .sheet(sheetName)
+                .doWrite(list);
+    }
+    
+    /**
+     * 处理响应
+     *
+     * @param fileName 文件名
+     * @param response 响应
+     */
+    private static void handleResponse(String fileName, HttpServletResponse response) throws UnsupportedEncodingException {
+        String realName = null;
+        if (StringUtils.isBlank(fileName)) {
+            realName = UUID.randomUUID().toString().replace("-", "") + ExcelTypeEnum.XLSX.getValue();
+        } else {
+            realName = fileName + "_" + UUID.randomUUID().toString().replace("-", "") + ExcelTypeEnum.XLSX.getValue();
+        }
+        String encodeName = URLEncoder
+                .encode(realName, StandardCharsets.UTF_8)
+                .replaceAll("\\+", "%20");
+        String contentDispositionValue = "attachment; filename=" + encodeName + ";filename*=utf-8''" + encodeName;
+        response.addHeader("Access-Control-Expose-Headers", "Content-Disposition,download-filename");
+        response.setHeader("Content-disposition", contentDispositionValue);
+        response.setHeader("download-filename", encodeName);
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8");
+    }
+    
 }
