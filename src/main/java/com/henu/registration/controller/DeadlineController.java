@@ -46,6 +46,7 @@ public class DeadlineController {
 	 * @return {@link BaseResponse<Long>}
 	 */
 	@PostMapping("/add")
+	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Long> addDeadline(@RequestBody DeadlineAddRequest deadlineAddRequest, HttpServletRequest request) {
 		ThrowUtils.throwIf(deadlineAddRequest == null, ErrorCode.PARAMS_ERROR);
 		// todo 在此处将实体类和 DTO 进行转换

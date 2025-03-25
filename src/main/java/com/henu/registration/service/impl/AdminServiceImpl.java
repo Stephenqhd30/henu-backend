@@ -163,17 +163,24 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin>
 	public void validAdmin(Admin admin, boolean add) {
 		ThrowUtils.throwIf(admin == null, ErrorCode.PARAMS_ERROR);
 		// todo 从对象中取值
+		String adminNumber = admin.getAdminNumber();
 		String adminName = admin.getAdminName();
 		String adminType = admin.getAdminType();
 		
 		// 创建数据时，参数不能为空
 		if (add) {
 			// todo 补充校验规则
+			ThrowUtils.throwIf(StringUtils.isBlank(adminNumber), ErrorCode.PARAMS_ERROR, "管理员编号不能为空");
 			ThrowUtils.throwIf(StringUtils.isBlank(adminName), ErrorCode.PARAMS_ERROR, "管理员名不能为空");
-			ThrowUtils.throwIf(StringUtils.isBlank(adminType), ErrorCode.PARAMS_ERROR, "管理员类型不能为空");
 		}
 		// 修改数据时，有参数则校验
 		// todo 补充校验规则
+		if (StringUtils.isNotBlank(adminNumber)) {
+			LambdaQueryWrapper<Admin> eq = Wrappers.lambdaQuery(Admin.class)
+					.eq(Admin::getAdminNumber, adminNumber);
+			Admin one = this.getOne(eq);
+			ThrowUtils.throwIf(one != null, ErrorCode.PARAMS_ERROR, "管理员编号已存在");
+		}
 		if (StringUtils.isNotBlank(adminName)) {
 			ThrowUtils.throwIf(adminName.length() > 20, ErrorCode.PARAMS_ERROR, "管理员名过长");
 		}

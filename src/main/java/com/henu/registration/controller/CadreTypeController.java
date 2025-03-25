@@ -46,6 +46,7 @@ public class CadreTypeController {
 	 * @return {@link BaseResponse<Long>}
 	 */
 	@PostMapping("/add")
+	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Long> addCadreType(@RequestBody CadreTypeAddRequest cadreTypeAddRequest, HttpServletRequest request) {
 		ThrowUtils.throwIf(cadreTypeAddRequest == null, ErrorCode.PARAMS_ERROR);
 		// todo 在此处将实体类和 DTO 进行转换

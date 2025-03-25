@@ -48,6 +48,7 @@ public class SchoolSchoolTypeController {
 	 * @return {@link BaseResponse<Long>}
 	 */
 	@PostMapping("/add")
+	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Long> addSchoolSchoolType(@RequestBody SchoolSchoolTypeAddRequest schoolSchoolTypeAddRequest, HttpServletRequest request) {
 		ThrowUtils.throwIf(schoolSchoolTypeAddRequest == null, ErrorCode.PARAMS_ERROR);
 		// 数据校验

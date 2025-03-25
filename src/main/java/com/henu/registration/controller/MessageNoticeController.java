@@ -53,6 +53,7 @@ public class MessageNoticeController {
 	 * @return {@link BaseResponse<Long>}
 	 */
 	@PostMapping("/add")
+	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Long> addMessageNotice(@RequestBody MessageNoticeAddRequest messageNoticeAddRequest, HttpServletRequest request) {
 		ThrowUtils.throwIf(messageNoticeAddRequest == null, ErrorCode.PARAMS_ERROR);
 		// todo 在此处将实体类和 DTO 进行转换
@@ -79,6 +80,7 @@ public class MessageNoticeController {
 	 * @return {@link BaseResponse<Boolean>}
 	 */
 	@PostMapping("/delete")
+	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Boolean> deleteMessageNotice(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
 		if (deleteRequest == null || deleteRequest.getId() <= 0) {
 			throw new BusinessException(ErrorCode.PARAMS_ERROR);

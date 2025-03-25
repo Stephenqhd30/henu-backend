@@ -46,6 +46,7 @@ public class JobController {
      * @return {@link BaseResponse<Long>}
      */
     @PostMapping("/add")
+    @SaCheckRole(AdminConstant.SYSTEM_ADMIN)
     public BaseResponse<Long> addJob(@RequestBody JobAddRequest jobAddRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(jobAddRequest == null, ErrorCode.PARAMS_ERROR);
         // todo 在此处将实体类和 DTO 进行转换

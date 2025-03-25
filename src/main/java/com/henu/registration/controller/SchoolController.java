@@ -46,6 +46,7 @@ public class SchoolController {
 	 * @return {@link BaseResponse<Long>}
 	 */
 	@PostMapping("/add")
+	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Long> addSchool(@RequestBody SchoolAddRequest schoolAddRequest, HttpServletRequest request) {
 		ThrowUtils.throwIf(schoolAddRequest == null, ErrorCode.PARAMS_ERROR);
 		// todo 在此处将实体类和 DTO 进行转换
