@@ -112,6 +112,7 @@ knife4j:
           - com.henu.registration.controller
           - com.henu.registration.elasticsearch.controller
           - com.henu.registration.captcha.controller
+          - com.henu.registration.easyexcel.controller
 
 # Redisson 配置
 redisson:
