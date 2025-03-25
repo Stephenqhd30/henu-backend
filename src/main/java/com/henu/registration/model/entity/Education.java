@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -18,6 +19,7 @@ import java.util.Date;
 @TableName(value = "education")
 @Data
 public class Education implements Serializable {
+	@Serial
 	private static final long serialVersionUID = 191180529959535080L;
 	/**
 	 * id

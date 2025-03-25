@@ -17,12 +17,6 @@ public class CadreTypeExcelVO implements Serializable {
 	
 	@Serial
 	private static final long serialVersionUID = -797746281005285141L;
-	/**
-	 * id
-	 */
-	@ColumnWidth(40)
-	@ExcelProperty("id")
-	private Long id;
 	
 	/**
 	 * 干部类型

@@ -6,6 +6,7 @@ import com.henu.registration.model.vo.job.JobVO;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -17,6 +18,7 @@ import java.util.Date;
 @Data
 public class DeadlineVO implements Serializable {
 	
+	@Serial
 	private static final long serialVersionUID = 7816078208695245470L;
 	/**
 	 * id
@@ -49,7 +51,7 @@ public class DeadlineVO implements Serializable {
 	private Date updateTime;
 	
 	/**
-	 * 创建用户信息
+	 * 岗位信息
 	 */
 	private JobVO jobVO;
 	

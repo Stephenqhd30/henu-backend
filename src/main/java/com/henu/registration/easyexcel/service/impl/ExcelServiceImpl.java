@@ -9,15 +9,17 @@ import com.henu.registration.easyexcel.listener.AdminExcelListener;
 import com.henu.registration.easyexcel.modal.admin.AdminExcelDTO;
 import com.henu.registration.easyexcel.modal.admin.AdminExcelVO;
 import com.henu.registration.easyexcel.modal.cadreType.CadreTypeExcelVO;
+import com.henu.registration.easyexcel.modal.deadline.DeadlineExcelVO;
+import com.henu.registration.easyexcel.modal.education.EducationExcelVO;
 import com.henu.registration.easyexcel.modal.operationLog.OperationLogExcelVO;
 import com.henu.registration.easyexcel.modal.user.UserExcelVO;
 import com.henu.registration.easyexcel.service.ExcelService;
+import com.henu.registration.model.entity.Job;
+import com.henu.registration.model.entity.School;
+import com.henu.registration.model.entity.User;
 import com.henu.registration.model.enums.AdminTyprEnum;
 import com.henu.registration.model.enums.UserGenderEnum;
-import com.henu.registration.service.AdminService;
-import com.henu.registration.service.CadreTypeService;
-import com.henu.registration.service.OperationLogService;
-import com.henu.registration.service.UserService;
+import com.henu.registration.service.*;
 import com.henu.registration.utils.excel.ExcelUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -54,6 +56,18 @@ public class ExcelServiceImpl implements ExcelService {
 	
 	@Resource
 	private CadreTypeService cadreTypeService;
+	
+	@Resource
+	private DeadlineService deadlineService;
+	
+	@Resource
+	private JobService jobService;
+	
+	@Resource
+	private EducationService educationService;
+	
+	@Resource
+	private SchoolService schoolService;
 	
 	@Resource
 	private ThreadPoolExecutor threadPoolExecutor;
@@ -196,6 +210,62 @@ public class ExcelServiceImpl implements ExcelService {
 		} catch (Exception e) {
 			log.error("干部类型导出失败: {}", e.getMessage());
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "干部类型导出失败");
+		}
+		
+	}
+	
+	/**
+	 * 导出截止时间信息到 Excel
+	 *
+	 * @param response HttpServletResponse
+	 */
+	@Override
+	public void exportDeadline(HttpServletResponse response) throws IOException {
+		List<CompletableFuture<DeadlineExcelVO>> futures = deadlineService.list().stream().map(deadline -> CompletableFuture.supplyAsync(() -> {
+			DeadlineExcelVO deadlineExcelVO = new DeadlineExcelVO();
+			BeanUtils.copyProperties(deadline, deadlineExcelVO);
+			Job job = jobService.getById(deadline.getJobId());
+			deadlineExcelVO.setJobName(job.getJobName());
+			return deadlineExcelVO;
+		}, threadPoolExecutor)).toList();
+		// 等待所有 CompletableFuture 执行完毕，并收集结果
+		List<DeadlineExcelVO> deadlineExcelVOList = futures.stream().map(CompletableFuture::join).collect(Collectors.toList());
+		// 写入 Excel 文件
+		try {
+			ExcelUtils.exportHttpServletResponse(deadlineExcelVOList, ExcelConstant.DEADLINE, DeadlineExcelVO.class, response);
+			log.info("截止时间信息导出成功，导出数量：{}", deadlineExcelVOList.size());
+		} catch (Exception e) {
+			log.error("截止时间信息导出失败: {}", e.getMessage());
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "截止时间信息导出失败");
+		}
+		
+	}
+	
+	/**
+	 * 导出教育经历信息到 Excel
+	 *
+	 * @param response HttpServletResponse
+	 */
+	@Override
+	public void exportEducation(HttpServletResponse response) throws IOException {
+		List<CompletableFuture<EducationExcelVO>> futures = educationService.list().stream().map(education -> CompletableFuture.supplyAsync(() -> {
+			EducationExcelVO educationExcelVO = new EducationExcelVO();
+			BeanUtils.copyProperties(education, educationExcelVO);
+			School school = schoolService.getById(education.getSchoolId());
+			educationExcelVO.setSchoolName(school.getSchoolName());
+			User user = userService.getById(education.getUserId());
+			educationExcelVO.setUserName(user.getUserName());
+			return educationExcelVO;
+		}, threadPoolExecutor)).toList();
+		// 等待所有 CompletableFuture 执行完毕，并收集结果
+		List<EducationExcelVO> deadlineExcelVOList = futures.stream().map(CompletableFuture::join).collect(Collectors.toList());
+		// 写入 Excel 文件
+		try {
+			ExcelUtils.exportHttpServletResponse(deadlineExcelVOList, ExcelConstant.EDUCATION, EducationExcelVO.class, response);
+			log.info("教育经历信息导出成功，导出数量：{}", deadlineExcelVOList.size());
+		} catch (Exception e) {
+			log.error("教育经历信息导出失败: {}", e.getMessage());
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "教育经历信息导出失败");
 		}
 		
 	}

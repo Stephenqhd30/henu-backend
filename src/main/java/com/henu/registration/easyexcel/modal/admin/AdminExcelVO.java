@@ -21,13 +21,6 @@ public class AdminExcelVO implements Serializable {
 	@Serial
 	private static final long serialVersionUID = -475210145722229525L;
 	/**
-	 * id
-	 */
-	@ColumnWidth(40)
-	@ExcelProperty("id")
-	private Long id;
-	
-	/**
 	 * 管理员编号
 	 */
 	@ColumnWidth(40)

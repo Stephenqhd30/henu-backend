@@ -59,4 +59,22 @@ public class ExcelController {
 	public void exportCadreType(HttpServletResponse response) throws IOException {
 		excelService.exportCadreType(response);
 	}
+	
+	/**
+	 * 导出截止时间到 Excel
+	 */
+	@GetMapping("/export/deadline")
+	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
+	public void exportDeadline(HttpServletResponse response) throws IOException {
+		excelService.exportDeadline(response);
+	}
+	
+	/**
+	 * 导出教育经历表到 Excel
+	 */
+	@GetMapping("/export/education")
+	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
+	public void exportEducation(HttpServletResponse response) throws IOException {
+		excelService.exportEducation(response);
+	}
 }

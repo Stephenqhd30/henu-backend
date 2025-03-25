@@ -56,4 +56,18 @@ public interface ExcelService {
 	 * @param response HttpServletResponse
 	 */
 	void exportCadreType(HttpServletResponse response) throws IOException;
+	
+	/**
+	 * 导出截止时间信息到 Excel
+	 *
+	 * @param response HttpServletResponse
+	 */
+	void exportDeadline(HttpServletResponse response) throws IOException;
+	
+	/**
+	 * 导出教育经历信息到 Excel
+	 *
+	 * @param response HttpServletResponse
+	 */
+	void exportEducation(HttpServletResponse response) throws IOException;
 }

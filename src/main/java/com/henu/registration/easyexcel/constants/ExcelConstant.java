@@ -31,4 +31,19 @@ public interface ExcelConstant {
 	 * 干部类型信息
 	 */
 	String CADRE_TYPE = "干部类型信息";
+	
+	/**
+	 * 截止时间信息
+	 */
+	String DEADLINE = "截止时间信息";
+	
+	/**
+	 * 岗位信息
+	 */
+	String JOB = "岗位信息";
+	
+	/**
+	 * 教育经历信息
+	 */
+	String EDUCATION = "教育经历信息";
 }
