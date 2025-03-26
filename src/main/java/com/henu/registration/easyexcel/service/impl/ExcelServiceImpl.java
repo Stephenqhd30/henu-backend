@@ -13,6 +13,8 @@ import com.henu.registration.easyexcel.modal.deadline.DeadlineExcelVO;
 import com.henu.registration.easyexcel.modal.education.EducationExcelVO;
 import com.henu.registration.easyexcel.modal.family.FamilyExcelVO;
 import com.henu.registration.easyexcel.modal.fileLog.FileLogExcelVO;
+import com.henu.registration.easyexcel.modal.fileType.FileTypeExcelVO;
+import com.henu.registration.easyexcel.modal.job.JobExcelVO;
 import com.henu.registration.easyexcel.modal.operationLog.OperationLogExcelVO;
 import com.henu.registration.easyexcel.modal.user.UserExcelVO;
 import com.henu.registration.easyexcel.service.ExcelService;
@@ -334,6 +336,56 @@ public class ExcelServiceImpl implements ExcelService {
 		} catch (Exception e) {
 			log.error("文件上传日志信息导出失败: {}", e.getMessage());
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "文件上传日志信息导出失败");
+		}
+		
+	}
+	
+	/**
+	 * 导出文件类型信息到 Excel
+	 *
+	 * @param response HttpServletResponse
+	 */
+	@Override
+	public void exportFileType(HttpServletResponse response) throws IOException {
+		List<CompletableFuture<FileTypeExcelVO>> futures = fileTypeService.list().stream().map(fileType -> CompletableFuture.supplyAsync(() -> {
+			FileTypeExcelVO fileTypeExcelVO = new FileTypeExcelVO();
+			BeanUtils.copyProperties(fileType, fileTypeExcelVO);
+			return fileTypeExcelVO;
+		}, threadPoolExecutor)).toList();
+		// 等待所有 CompletableFuture 执行完毕，并收集结果
+		List<FileTypeExcelVO> fileTypeExcelVOList = futures.stream().map(CompletableFuture::join).collect(Collectors.toList());
+		// 写入 Excel 文件
+		try {
+			ExcelUtils.exportHttpServletResponse(fileTypeExcelVOList, ExcelConstant.FILE_TYPE, FileTypeExcelVO.class, response);
+			log.info("文件类型信息导出成功，导出数量：{}", fileTypeExcelVOList.size());
+		} catch (Exception e) {
+			log.error("文件类型信息导出失败: {}", e.getMessage());
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "文件类型信息导出失败");
+		}
+		
+	}
+	
+	/**
+	 * 导出岗位信息到 Excel
+	 *
+	 * @param response HttpServletResponse
+	 */
+	@Override
+	public void exportJob(HttpServletResponse response) throws IOException {
+		List<CompletableFuture<JobExcelVO>> futures = jobService.list().stream().map(job -> CompletableFuture.supplyAsync(() -> {
+			JobExcelVO jobExcelVO = new JobExcelVO();
+			BeanUtils.copyProperties(job, jobExcelVO);
+			return jobExcelVO;
+		}, threadPoolExecutor)).toList();
+		// 等待所有 CompletableFuture 执行完毕，并收集结果
+		List<JobExcelVO> jobExcelVOList = futures.stream().map(CompletableFuture::join).collect(Collectors.toList());
+		// 写入 Excel 文件
+		try {
+			ExcelUtils.exportHttpServletResponse(jobExcelVOList, ExcelConstant.JOB, JobExcelVO.class, response);
+			log.info("岗位信息导出成功，导出数量：{}", jobExcelVOList.size());
+		} catch (Exception e) {
+			log.error("岗位信息导出失败: {}", e.getMessage());
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "岗位信息导出失败");
 		}
 		
 	}

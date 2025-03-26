@@ -56,4 +56,9 @@ public interface ExcelConstant {
 	 * 文件上传日志信息
 	 */
 	String FILE_LOG = "文件上传日志信息";
+	
+	/**
+	 * 文件类型信息
+	 */
+	String FILE_TYPE = "文件类型信息";
 }

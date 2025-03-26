@@ -95,4 +95,22 @@ public class ExcelController {
 	public void exportFileLog(HttpServletResponse response) throws IOException {
 		excelService.exportFileLog(response);
 	}
+	
+	/**
+	 * 导出文件类型信息到 Excel
+	 */
+	@GetMapping("/export/file/type")
+	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
+	public void exportFileType(HttpServletResponse response) throws IOException {
+		excelService.exportFileType(response);
+	}
+	
+	/**
+	 * 导出文件类型信息到 Excel
+	 */
+	@GetMapping("/export/job")
+	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
+	public void exportJob(HttpServletResponse response) throws IOException {
+		excelService.exportJob(response);
+	}
 }
