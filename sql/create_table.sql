@@ -256,30 +256,38 @@ create table message_notice
 )
     comment '消息通知表';
 
--- 消息通知记录表（存发送情况）
-CREATE TABLE message_notice_record
+-- 消息推送表（存发送情况）
+CREATE TABLE message_push
 (
-    id          BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT 'id',
-    message_id  BIGINT                                                           NOT NULL COMMENT '消息通知id',
-    way         varchar(255)                                                     NOT NULL COMMENT '通知方式',
-    user_id     VARCHAR(255)                                                     NOT NULL COMMENT '通知用户id',
-    status      TINYINT(1)                                                       NOT NULL COMMENT '通知状态(0=失败,1=成功)',
-    create_time DATETIME   DEFAULT CURRENT_TIMESTAMP                             NOT NULL COMMENT '创建时间',
-    update_time DATETIME   DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL COMMENT '更新时间',
-    is_delete   TINYINT(1) DEFAULT 0                                             NOT NULL COMMENT '是否逻辑删除(0-否,1-是)',
-    FOREIGN KEY (message_id) REFERENCES message_notice (id) ON DELETE CASCADE
-) COMMENT = '消息通知记录表';
+    id                bigint auto_increment comment 'id'
+        primary key,
+    user_id           BIGINT                               NOT NULL COMMENT '用户id',
+    message_notice_id BIGINT                               NOT NULL COMMENT '消息通知id',
+    push_type         VARCHAR(128)                         NOT NULL COMMENT '推送方式(websocket/email/sms/other)',
+    push_status       TINYINT(1) DEFAULT 0                 NOT NULL COMMENT '推送状态(0-未推送,1-成功,2-失败,3-重试中)',
+    push_message      TEXT                                 NULL COMMENT '推送消息内容',
+    push_time         DATETIME                             NULL COMMENT '推送时间',
+    retry_count       INT        DEFAULT 0                 NOT NULL COMMENT '失败重试次数',
+    error_message     VARCHAR(500)                         NULL COMMENT '失败原因',
+    create_time       DATETIME   DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT '创建时间',
+    update_time       DATETIME   DEFAULT CURRENT_TIMESTAMP NOT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (id),
+    FOREIGN KEY (user_id) REFERENCES user (id),
+    FOREIGN KEY (message_notice_id) REFERENCES message_notice (id)
+) COMMENT '消息推送表';
 
+-- 系统消息表
 create table system_messages
 (
-    id           varchar(255)                                                     not null comment '系统消息编号'
+    id          bigint auto_increment comment 'id'
         primary key,
-    content      varchar(255)                                                     not null comment '消息内容',
-    publish_time varchar(255)                                                     not null comment '发布时间',
-    status       varchar(255)                                                     not null comment '消息状态',
-    type         varchar(255)                                                     not null comment '消息类型',
-    create_time  DATETIME   DEFAULT CURRENT_TIMESTAMP                             NOT NULL COMMENT '创建时间',
-    update_time  DATETIME   DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL COMMENT '更新时间',
-    is_delete    TINYINT(1) DEFAULT 0
+    title       varchar(255)                         not null comment '通知标题',
+    content     text                                 not null comment '消息内容',
+    push_time   datetime                             null comment '推送时间',
+    push_status tinyint(1) default 0                 not null comment '推送状态(0-未推送,1-成功,2-失败,3-重试中)',
+    type        varchar(255)                         not null comment '消息类型',
+    create_time datetime   default CURRENT_TIMESTAMP not null comment '创建时间',
+    update_time datetime   default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+    is_delete   tinyint(1) default 0                 not null comment '是否逻辑删除(0-否,1-是)'
 )
-    row_format = DYNAMIC;
+    comment '系统消息表' row_format = DYNAMIC;
