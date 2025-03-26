@@ -61,4 +61,14 @@ public interface ExcelConstant {
 	 * 文件类型信息
 	 */
 	String FILE_TYPE = "文件类型信息";
+	
+	/**
+	 * 报名登记表信息
+	 */
+	String REGISTRATION_FROM = "报名登记表信息";
+	
+	/**
+	 * 审核日志信息
+	 */
+	String REVIEW_LOG = "审核日志信息";
 }

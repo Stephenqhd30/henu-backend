@@ -113,4 +113,22 @@ public class ExcelController {
 	public void exportJob(HttpServletResponse response) throws IOException {
 		excelService.exportJob(response);
 	}
+	
+	/**
+	 * 导出报名登记表信息到 Excel
+	 */
+	@GetMapping("/export/registration/form")
+	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
+	public void exportRegistrationForm(HttpServletResponse response) throws IOException {
+		excelService.exportRegistrationForm(response);
+	}
+	
+	/**
+	 * 导出审核日志信息到 Excel
+	 */
+	@GetMapping("/export/review/log")
+	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
+	public void exportReviewLog(HttpServletResponse response) throws IOException {
+		excelService.exportReviewLog(response);
+	}
 }

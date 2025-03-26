@@ -5,6 +5,7 @@ import com.henu.registration.model.vo.registrationForm.RegistrationFormVO;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -16,6 +17,7 @@ import java.util.Date;
 @Data
 public class MessageNoticeVO implements Serializable {
 	
+	@Serial
 	private static final long serialVersionUID = -2054040827014586206L;
 	/**
 	 * id

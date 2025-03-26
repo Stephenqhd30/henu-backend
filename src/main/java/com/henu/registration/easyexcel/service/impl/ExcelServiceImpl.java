@@ -16,13 +16,14 @@ import com.henu.registration.easyexcel.modal.fileLog.FileLogExcelVO;
 import com.henu.registration.easyexcel.modal.fileType.FileTypeExcelVO;
 import com.henu.registration.easyexcel.modal.job.JobExcelVO;
 import com.henu.registration.easyexcel.modal.operationLog.OperationLogExcelVO;
+import com.henu.registration.easyexcel.modal.registrationForm.RegistrationFormExcelVO;
+import com.henu.registration.easyexcel.modal.reviewLog.ReviewLogExcelVO;
 import com.henu.registration.easyexcel.modal.user.UserExcelVO;
 import com.henu.registration.easyexcel.service.ExcelService;
-import com.henu.registration.model.entity.FileType;
-import com.henu.registration.model.entity.Job;
-import com.henu.registration.model.entity.School;
-import com.henu.registration.model.entity.User;
+import com.henu.registration.model.entity.*;
 import com.henu.registration.model.enums.AdminTyprEnum;
+import com.henu.registration.model.enums.MarryStatueEnum;
+import com.henu.registration.model.enums.ReviewStatusEnum;
 import com.henu.registration.model.enums.UserGenderEnum;
 import com.henu.registration.service.*;
 import com.henu.registration.utils.excel.ExcelUtils;
@@ -82,6 +83,12 @@ public class ExcelServiceImpl implements ExcelService {
 	
 	@Resource
 	private FileTypeService fileTypeService;
+	
+	@Resource
+	private RegistrationFormService registrationFormService;
+	
+	@Resource
+	private ReviewLogService reviewLogService;
 	
 	@Resource
 	private ThreadPoolExecutor threadPoolExecutor;
@@ -386,6 +393,67 @@ public class ExcelServiceImpl implements ExcelService {
 		} catch (Exception e) {
 			log.error("岗位信息导出失败: {}", e.getMessage());
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "岗位信息导出失败");
+		}
+		
+	}
+	
+	/**
+	 * 导出报名登记表信息到 Excel
+	 *
+	 * @param response HttpServletResponse
+	 */
+	@Override
+	public void exportRegistrationForm(HttpServletResponse response) throws IOException {
+		List<CompletableFuture<RegistrationFormExcelVO>> futures = registrationFormService.list().stream().map(registrationForm -> CompletableFuture.supplyAsync(() -> {
+			RegistrationFormExcelVO registrationFormExcelVO = new RegistrationFormExcelVO();
+			BeanUtils.copyProperties(registrationForm, registrationFormExcelVO);
+			registrationFormExcelVO.setUserGender(Objects.requireNonNull(UserGenderEnum.getEnumByValue(registrationForm.getUserGender())).getText());
+			registrationFormExcelVO.setMarryStatus(Objects.requireNonNull(MarryStatueEnum.getEnumByValue(registrationForm.getMarryStatus())).getText());
+			User user = userService.getById(registrationForm.getUserId());
+			registrationFormExcelVO.setUserIdCard(userService.getDecryptIdCard(user.getUserIdCard()));
+			registrationFormExcelVO.setSubmitter(user.getUserName());
+			registrationFormExcelVO.setUserCertificate(user.getUserAvatar());
+			Job job = jobService.getById(registrationForm.getJobId());
+			registrationFormExcelVO.setJobName(job.getJobName());
+			return registrationFormExcelVO;
+		}, threadPoolExecutor)).toList();
+		// 等待所有 CompletableFuture 执行完毕，并收集结果
+		List<RegistrationFormExcelVO> jobExcelVOList = futures.stream().map(CompletableFuture::join).collect(Collectors.toList());
+		// 写入 Excel 文件
+		try {
+			ExcelUtils.exportHttpServletResponse(jobExcelVOList, ExcelConstant.REGISTRATION_FROM, RegistrationFormExcelVO.class, response);
+			log.info("报名登记表信息导出成功，导出数量：{}", jobExcelVOList.size());
+		} catch (Exception e) {
+			log.error("报名登记表信息导出失败: {}", e.getMessage());
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "报名登记表信息导出失败");
+		}
+		
+	}
+	
+	/**
+	 * 导出审核日志信息到 Excel
+	 *
+	 * @param response HttpServletResponse
+	 */
+	@Override
+	public void exportReviewLog(HttpServletResponse response) throws IOException {
+		List<CompletableFuture<ReviewLogExcelVO>> futures = reviewLogService.list().stream().map(reviewLog -> CompletableFuture.supplyAsync(() -> {
+			ReviewLogExcelVO reviewLogExcelVO = new ReviewLogExcelVO();
+			BeanUtils.copyProperties(reviewLog, reviewLogExcelVO);
+			reviewLogExcelVO.setReviewStatus(Objects.requireNonNull(ReviewStatusEnum.getEnumByValue(reviewLog.getReviewStatus())).getText());
+			Admin admin = adminService.getById(reviewLog.getReviewerId());
+			reviewLogExcelVO.setReviewerName(admin.getAdminName());
+			return reviewLogExcelVO;
+		}, threadPoolExecutor)).toList();
+		// 等待所有 CompletableFuture 执行完毕，并收集结果
+		List<ReviewLogExcelVO> reviewLogExcelVOList = futures.stream().map(CompletableFuture::join).collect(Collectors.toList());
+		// 写入 Excel 文件
+		try {
+			ExcelUtils.exportHttpServletResponse(reviewLogExcelVOList, ExcelConstant.REVIEW_LOG, ReviewLogExcelVO.class, response);
+			log.info("审核日志信息导出成功，导出数量：{}", reviewLogExcelVOList.size());
+		} catch (Exception e) {
+			log.error("审核日志信息导出失败: {}", e.getMessage());
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "审核日志信息导出失败");
 		}
 		
 	}

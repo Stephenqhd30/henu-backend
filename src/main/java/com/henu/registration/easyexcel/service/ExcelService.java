@@ -99,4 +99,18 @@ public interface ExcelService {
 	 * @param response HttpServletResponse
 	 */
 	void exportJob(HttpServletResponse response) throws IOException;
+	
+	/**
+	 * 导出报名登记表信息到 Excel
+	 *
+	 * @param response HttpServletResponse
+	 */
+	void exportRegistrationForm(HttpServletResponse response) throws IOException;
+	
+	/**
+	 * 导出审核日志信息到 Excel
+	 *
+	 * @param response HttpServletResponse
+	 */
+	void exportReviewLog(HttpServletResponse response) throws IOException;
 }
