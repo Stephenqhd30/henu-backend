@@ -71,4 +71,19 @@ public interface ExcelConstant {
 	 * 审核日志信息
 	 */
 	String REVIEW_LOG = "审核日志信息";
+	
+	/**
+	 * 学校信息
+	 */
+	String SCHOOL = "学校信息";
+	
+	/**
+	 * 高校与高校类型关联信息
+	 */
+	String SCHOOL_SCHOOL_TYPE = "高校与高校类型关联信息";
+	
+	/**
+	 * 高校类型信息
+	 */
+	String SCHOOL_TYPE = "高校类型信息";
 }

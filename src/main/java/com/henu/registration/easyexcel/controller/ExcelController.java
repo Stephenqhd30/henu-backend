@@ -131,4 +131,31 @@ public class ExcelController {
 	public void exportReviewLog(HttpServletResponse response) throws IOException {
 		excelService.exportReviewLog(response);
 	}
+	
+	/**
+	 * 导出学校信息到 Excel
+	 */
+	@GetMapping("/export/school")
+	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
+	public void exportSchool(HttpServletResponse response) throws IOException {
+		excelService.exportSchool(response);
+	}
+	
+	/**
+	 * 导出高校与高校类型关联信息到 Excel
+	 */
+	@GetMapping("/export/school/school/type")
+	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
+	public void exportSchoolSchoolType(HttpServletResponse response) throws IOException {
+		excelService.exportSchoolSchoolType(response);
+	}
+	
+	/**
+	 * 导出高校类型信息到 Excel
+	 */
+	@GetMapping("/export/school/type")
+	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
+	public void exportSchoolType(HttpServletResponse response) throws IOException {
+		excelService.exportSchoolType(response);
+	}
 }

@@ -18,6 +18,9 @@ import com.henu.registration.easyexcel.modal.job.JobExcelVO;
 import com.henu.registration.easyexcel.modal.operationLog.OperationLogExcelVO;
 import com.henu.registration.easyexcel.modal.registrationForm.RegistrationFormExcelVO;
 import com.henu.registration.easyexcel.modal.reviewLog.ReviewLogExcelVO;
+import com.henu.registration.easyexcel.modal.school.SchoolExcelVO;
+import com.henu.registration.easyexcel.modal.schoolSchoolType.SchoolSchoolTypeExcelVO;
+import com.henu.registration.easyexcel.modal.schoolType.SchoolTypeExcelVO;
 import com.henu.registration.easyexcel.modal.user.UserExcelVO;
 import com.henu.registration.easyexcel.service.ExcelService;
 import com.henu.registration.model.entity.*;
@@ -90,6 +93,11 @@ public class ExcelServiceImpl implements ExcelService {
 	@Resource
 	private ReviewLogService reviewLogService;
 	
+	@Resource
+	private SchoolSchoolTypeService schoolSchoolTypeService;
+	
+	@Resource
+	private SchoolTypeService schoolTypeService;
 	@Resource
 	private ThreadPoolExecutor threadPoolExecutor;
 	
@@ -455,6 +463,79 @@ public class ExcelServiceImpl implements ExcelService {
 			log.error("审核日志信息导出失败: {}", e.getMessage());
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "审核日志信息导出失败");
 		}
-		
+	}
+	
+	/**
+	 * 导出学校信息到 Excel
+	 *
+	 * @param response HttpServletResponse
+	 */
+	@Override
+	public void exportSchool(HttpServletResponse response) throws IOException {
+		List<CompletableFuture<SchoolExcelVO>> futures = schoolService.list().stream().map(school -> CompletableFuture.supplyAsync(() -> {
+			SchoolExcelVO schoolExcelVO = new SchoolExcelVO();
+			BeanUtils.copyProperties(school, schoolExcelVO);
+			return schoolExcelVO;
+		}, threadPoolExecutor)).toList();
+		// 等待所有 CompletableFuture 执行完毕，并收集结果
+		List<SchoolExcelVO> schoolExcelVOList = futures.stream().map(CompletableFuture::join).collect(Collectors.toList());
+		// 写入 Excel 文件
+		try {
+			ExcelUtils.exportHttpServletResponse(schoolExcelVOList, ExcelConstant.SCHOOL, SchoolExcelVO.class, response);
+			log.info("学校信息导出成功，导出数量：{}", schoolExcelVOList.size());
+		} catch (Exception e) {
+			log.error("学校信息导出失败: {}", e.getMessage());
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "学校信息导出失败");
+		}
+	}
+	
+	/**
+	 * 导出高校与高校类型关联信息到 Excel
+	 *
+	 * @param response HttpServletResponse
+	 */
+	@Override
+	public void exportSchoolSchoolType(HttpServletResponse response) throws IOException {
+		List<CompletableFuture<SchoolSchoolTypeExcelVO>> futures = schoolSchoolTypeService.list().stream().map(schoolSchoolType -> CompletableFuture.supplyAsync(() -> {
+			SchoolSchoolTypeExcelVO schoolSchoolTypeExcelVO = new SchoolSchoolTypeExcelVO();
+			BeanUtils.copyProperties(schoolSchoolType, schoolSchoolTypeExcelVO);
+			School school = schoolService.getById(schoolSchoolType.getSchoolId());
+			schoolSchoolTypeExcelVO.setSchoolName(school.getSchoolName());
+			return schoolSchoolTypeExcelVO;
+		}, threadPoolExecutor)).toList();
+		// 等待所有 CompletableFuture 执行完毕，并收集结果
+		List<SchoolSchoolTypeExcelVO> schoolSchoolTypeExcelVOList = futures.stream().map(CompletableFuture::join).collect(Collectors.toList());
+		// 写入 Excel 文件
+		try {
+			ExcelUtils.exportHttpServletResponse(schoolSchoolTypeExcelVOList, ExcelConstant.SCHOOL_SCHOOL_TYPE, SchoolSchoolTypeExcelVO.class, response);
+			log.info("高校与高校类型关联信息导出成功，导出数量：{}", schoolSchoolTypeExcelVOList.size());
+		} catch (Exception e) {
+			log.error("高校与高校类型关联信息导出失败: {}", e.getMessage());
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "高校与高校类型关联信息导出失败");
+		}
+	}
+	
+	/**
+	 * 导出高校类型信息到 Excel
+	 *
+	 * @param response HttpServletResponse
+	 */
+	@Override
+	public void exportSchoolType(HttpServletResponse response) throws IOException {
+		List<CompletableFuture<SchoolTypeExcelVO>> futures = schoolTypeService.list().stream().map(schoolType -> CompletableFuture.supplyAsync(() -> {
+			SchoolTypeExcelVO schoolTypeExcelVO = new SchoolTypeExcelVO();
+			BeanUtils.copyProperties(schoolType, schoolTypeExcelVO);
+			return schoolTypeExcelVO;
+		}, threadPoolExecutor)).toList();
+		// 等待所有 CompletableFuture 执行完毕，并收集结果
+		List<SchoolTypeExcelVO> schoolSchoolTypeExcelVOList = futures.stream().map(CompletableFuture::join).collect(Collectors.toList());
+		// 写入 Excel 文件
+		try {
+			ExcelUtils.exportHttpServletResponse(schoolSchoolTypeExcelVOList, ExcelConstant.SCHOOL_TYPE, SchoolTypeExcelVO.class, response);
+			log.info("高校类型信息导出成功，导出数量：{}", schoolSchoolTypeExcelVOList.size());
+		} catch (Exception e) {
+			log.error("高校类型信息导出失败: {}", e.getMessage());
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "高校类型信息导出失败");
+		}
 	}
 }
