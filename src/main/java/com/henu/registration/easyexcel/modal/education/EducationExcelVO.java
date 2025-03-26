@@ -8,7 +8,7 @@ import java.io.Serial;
 import java.io.Serializable;
 
 /**
- * 教育经历表视图
+ * 教育经历表Excel视图
  *
  * @author stephen
  */

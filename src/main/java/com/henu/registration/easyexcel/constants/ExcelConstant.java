@@ -46,4 +46,14 @@ public interface ExcelConstant {
 	 * 教育经历信息
 	 */
 	String EDUCATION = "教育经历信息";
+	
+	/**
+	 * 家庭关系信息
+	 */
+	String FAMILY = "家庭关系信息";
+	
+	/**
+	 * 文件上传日志信息
+	 */
+	String FILE_LOG = "文件上传日志信息";
 }

@@ -77,4 +77,22 @@ public class ExcelController {
 	public void exportEducation(HttpServletResponse response) throws IOException {
 		excelService.exportEducation(response);
 	}
+	
+	/**
+	 * 导出家庭关系信息到 Excel
+	 */
+	@GetMapping("/export/family")
+	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
+	public void exportFamily(HttpServletResponse response) throws IOException {
+		excelService.exportFamily(response);
+	}
+	
+	/**
+	 * 导出文件上传日志信息到 Excel
+	 */
+	@GetMapping("/export/file/log")
+	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
+	public void exportFileLog(HttpServletResponse response) throws IOException {
+		excelService.exportFileLog(response);
+	}
 }

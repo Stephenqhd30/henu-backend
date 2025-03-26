@@ -8,7 +8,7 @@ import java.io.Serial;
 import java.io.Serializable;
 
 /**
- * 干部类型视图
+ * 干部类型 Excel 视图
  *
  * @author stephen
  */

@@ -11,9 +11,12 @@ import com.henu.registration.easyexcel.modal.admin.AdminExcelVO;
 import com.henu.registration.easyexcel.modal.cadreType.CadreTypeExcelVO;
 import com.henu.registration.easyexcel.modal.deadline.DeadlineExcelVO;
 import com.henu.registration.easyexcel.modal.education.EducationExcelVO;
+import com.henu.registration.easyexcel.modal.family.FamilyExcelVO;
+import com.henu.registration.easyexcel.modal.fileLog.FileLogExcelVO;
 import com.henu.registration.easyexcel.modal.operationLog.OperationLogExcelVO;
 import com.henu.registration.easyexcel.modal.user.UserExcelVO;
 import com.henu.registration.easyexcel.service.ExcelService;
+import com.henu.registration.model.entity.FileType;
 import com.henu.registration.model.entity.Job;
 import com.henu.registration.model.entity.School;
 import com.henu.registration.model.entity.User;
@@ -68,6 +71,15 @@ public class ExcelServiceImpl implements ExcelService {
 	
 	@Resource
 	private SchoolService schoolService;
+	
+	@Resource
+	private FamilyService familyService;
+	
+	@Resource
+	private FileLogService fileLogService;
+	
+	@Resource
+	private FileTypeService fileTypeService;
 	
 	@Resource
 	private ThreadPoolExecutor threadPoolExecutor;
@@ -266,6 +278,62 @@ public class ExcelServiceImpl implements ExcelService {
 		} catch (Exception e) {
 			log.error("教育经历信息导出失败: {}", e.getMessage());
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "教育经历信息导出失败");
+		}
+		
+	}
+	
+	/**
+	 * 导出家庭关系信息到 Excel
+	 *
+	 * @param response HttpServletResponse
+	 */
+	@Override
+	public void exportFamily(HttpServletResponse response) throws IOException {
+		List<CompletableFuture<FamilyExcelVO>> futures = familyService.list().stream().map(family -> CompletableFuture.supplyAsync(() -> {
+			FamilyExcelVO educationExcelVO = new FamilyExcelVO();
+			BeanUtils.copyProperties(family, educationExcelVO);
+			User user = userService.getById(family.getUserId());
+			educationExcelVO.setUserName(user.getUserName());
+			return educationExcelVO;
+		}, threadPoolExecutor)).toList();
+		// 等待所有 CompletableFuture 执行完毕，并收集结果
+		List<FamilyExcelVO> familyExcelVOList = futures.stream().map(CompletableFuture::join).collect(Collectors.toList());
+		// 写入 Excel 文件
+		try {
+			ExcelUtils.exportHttpServletResponse(familyExcelVOList, ExcelConstant.FAMILY, FamilyExcelVO.class, response);
+			log.info("家庭关系信息导出成功，导出数量：{}", familyExcelVOList.size());
+		} catch (Exception e) {
+			log.error("家庭关系信息导出失败: {}", e.getMessage());
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "家庭关系信息导出失败");
+		}
+		
+	}
+	
+	/**
+	 * 导出文件上传日志信息到 Excel
+	 *
+	 * @param response HttpServletResponse
+	 */
+	@Override
+	public void exportFileLog(HttpServletResponse response) throws IOException {
+		List<CompletableFuture<FileLogExcelVO>> futures = fileLogService.list().stream().map(fileLog -> CompletableFuture.supplyAsync(() -> {
+			FileLogExcelVO fileLogExcelVO = new FileLogExcelVO();
+			BeanUtils.copyProperties(fileLog, fileLogExcelVO);
+			FileType fileType = fileTypeService.getById(fileLog.getFileTypeId());
+			fileLogExcelVO.setFileTypeName(fileType.getTypeName());
+			User user = userService.getById(fileLog.getUserId());
+			fileLogExcelVO.setUserName(user.getUserName());
+			return fileLogExcelVO;
+		}, threadPoolExecutor)).toList();
+		// 等待所有 CompletableFuture 执行完毕，并收集结果
+		List<FileLogExcelVO> fileLogExcelVOList = futures.stream().map(CompletableFuture::join).collect(Collectors.toList());
+		// 写入 Excel 文件
+		try {
+			ExcelUtils.exportHttpServletResponse(fileLogExcelVOList, ExcelConstant.FILE_LOG, FileLogExcelVO.class, response);
+			log.info("文件上传日志信息导出成功，导出数量：{}", fileLogExcelVOList.size());
+		} catch (Exception e) {
+			log.error("文件上传日志信息导出失败: {}", e.getMessage());
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "文件上传日志信息导出失败");
 		}
 		
 	}

@@ -12,7 +12,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * 截止时间视图
+ * 截止时间 Excel 视图
  *
  * @author stephenqiu
  */

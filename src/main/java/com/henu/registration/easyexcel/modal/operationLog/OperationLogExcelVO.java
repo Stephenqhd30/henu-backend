@@ -11,7 +11,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * 操作日志表视图
+ * 操作日志表Excel视图
  *
  * @author stephen
  */

@@ -70,4 +70,18 @@ public interface ExcelService {
 	 * @param response HttpServletResponse
 	 */
 	void exportEducation(HttpServletResponse response) throws IOException;
+	
+	/**
+	 * 导出家庭关系信息到 Excel
+	 *
+	 * @param response HttpServletResponse
+	 */
+	void exportFamily(HttpServletResponse response) throws IOException;
+	
+	/**
+	 * 导出文件上传日志信息到 Excel
+	 *
+	 * @param response HttpServletResponse
+	 */
+	void exportFileLog(HttpServletResponse response) throws IOException;
 }

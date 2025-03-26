@@ -6,10 +6,9 @@ import lombok.Data;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.Date;
 
 /**
- * 用户视图（脱敏）
+ * 用户视图Excel
  *
  * @author stephen qiu
  */
