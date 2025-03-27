@@ -4,6 +4,7 @@ import com.henu.registration.common.PageRequest;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
 
@@ -32,11 +33,6 @@ public class MessageNoticeQueryRequest extends PageRequest implements Serializab
 	private String searchText;
 	
 	/**
-	 * 通知标题
-	 */
-	private String title;
-	
-	/**
 	 * 通知内容
 	 */
 	private String content;
@@ -56,5 +52,6 @@ public class MessageNoticeQueryRequest extends PageRequest implements Serializab
 	 */
 	private Long registrationId;
 	
+	@Serial
 	private static final long serialVersionUID = 1L;
 }

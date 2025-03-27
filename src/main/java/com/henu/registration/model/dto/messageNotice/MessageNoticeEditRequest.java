@@ -2,6 +2,7 @@ package com.henu.registration.model.dto.messageNotice;
 
 import lombok.Data;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
 
@@ -23,5 +24,6 @@ public class MessageNoticeEditRequest implements Serializable {
 	 */
 	private Integer readStatus;
 	
+	@Serial
 	private static final long serialVersionUID = 1L;
 }

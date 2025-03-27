@@ -57,22 +57,17 @@ public class MessageNoticeServiceImpl extends ServiceImpl<MessageNoticeMapper, M
 	public void validMessageNotice(MessageNotice messageNotice, boolean add) {
 		ThrowUtils.throwIf(messageNotice == null, ErrorCode.PARAMS_ERROR);
 		// todo 从对象中取值
-		String title = messageNotice.getTitle();
 		String content = messageNotice.getContent();
 		Long registrationId = messageNotice.getRegistrationId();
 		
 		// 创建数据时，参数不能为空
 		if (add) {
 			// todo 补充校验规则
-			ThrowUtils.throwIf(StringUtils.isBlank(title), ErrorCode.PARAMS_ERROR, "标题不能为空");
 			ThrowUtils.throwIf(StringUtils.isBlank(content), ErrorCode.PARAMS_ERROR, "内容不能为空");
 			ThrowUtils.throwIf(registrationId == null, ErrorCode.PARAMS_ERROR, "报名登记表id不能为空");
 		}
 		// 修改数据时，有参数则校验
 		// todo 补充校验规则
-		if (StringUtils.isNotBlank(title)) {
-			ThrowUtils.throwIf(title.length() > 80, ErrorCode.PARAMS_ERROR, "标题过长");
-		}
 		if (ObjectUtils.isNotEmpty(registrationId)) {
 			RegistrationForm registrationForm = registrationFormService.getById(registrationId);
 			ThrowUtils.throwIf(registrationForm == null, ErrorCode.PARAMS_ERROR, "报名登记表不存在");
@@ -94,7 +89,6 @@ public class MessageNoticeServiceImpl extends ServiceImpl<MessageNoticeMapper, M
 		// todo 从对象中取值
 		Long id = messageNoticeQueryRequest.getId();
 		Long notId = messageNoticeQueryRequest.getNotId();
-		String title = messageNoticeQueryRequest.getTitle();
 		String content = messageNoticeQueryRequest.getContent();
 		Integer readStatus = messageNoticeQueryRequest.getReadStatus();
 		Long adminId = messageNoticeQueryRequest.getAdminId();
@@ -104,7 +98,6 @@ public class MessageNoticeServiceImpl extends ServiceImpl<MessageNoticeMapper, M
 		
 		// todo 补充需要的查询条件
 		// 模糊查询
-		queryWrapper.like(StringUtils.isNotBlank(title), "title", title);
 		queryWrapper.like(StringUtils.isNotBlank(content), "content", content);
 		// 精确查询
 		queryWrapper.ne(ObjectUtils.isNotEmpty(notId), "id", notId);

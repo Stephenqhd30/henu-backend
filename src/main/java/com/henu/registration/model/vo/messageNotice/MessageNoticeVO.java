@@ -25,11 +25,6 @@ public class MessageNoticeVO implements Serializable {
 	private Long id;
 	
 	/**
-	 * 通知标题
-	 */
-	private String title;
-	
-	/**
 	 * 通知内容
 	 */
 	private String content;
