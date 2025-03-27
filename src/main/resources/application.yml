@@ -188,3 +188,10 @@ sa-token:
   token-prefix: Bearer
   # jwt秘钥
   jwt-secret-key: ${dev.sa-token.jwt-secret-key}
+
+aliyun:
+  sms:
+    enabled: true
+    accessKeyId: ${dev.aliyun.sms.accessKeyId}
+    accessKeySecret: ${dev.aliyun.sms.accessKeySecret}
+    regionId: ${dev.aliyun.sms.regionId}

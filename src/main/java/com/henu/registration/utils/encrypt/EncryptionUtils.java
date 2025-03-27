@@ -2,6 +2,7 @@ package com.henu.registration.utils.encrypt;
 
 import cn.hutool.crypto.SecureUtil;
 import cn.hutool.crypto.symmetric.AES;
+import com.henu.registration.constants.SaltConstant;
 import com.henu.registration.constants.UserConstant;
 
 /**
@@ -14,7 +15,7 @@ public class EncryptionUtils {
 	
 	static {
 		// 直接使用字符串作为密钥
-		AES = SecureUtil.aes(UserConstant.USER_ID_CARD_KEY.getBytes());
+		AES = SecureUtil.aes(SaltConstant.USER_ID_CARD_KEY.getBytes());
 	}
 	
 	/**
