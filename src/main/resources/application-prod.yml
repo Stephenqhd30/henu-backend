@@ -63,16 +63,6 @@ spring:
       max-file-size: 10MB
       max-request-size: 10MB
 
-# 腾讯云COS对象存储配置
-# todo 是否开启
-cos:
-  client:
-    enable: true
-    accessKey: ${prod.cos.client.accessKey}
-    secretKey: ${prod.cos.client.secretKey}
-    region: ${prod.cos.client.region}
-    bucket: ${prod.cos.client.bucket}
-
 server:
   port: ${prod.server.port}
   servlet:

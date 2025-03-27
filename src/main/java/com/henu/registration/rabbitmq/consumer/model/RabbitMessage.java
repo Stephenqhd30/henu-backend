@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -28,6 +29,7 @@ public class RabbitMessage implements Serializable {
 	 */
 	private String msgText;
 	
+	@Serial
 	private static final long serialVersionUID = -5714803262626105938L;
 	
 }

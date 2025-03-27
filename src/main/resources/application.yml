@@ -85,16 +85,6 @@ mybatis-plus:
       logic-delete-value: 1 # 逻辑已删除值（默认为 1）
       logic-not-delete-value: 0 # 逻辑未删除值（默认为 0）
 
-# 腾讯云COS对象存储配置
-# todo 是否开启
-cos:
-  client:
-    enable: true
-    accessKey: ${dev.cos.client.accessKey}
-    secretKey: ${dev.cos.client.secretKey}
-    region: ${dev.cos.client.region}
-    bucket: ${dev.cos.client.bucket}
-
 # 接口文档配置
 knife4j:
   enable: true
@@ -125,7 +115,7 @@ oss:
   # MinIO OSS配置
   minio:
     # todo 是否开启
-    enable: false
+    enable: true
     # 域名（格式：【ip:port】）
     endpoint: ${dev.oss.minio.endpoint}
     # 用户的 AccessKey
@@ -198,9 +188,3 @@ sa-token:
   token-prefix: Bearer
   # jwt秘钥
   jwt-secret-key: ${dev.sa-token.jwt-secret-key}
-
-encrypt:
-  aes:
-    enabled: true
-    # 长度必须是16/24/32字节
-    secret-key: "1234567890123456"

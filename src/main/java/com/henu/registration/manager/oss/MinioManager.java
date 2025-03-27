@@ -55,10 +55,8 @@ public class MinioManager {
 		// 获取文件的原始名称和后缀
 		String originalName = StringUtils.defaultIfBlank(file.getOriginalFilename(), file.getName());
 		String suffix = FilenameUtils.getExtension(originalName);
-		long fileSize = file.getSize();
 		
 		// 生成唯一键
-		String uniqueKey = SHA3Utils.encrypt(Arrays.toString(file.getBytes()) + originalName + suffix);
 		String fileName = UUID.randomUUID().toString().replace("-", "") + "." + suffix;
 		String filePath = String.format("%s/%s", path, fileName);
 		

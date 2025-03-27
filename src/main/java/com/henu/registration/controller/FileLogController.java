@@ -17,7 +17,7 @@ import com.henu.registration.service.AdminService;
 import com.henu.registration.service.FileLogService;
 import com.henu.registration.service.FileTypeService;
 import com.henu.registration.service.UserService;
-import com.henu.registration.utils.oss.CosUtils;
+import com.henu.registration.utils.oss.MinioUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -48,7 +48,7 @@ public class FileLogController {
 	private AdminService adminService;
 	
 	/**
-	 * 文件上传(使用COS对象存储)
+	 * 文件上传(使用Minio对象存储)
 	 *
 	 * @param multipartFile     multipartFile
 	 * @param uploadFileRequest uploadFileRequest
@@ -70,7 +70,7 @@ public class FileLogController {
 		// 文件目录：根据业务、用户来划分
 		String path = String.format("/%s/%s/%s", "henu", loginUser.getId(), fileType.getTypeName());
 		// 直接上传文件
-		String s = CosUtils.uploadFile(multipartFile, path);
+		String s = MinioUtils.uploadFile(multipartFile, path);
 		// 记录日志
 		FileLog fileLog = new FileLog();
 		fileLog.setFileTypeId(fileType.getId());
