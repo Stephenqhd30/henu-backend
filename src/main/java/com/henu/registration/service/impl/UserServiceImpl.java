@@ -1,7 +1,10 @@
 package com.henu.registration.service.impl;
 
+
 import cn.hutool.core.collection.CollUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.henu.registration.common.ErrorCode;
@@ -9,14 +12,17 @@ import com.henu.registration.common.ThrowUtils;
 import com.henu.registration.common.exception.BusinessException;
 import com.henu.registration.config.security.utils.DeviceUtils;
 import com.henu.registration.constants.CommonConstant;
+import com.henu.registration.constants.SaltConstant;
 import com.henu.registration.constants.UserConstant;
 import com.henu.registration.mapper.UserMapper;
 import com.henu.registration.model.dto.user.UserQueryRequest;
+import com.henu.registration.model.dto.user.UserRegisterRequest;
 import com.henu.registration.model.entity.User;
 import com.henu.registration.model.vo.user.LoginUserVO;
 import com.henu.registration.model.vo.user.UserVO;
 import com.henu.registration.service.UserService;
 import com.henu.registration.utils.encrypt.EncryptionUtils;
+import com.henu.registration.utils.encrypt.MD5Utils;
 import com.henu.registration.utils.redisson.lock.LockUtils;
 import com.henu.registration.utils.regex.RegexUtils;
 import com.henu.registration.utils.satoken.StpKit;
@@ -52,6 +58,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 	public void validUser(User user, boolean add) {
 		ThrowUtils.throwIf(user == null, ErrorCode.PARAMS_ERROR);
 		// todo 从对象中取值
+		String userAccount = user.getUserAccount();
+		String userPassword = user.getUserPassword();
 		String userIdCard = user.getUserIdCard();
 		String userName = user.getUserName();
 		String userEmail = user.getUserEmail();
@@ -60,11 +68,26 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 		// 创建数据时，参数不能为空
 		if (add) {
 			// todo 补充校验规则
+			ThrowUtils.throwIf(StringUtils.isBlank(userAccount), ErrorCode.PARAMS_ERROR, "账号不能为空");
+			ThrowUtils.throwIf(StringUtils.isBlank(userPassword), ErrorCode.PARAMS_ERROR, "密码不能为空");
 			ThrowUtils.throwIf(StringUtils.isBlank(userName), ErrorCode.PARAMS_ERROR, "姓名不能为空");
 			ThrowUtils.throwIf(StringUtils.isBlank(userIdCard), ErrorCode.PARAMS_ERROR, "身份证号不能为空");
 		}
 		// 修改数据时，有参数则校验
 		// todo 补充校验规则
+		if (StringUtils.isNotBlank(userAccount)) {
+			ThrowUtils.throwIf(userAccount.length() < 4, ErrorCode.PARAMS_ERROR, "账号过短");
+			// 账户不能重复
+			LambdaQueryWrapper<User> eq = Wrappers.lambdaQuery(User.class)
+					.eq(User::getUserAccount, userAccount);
+			long count = this.count(eq);
+			if (count > 0) {
+				throw new BusinessException(ErrorCode.PARAMS_ERROR, "账号重复");
+			}
+		}
+		if (StringUtils.isNotBlank(userPassword)) {
+			ThrowUtils.throwIf(userPassword.length() < 8, ErrorCode.PARAMS_ERROR, "密码过短");
+		}
 		if (StringUtils.isNotBlank(userIdCard)) {
 			ThrowUtils.throwIf(!RegexUtils.checkIdCard(userIdCard), ErrorCode.PARAMS_ERROR, "身份证号输入有误");
 		}
@@ -77,7 +100,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 	}
 	
 	/**
-	 * 获得加密密码
+	 * @param userPassword 用户密码
+	 * @return String
+	 */
+	@Override
+	public String getEncryptPassword(String userPassword) {
+		return MD5Utils.encrypt(SaltConstant.USER_SALT + userPassword);
+	}
+	
+	/**
+	 * 获得加密身份证号
 	 *
 	 * @param userIdCard userIdCard
 	 * @return String
@@ -88,7 +120,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 	}
 	
 	/**
-	 * 获得解密密码
+	 * 获得解密身份证号
 	 *
 	 * @param userIdCard userIdCard
 	 * @return String
@@ -100,36 +132,42 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 	
 	/**
 	 * 用户注册
-	 *
-	 * @param userIdCard      用户身份证号码
-	 * @param userName        用户姓名
-	 * @param checkUserIdCard 校验用户身份证号码
-	 * @return long 新用户 id
+	 * @param userRegisterRequest userRegisterRequest
+	 * @return long 注册成功之后的id
 	 */
 	@Override
-	public long userRegister(String userIdCard, String userName, String checkUserIdCard) {
+	public long userRegister(UserRegisterRequest userRegisterRequest) {
 		// 1. 校验
+		String userAccount = userRegisterRequest.getUserAccount();
+		String userPassword = userRegisterRequest.getUserPassword();
+		String checkUserPassword = userRegisterRequest.getCheckUserPassword();
+		if (StringUtils.isAnyBlank(userAccount, userPassword, checkUserPassword)) {
+			throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数为空");
+		}
+		if (userAccount.length() < 4) {
+			throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户账号过短");
+		}
+		if (userPassword.length() < 8 || checkUserPassword.length() < 8) {
+			throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户密码过短");
+		}
 		// 密码和校验密码相同
-		if (!userIdCard.equals(checkUserIdCard)) {
-			throw new BusinessException(ErrorCode.PARAMS_ERROR, "两次输入的身份证号不一致");
+		if (!userPassword.equals(checkUserPassword)) {
+			throw new BusinessException(ErrorCode.PARAMS_ERROR, "两次输入的密码不一致");
 		}
-		if (StringUtils.isNotBlank(userIdCard)) {
-			ThrowUtils.throwIf(!RegexUtils.checkIdCard(userIdCard), ErrorCode.PARAMS_ERROR, "身份证号输入有误");
-		}
-		return LockUtils.lockEvent(userIdCard.intern(), () -> {
+		return LockUtils.lockEvent(userAccount.intern(), () -> {
 			// 账户不能重复
-			QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-			queryWrapper.eq("user_id_card", userIdCard);
-			long count = this.baseMapper.selectCount(queryWrapper);
+			LambdaQueryWrapper<User> eq = Wrappers.lambdaQuery(User.class)
+					.eq(User::getUserAccount, userAccount);
+			long count = this.count(eq);
 			if (count > 0) {
-				throw new BusinessException(ErrorCode.PARAMS_ERROR, "该用户身份证号已被注册");
+				throw new BusinessException(ErrorCode.PARAMS_ERROR, "账号重复");
 			}
 			// 2. 加密
-			String encryptIdCard = this.getEncryptIdCard(userIdCard);
+			String encryptPassword = this.getEncryptPassword(userPassword);
 			// 3. 插入数据
 			User user = new User();
-			user.setUserName(userName);
-			user.setUserIdCard(encryptIdCard);
+			user.setUserAccount(userAccount);
+			user.setUserPassword(encryptPassword);
 			boolean saveResult = this.save(user);
 			if (!saveResult) {
 				throw new BusinessException(ErrorCode.SYSTEM_ERROR, "注册失败，数据库错误");
@@ -141,30 +179,33 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 	}
 	
 	/**
-	 * 用户登录
-	 *
-	 * @param userName   用户账户
-	 * @param userIdCard 身份证号
-	 * @param request    request
+	 * @param userAccount  用户账户
+	 * @param userPassword 用户密码
+	 * @param request      request
 	 * @return {@link LoginUserVO}
 	 */
 	@Override
-	public LoginUserVO userLogin(String userName, String userIdCard, HttpServletRequest request) {
+	public LoginUserVO userLogin(String userAccount, String userPassword, HttpServletRequest request) {
 		// 1. 校验
-		if (StringUtils.isAnyBlank(userName, userIdCard)) {
+		if (StringUtils.isAnyBlank(userAccount, userPassword)) {
 			throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数为空");
 		}
-		ThrowUtils.throwIf(!RegexUtils.checkIdCard(userIdCard), ErrorCode.PARAMS_ERROR, "身份证号输入有误");
+		if (userAccount.length() < 4) {
+			throw new BusinessException(ErrorCode.PARAMS_ERROR, "账号错误");
+		}
+		if (userPassword.length() < 8) {
+			throw new BusinessException(ErrorCode.PARAMS_ERROR, "密码错误");
+		}
 		// 2. 加密
-		String encryptIdCard = this.getEncryptIdCard(userIdCard);
+		String encryptPassword = this.getEncryptPassword(userPassword);
 		// 查询用户是否存在
-		QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-		queryWrapper.eq("user_name", userName);
-		queryWrapper.eq("user_id_card", encryptIdCard);
-		User user = this.baseMapper.selectOne(queryWrapper);
+		LambdaQueryWrapper<User> eq = Wrappers.lambdaQuery(User.class)
+				.eq(User::getUserAccount, userAccount)
+				.eq(User::getUserPassword, encryptPassword);
+		User user = this.getOne(eq);
 		// 用户不存在
 		if (user == null) {
-			log.info("user login failed, userName cannot match userIdCard");
+			log.info("user login failed, userAccount cannot match userPassword");
 			throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户不存在或密码错误");
 		}
 		// 3. 记录用户的登录态
@@ -308,6 +349,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 		}
 		Long id = userQueryRequest.getId();
 		Long notId = userQueryRequest.getNotId();
+		String userAccount = userQueryRequest.getUserAccount();
+		String userPassword = userQueryRequest.getUserPassword();
 		String userIdCard = userQueryRequest.getUserIdCard();
 		if (StringUtils.isNotBlank(userIdCard)) {
 			userIdCard = this.getEncryptIdCard(userIdCard);
@@ -324,7 +367,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 		queryWrapper.ne(ObjectUtils.isNotEmpty(notId), "id", notId);
 		queryWrapper.eq(StringUtils.isNotBlank(userIdCard), "user_id_card", userIdCard);
 		queryWrapper.eq(StringUtils.isNotBlank(userPhone), "user_phone", userPhone);
-		queryWrapper.eq(userGender != null, "user_gender", userGender);
+		queryWrapper.eq(StringUtils.isNotBlank(userAccount), "user_account", userAccount);
+		queryWrapper.eq(StringUtils.isNotBlank(userPassword), "user_password", userPassword);
+		queryWrapper.eq(ObjectUtils.isNotEmpty(userGender), "user_gender", userGender);
 		// 模糊查询
 		queryWrapper.like(StringUtils.isNotBlank(userName), "user_name", userName);
 		queryWrapper.like(StringUtils.isNotBlank(userEmail), "user_email", userEmail);

@@ -17,6 +17,7 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import javax.annotation.PostConstruct;
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,6 +35,7 @@ public class SaTokenConfiguration implements WebMvcConfigurer {
 	 * 定义SaToken不需要拦截的URI
 	 */
 	private static final List<String> SA_TOKEN_NOT_NEED_INTERCEPT_URI = new ArrayList<>() {
+		@Serial
 		private static final long serialVersionUID = 5839574116900754104L;
 		{
 			add("/");
@@ -41,6 +43,9 @@ public class SaTokenConfiguration implements WebMvcConfigurer {
 			add("/admin/get/login");
 			add("/user/login");
 			add("/user/get/login");
+			add("/user/recovery/code");
+			add("/user/recovery/verify");
+			add("/user/update/password");
 			add("/swagger-ui/**");
 			add("/v2/api-docs/**");
 			add("/swagger-resources/**");

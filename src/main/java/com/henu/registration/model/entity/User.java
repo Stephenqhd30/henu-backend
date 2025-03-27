@@ -28,14 +28,26 @@ public class User implements Serializable {
 	private Long id;
 	
 	/**
-	 * 身份证号码
+	 * 用户账号
 	 */
-	private String userIdCard;
+	private String userAccount;
+	
+	/**
+	 * 用户密码
+	 */
+	private String userPassword;
 	
 	/**
 	 * 姓名
 	 */
 	private String userName;
+	
+	
+	/**
+	 * 身份证号码
+	 */
+	private String userIdCard;
+	
 	
 	/**
 	 * 邮箱地址

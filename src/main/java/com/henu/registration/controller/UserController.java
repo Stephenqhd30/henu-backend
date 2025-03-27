@@ -1,6 +1,9 @@
 package com.henu.registration.controller;
 
 import cn.dev33.satoken.annotation.SaCheckRole;
+import cn.hutool.core.util.RandomUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.henu.registration.common.*;
 import com.henu.registration.common.exception.BusinessException;
@@ -13,6 +16,8 @@ import com.henu.registration.model.vo.user.UserVO;
 import com.henu.registration.service.AdminService;
 import com.henu.registration.service.UserService;
 import com.henu.registration.utils.encrypt.EncryptionUtils;
+import com.henu.registration.utils.regex.RegexUtils;
+import com.henu.registration.utils.sms.SMSUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -39,6 +44,9 @@ public class UserController {
 	@Resource
 	private AdminService adminService;
 	
+	@Resource
+	private SMSUtils smsUtils;
+	
 	// region 登录相关
 	
 	/**
@@ -50,15 +58,7 @@ public class UserController {
 	@PostMapping("/register")
 	public BaseResponse<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
 		ThrowUtils.throwIf(userRegisterRequest == null, ErrorCode.PARAMS_ERROR);
-		// 获取请求参数
-		String userIdCard = userRegisterRequest.getUserIdCard();
-		String userName = userRegisterRequest.getUserName();
-		String checkUserIdCard = userRegisterRequest.getCheckUserIdCard();
-		if (StringUtils.isAnyBlank(userIdCard, userName, checkUserIdCard)) {
-			// 判断请求参数是否为空
-			throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数不能为空");
-		}
-		long result = userService.userRegister(userIdCard, userName, checkUserIdCard);
+		long result = userService.userRegister(userRegisterRequest);
 		// 调用用户注册服务
 		return ResultUtils.success(result);
 	}
@@ -75,10 +75,10 @@ public class UserController {
 		if (userLoginRequest == null) {
 			throw new BusinessException(ErrorCode.PARAMS_ERROR);
 		}
-		String userIdCard = userLoginRequest.getUserIdCard();
-		String userName = userLoginRequest.getUserName();
-		ThrowUtils.throwIf(StringUtils.isAnyBlank(userIdCard, userName), ErrorCode.PARAMS_ERROR);
-		LoginUserVO loginUserVO = userService.userLogin(userName, userIdCard, request);
+		String userPassword = userLoginRequest.getUserPassword();
+		String userAccount = userLoginRequest.getUserAccount();
+		ThrowUtils.throwIf(StringUtils.isAnyBlank(userPassword, userAccount), ErrorCode.PARAMS_ERROR);
+		LoginUserVO loginUserVO = userService.userLogin(userAccount, userPassword, request);
 		return ResultUtils.success(loginUserVO);
 	}
 	
@@ -130,6 +130,9 @@ public class UserController {
 		BeanUtils.copyProperties(userAddRequest, user);
 		// 数据校验
 		userService.validUser(user, true);
+		// 数据加密
+		user.setUserIdCard(userService.getDecryptIdCard(user.getUserIdCard()));
+		user.setUserPassword(userService.getEncryptPassword(user.getUserPassword()));
 		// 写入数据库
 		boolean result = userService.save(user);
 		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
@@ -196,7 +199,7 @@ public class UserController {
 		ThrowUtils.throwIf(oldUser == null, ErrorCode.NOT_FOUND_ERROR);
 		// 如果用户需要修改密码
 		if (StringUtils.isNotBlank(userUpdateRequest.getUserIdCard())) {
-			// todo 密码加密
+			// todo 身份证加密
 			String encryptPassword = userService.getEncryptIdCard(userUpdateRequest.getUserIdCard());
 			user.setUserIdCard(encryptPassword);
 		}
@@ -312,11 +315,84 @@ public class UserController {
 		}
 		// 如果用户需要修改密码
 		if (StringUtils.isNotBlank(userEditRequest.getUserIdCard())) {
-			// todo 密码加密
-			String encryptPassword = userService.getEncryptIdCard(userEditRequest.getUserIdCard());
-			user.setUserIdCard(encryptPassword);
+			// todo 身份证加密
+			String encryptIdCard = userService.getEncryptIdCard(userEditRequest.getUserIdCard());
+			user.setUserIdCard(encryptIdCard);
 		}
 		user.setId(loginUser.getId());
+		boolean result = userService.updateById(user);
+		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+		return ResultUtils.success(true);
+	}
+	
+	/**
+	 * 发送验证码(短信验证)
+	 *
+	 * @param userUpdatePasswordRequest userUpdatePasswordRequest
+	 * @return BaseResponse<Boolean>
+	 */
+	@PostMapping("/recovery/code")
+	public BaseResponse<Boolean> sentRecoveryCode(@RequestBody UserUpdatePasswordRequest userUpdatePasswordRequest) {
+		ThrowUtils.throwIf(userUpdatePasswordRequest == null, ErrorCode.PARAMS_ERROR);
+		// 1. 校验手机号格式
+		String userPhone = userUpdatePasswordRequest.getUserPhone();
+		ThrowUtils.throwIf(!RegexUtils.checkPhone(userPhone), ErrorCode.PARAMS_ERROR, "手机号格式不正确");
+		LambdaQueryWrapper<User> eq = Wrappers.lambdaQuery(User.class).eq(User::getUserPhone, userPhone);
+		User user = userService.getOne(eq);
+		ThrowUtils.throwIf(user == null, ErrorCode.NOT_FOUND_ERROR, "该手机号未注册");
+		// 2. 生成验证码
+		String verificationCode = RandomUtil.randomNumbers(6);
+		// 3. 发送验证码到手机号
+		try {
+			smsUtils.sendRecoveryCode(userPhone, verificationCode);
+		} catch (Exception e) {
+			throw new BusinessException(ErrorCode.OPERATION_ERROR, "验证码发送失败");
+		}
+		return ResultUtils.success(true);
+	}
+	
+	/**
+	 * 验证验证码
+	 *
+	 * @param userUpdatePasswordRequest userUpdatePasswordRequest
+	 * @return BaseResponse<Boolean>
+	 */
+	@PostMapping("/recovery/verify")
+	public BaseResponse<Boolean> verifyRecoveryCode(@RequestBody UserUpdatePasswordRequest userUpdatePasswordRequest) {
+		ThrowUtils.throwIf(userUpdatePasswordRequest == null, ErrorCode.PARAMS_ERROR);
+		// 1. 校验手机号格式
+		String userPhone = userUpdatePasswordRequest.getUserPhone();
+		ThrowUtils.throwIf(!RegexUtils.checkPhone(userPhone), ErrorCode.PARAMS_ERROR, "手机号格式不正确");
+		// 2. 获取验证码
+		String inputCode = userUpdatePasswordRequest.getVerificationCode();
+		ThrowUtils.throwIf(inputCode == null || inputCode.isEmpty(), ErrorCode.PARAMS_ERROR, "验证码不能为空");
+		// 3. 从缓存中获取验证码
+		smsUtils.verifyRecoveryCode(userPhone, inputCode);
+		return ResultUtils.success(true);
+	}
+	
+	
+	/**
+	 * 修改密码(短信验证)
+	 *
+	 * @param userUpdatePasswordRequest userUpdatePasswordRequest
+	 * @return BaseResponse<Boolean>
+	 */
+	@PostMapping("/update/password")
+	public BaseResponse<Boolean> updatePassword(@RequestBody UserUpdatePasswordRequest userUpdatePasswordRequest) {
+		ThrowUtils.throwIf(userUpdatePasswordRequest == null, ErrorCode.PARAMS_ERROR);
+		// 对用户数据进行校验
+		String userPhone = userUpdatePasswordRequest.getUserPhone();
+		String userPassword = userUpdatePasswordRequest.getUserPassword();
+		String checkUserPassword = userUpdatePasswordRequest.getCheckUserPassword();
+		ThrowUtils.throwIf(!RegexUtils.checkPhone(userPhone), ErrorCode.PARAMS_ERROR, "手机号格式不正确");
+		if (!userPassword.equals(checkUserPassword)) {
+			return ResultUtils.error(ErrorCode.PARAMS_ERROR, "两次密码不一致");
+		}
+		LambdaQueryWrapper<User> eq = Wrappers.lambdaQuery(User.class).eq(User::getUserPhone, userPhone);
+		User user = userService.getOne(eq);
+		ThrowUtils.throwIf(user == null, ErrorCode.NOT_FOUND_ERROR, "该手机号未注册");
+		user.setUserPassword(userService.getEncryptPassword(userPassword));
 		boolean result = userService.updateById(user);
 		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
 		return ResultUtils.success(true);

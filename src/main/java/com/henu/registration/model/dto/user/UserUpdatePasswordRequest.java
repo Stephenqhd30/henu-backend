@@ -6,20 +6,25 @@ import java.io.Serial;
 import java.io.Serializable;
 
 /**
- * 用户注册请求体
+ * 用户创建请求
  *
  * @author stephen qiu
  */
 @Data
-public class UserRegisterRequest implements Serializable {
+public class UserUpdatePasswordRequest implements Serializable {
 	
 	@Serial
-	private static final long serialVersionUID = 3191241716373120793L;
+	private static final long serialVersionUID = -6510457969873015318L;
 	
 	/**
-	 * 用户账户
+	 * 联系电话
 	 */
-	private String userAccount;
+	private String userPhone;
+	
+	/**
+	 * 验证码
+	 */
+	private String verificationCode;
 	
 	/**
 	 * 用户密码
@@ -27,7 +32,9 @@ public class UserRegisterRequest implements Serializable {
 	private String userPassword;
 	
 	/**
-	 * 用户密码
+	 * 确认密码
 	 */
 	private String checkUserPassword;
+	
+	
 }

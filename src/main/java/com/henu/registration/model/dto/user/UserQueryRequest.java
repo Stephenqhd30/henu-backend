@@ -4,6 +4,7 @@ import com.henu.registration.common.PageRequest;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -14,6 +15,7 @@ import java.io.Serializable;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class UserQueryRequest extends PageRequest implements Serializable {
+	@Serial
 	private static final long serialVersionUID = 8796619426266616906L;
 	/**
 	 * id
@@ -29,6 +31,16 @@ public class UserQueryRequest extends PageRequest implements Serializable {
 	 * 搜索关键词
 	 */
 	private String searchText;
+	
+	/**
+	 * 用户账号
+	 */
+	private String userAccount;
+	
+	/**
+	 * 用户密码
+	 */
+	private String userPassword;
 	
 	/**
 	 * 身份证号码

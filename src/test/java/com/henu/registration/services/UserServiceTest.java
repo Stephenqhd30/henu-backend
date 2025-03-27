@@ -29,5 +29,10 @@ public class UserServiceTest {
 		System.out.println(password);
 	}
 	
+	@Test
+	public void getEncryptUserPassword() {
+		String password = userService.getEncryptPassword("12345678");
+		System.out.println(password);
+	}
 	
 }

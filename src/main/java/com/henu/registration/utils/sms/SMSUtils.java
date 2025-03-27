@@ -7,10 +7,15 @@ import com.aliyuncs.exceptions.ClientException;
 import com.henu.registration.config.sms.properties.SmsProperties;
 import com.henu.registration.common.exception.BusinessException;
 import com.henu.registration.common.ErrorCode;
+import com.henu.registration.constants.SmsConstant;
+import com.henu.registration.manager.redis.RedisLimiterManager;
+import com.henu.registration.utils.redisson.rateLimit.model.TimeModel;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 短信发送工具类
@@ -25,7 +30,69 @@ public class SMSUtils {
 	private IAcsClient smsClient;
 	
 	@Resource
-	private SmsProperties smsProperties;
+	private RedisLimiterManager redisLimiterManager;
+	
+	@Resource
+	private RedisTemplate<String, String> redisTemplate;
+	
+	/**
+	 * 发送验证码短信用于密码重置
+	 *
+	 * @param phoneNumbers 接收验证码的手机号
+	 * @param verifyCode   生成的验证码
+	 */
+	public void sendRecoveryCode(String phoneNumbers, String verifyCode) {
+		// 设置短信请求
+		SendSmsRequest request = new SendSmsRequest();
+		request.setPhoneNumbers(phoneNumbers);
+		request.setTemplateCode(SmsConstant.PASSWORD);
+		request.setSignName(SmsConstant.SIGN_NAME);
+		request.setTemplateParam("{\"code\":\"" + verifyCode + "\"}");
+		redisLimiterManager.doRateLimit(phoneNumbers, new TimeModel(1L, TimeUnit.MINUTES), 2L, 1L);
+		try {
+			// 调用短信服务发送验证码
+			SendSmsResponse response = smsClient.getAcsResponse(request);
+			if (!"OK".equals(response.getCode())) {
+				log.error("验证码发送失败，错误码：{}，错误信息：{}", response.getCode(), response.getMessage());
+				throw new BusinessException(ErrorCode.SMS_ERROR, "验证码发送失败：" + response.getMessage());
+			}
+			// 将验证码存入 Redis，设置过期时间为 5 分钟
+			// 使用手机号作为 key
+			String redisKey = "verify_code:" + phoneNumbers;
+			// 存入 Redis，并设置过期时间为 5 分钟
+			redisTemplate.opsForValue().set(redisKey, verifyCode, 5, TimeUnit.MINUTES);
+			log.info("密码重置验证码已发送，手机号：{}", phoneNumbers);
+		} catch (ClientException e) {
+			log.error("验证码发送异常：{}", e.getMessage(), e);
+			throw new BusinessException(ErrorCode.SMS_ERROR, "验证码发送异常：" + e.getMessage());
+		}
+	}
+	
+	/**
+	 * 校验验证码是否正确
+	 *
+	 * @param phoneNumbers 用户的手机号
+	 * @param inputCode    用户输入的验证码
+	 */
+	public void verifyRecoveryCode(String phoneNumbers, String inputCode) {
+		// 从 Redis 获取存储的验证码
+		String redisKey = "verify_code:" + phoneNumbers;
+		String storedCode = redisTemplate.opsForValue().get(redisKey);
+		
+		if (storedCode == null) {
+			// 如果 Redis 中没有存储该验证码，表示验证码已过期或从未发送
+			log.warn("验证码已过期或不存在，手机号：{}", phoneNumbers);
+			throw new BusinessException(ErrorCode.SMS_ERROR, "验证码已过期或不存在，请重新发送");
+		}
+		// 校验用户输入的验证码与存储的验证码是否匹配
+		if (!storedCode.equals(inputCode)) {
+			// 如果不匹配，返回验证码错误
+			log.warn("验证码错误，手机号：{}", phoneNumbers);
+			throw new BusinessException(ErrorCode.SMS_ERROR, "验证码错误，请重新输入");
+		}
+		// 如果验证码正确，可以进行后续操作
+		log.info("验证码正确，手机号：{}", phoneNumbers);
+	}
 	
 	/**
 	 * 发送短信
@@ -35,7 +102,8 @@ public class SMSUtils {
 	 */
 	public void sendMessage(String phoneNumbers, String param) {
 		SendSmsRequest request = new SendSmsRequest();
-		request.setSysRegionId(smsProperties.getRegionId());
+		request.setSignName(SmsConstant.SIGN_NAME);
+		request.setTemplateCode(SmsConstant.INTERVIEW);
 		request.setPhoneNumbers(phoneNumbers);
 		request.setTemplateParam(param);
 		

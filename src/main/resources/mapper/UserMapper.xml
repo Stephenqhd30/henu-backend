@@ -6,7 +6,9 @@
 
     <resultMap id="BaseResultMap" type="com.henu.registration.model.entity.User">
             <id property="id" column="id" />
-            <result property="userIdCard" column="user_id_card" />
+            <result property="userAccount" column="user_account"/>
+            <result property="userPassword" column="user_password"/>
+            <result property="userIdCard" column="user_id_card"/>
             <result property="userName" column="user_name" />
             <result property="userEmail" column="user_email" />
             <result property="userPhone" column="user_phone" />
@@ -19,7 +21,7 @@
 
     <sql id="Base_Column_List">
 	    id
-	    ,user_id_card,user_name,user_email,user_phone,user_gender,user_avatar,
+	    ,user_account,user_id_card,user_password,user_name,user_email,user_phone,user_gender,user_avatar,
        create_time,update_time,is_delete
     </sql>
 </mapper>

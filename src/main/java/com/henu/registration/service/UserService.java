@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.henu.registration.model.dto.user.UserQueryRequest;
+import com.henu.registration.model.dto.user.UserRegisterRequest;
 import com.henu.registration.model.entity.User;
 import com.henu.registration.model.vo.user.LoginUserVO;
 import com.henu.registration.model.vo.user.UserVO;
@@ -32,10 +33,18 @@ public interface UserService extends IService<User> {
 	 * @param userPassword userPassword
 	 * @return String
 	 */
-	String getEncryptIdCard(String userPassword);
+	String getEncryptPassword(String userPassword);
 	
 	/**
-	 * 获得解密密码
+	 * 获得加密身份证号
+	 *
+	 * @param userIdCard userPassword
+	 * @return String
+	 */
+	String getEncryptIdCard(String userIdCard);
+	
+	/**
+	 * 获得解密身份证号
 	 *
 	 * @param userIdCard userIdCard
 	 * @return String
@@ -44,23 +53,20 @@ public interface UserService extends IService<User> {
 	
 	/**
 	 * 用户注册
-	 *
-	 * @param userIdCard      用户身份证号码
-	 * @param userName        用户姓名
-	 * @param checkUserIdCard 校验用户身份证号码
-	 * @return long 新用户 id
+	 * @param userRegisterRequest userRegisterRequest
+	 * @return long 注册成功之后的id
 	 */
-	long userRegister(String userIdCard, String userName, String checkUserIdCard);
+	long userRegister(UserRegisterRequest userRegisterRequest);
 	
 	/**
 	 * 用户登录
 	 *
-	 * @param userName   用户账户
-	 * @param userIdCard 身份证号
+	 * @param userAccount   用户账户
+	 * @param userPassword 用户密码
 	 * @param request    request
 	 * @return {@link LoginUserVO}
 	 */
-	LoginUserVO userLogin(String userName, String userIdCard, HttpServletRequest request);
+	LoginUserVO userLogin(String userAccount, String userPassword, HttpServletRequest request);
 	
 	/**
 	 * 获取当前登录用户

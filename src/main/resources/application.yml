@@ -127,7 +127,7 @@ oss:
 # WebSocket配置
 websocket:
   # todo 是否开启（预先关闭）
-  enable: true
+  enable: false
   # websocket服务端口
   port: ${dev.websocket.port}
   # BOSS线程组线程数

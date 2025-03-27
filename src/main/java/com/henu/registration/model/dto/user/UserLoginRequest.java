@@ -2,6 +2,7 @@ package com.henu.registration.model.dto.user;
 
 import lombok.Data;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -12,15 +13,16 @@ import java.io.Serializable;
 @Data
 public class UserLoginRequest implements Serializable {
 	
+	@Serial
 	private static final long serialVersionUID = 3191241716373120793L;
 	
 	/**
-	 * 身份证号码
+	 * 用户密码
 	 */
-	private String userIdCard;
+	private String userPassword;
 	
 	/**
-	 * 姓名
+	 * 账号
 	 */
-	private String userName;
+	private String userAccount;
 }
