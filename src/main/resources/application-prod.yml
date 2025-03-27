@@ -83,7 +83,7 @@ server:
         domain: ${prod.server.servlet.session.cookie.domain}
 mybatis-plus:
   configuration:
-    map-underscore-to-camel-case: false
+    map-underscore-to-camel-case: true
     # 生产环境关闭日志
     log-impl: ''
   global-config:
