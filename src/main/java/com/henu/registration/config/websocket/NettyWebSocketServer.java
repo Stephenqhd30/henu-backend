@@ -1,5 +1,6 @@
 package com.henu.registration.config.websocket;
 
+import com.henu.registration.config.websocket.condition.WebSocketCondition;
 import com.henu.registration.config.websocket.handler.TextWebSocketFrameHandler;
 import com.henu.registration.config.websocket.properties.WebSocketProperties;
 import io.netty.bootstrap.ServerBootstrap;
@@ -15,7 +16,10 @@ import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+
+import javax.annotation.Resource;
 
 /**
  * Netty WebSocket 服务器配置类。
@@ -28,6 +32,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Slf4j
 @Configuration
+@Conditional(WebSocketCondition.class)
 public class NettyWebSocketServer {
 	
 	// 线程组：用于接收客户端连接请求的Boss线程组
@@ -46,8 +51,8 @@ public class NettyWebSocketServer {
 	public NettyWebSocketServer(WebSocketProperties webSocketProperties) {
 		// 校验端口号是否合法
 		if (webSocketProperties.getPort() > 65535 || webSocketProperties.getPort() < 0) {
-			log.info("配置的WebSocket端口[{}]无效，使用默认端口39999", webSocketProperties.getPort());
-			webSocketProperties.setPort(39999);
+			log.info("配置的WebSocket端口[{}]无效，使用默认端口39999", 39999);
+			webSocketProperties.setPort(webSocketProperties.getPort());
 		}
 		
 		// 初始化Boss和Worker线程组

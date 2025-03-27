@@ -36,28 +36,6 @@ spring:
     host: ${dev.redis.host}
     port: ${dev.redis.port}
     timeout: ${dev.redis.timeout}
-  # Elasticsearch 配置
-  # todo 需替换配置，然后取消注释
-  elasticsearch:
-    uris: ${dev.elasticsearch.uris}
-    username: ${dev.elasticsearch.username}
-    password: ${dev.elasticsearch.password}
-  # 邮件配置
-  mail:
-    # todo 是否开启邮件功能
-    enable: true
-    # 邮件服务器配置
-    host: ${dev.mail.host}
-    # 端口号
-    port: ${dev.mail.port}
-    # 发送邮件的邮箱地址
-    username: ${dev.mail.username}
-    # 发送邮件的邮箱验证密码或者授权码
-    password: ${dev.mail.password}
-    # 邮件默认编码
-    default-encoding: UTF-8
-    # 邮箱通讯协议
-    protocol: smtp
   # 文件上传
   servlet:
     multipart:
@@ -127,7 +105,7 @@ oss:
 # WebSocket配置
 websocket:
   # todo 是否开启（预先关闭）
-  enable: false
+  enable: true
   # websocket服务端口
   port: ${dev.websocket.port}
   # BOSS线程组线程数
