@@ -26,22 +26,12 @@ spring:
     port: ${prod.redis.port}
     timeout: ${prod.redis.timeout}
     password: ${prod.redis.password}
-  # 邮件配置
-  mail:
-    # todo 是否开启邮件功能
-    enable: true
-    # 邮件服务器配置
-    host: ${prod.mail.host}
-    # 端口号
-    port: ${prod.mail.port}
-    # 发送邮件的邮箱地址
-    username: ${prod.mail.username}
-    # 发送邮件的邮箱验证密码或者授权码
-    password: ${prod.mail.password}
-    # 邮件默认编码
-    default-encoding: UTF-8
-    # 邮箱通讯协议
-    protocol: smtp
+  # Elasticsearch 配置
+  # todo 需替换配置，然后取消注释
+  elasticsearch:
+    uris: ${prod.elasticsearch.uris}
+    username: ${prod.elasticsearch.username}
+    password: ${prod.elasticsearch.password}
   # RabbitMQ配置
   rabbitmq:
     # todo 是否开启RabbitMQ（预先关闭）
@@ -83,7 +73,7 @@ server:
         domain: ${prod.server.servlet.session.cookie.domain}
 mybatis-plus:
   configuration:
-    map-underscore-to-camel-case: true
+    map-underscore-to-camel-case: false
     # 生产环境关闭日志
     log-impl: ''
   global-config:
@@ -113,20 +103,14 @@ oss:
     secretKey: ${prod.oss.minio.secretKey}
     # 桶名称
     bucket: ${prod.oss.minio.bucket}
-# 验证码配置
-captcha:
-  # todo 是否使用验证码（启用的前提是redisson配置完成，预先关闭）
-  enable: true
-  # 验证码类型：char 字符类型；math 数字类型。
-  type: char
-  # 验证码类别：line 线段干扰；circle 圆圈干扰；shear 扭曲干扰。
-  category: line
-  # 数字验证码位数（1-9，否则默认为1）
-  number-length: 1
-  # 字符验证码长度（1-99，否则默认为4）
-  char-length: 4
-  # 验证码存活时间（单位：秒）
-  expired: 180
+
+# 讯飞星火api
+xunfei:
+  enabled: true
+  client:
+    appid: ${prod.xunfei.client.appid}
+    api-key: ${prod.xunfei.client.api-key}
+    api-secret: ${prod.xunfei.client.api-secret}
 
 ############## Sa-Token 配置 (文档: https://sa-token.cc) ##############
 sa-token:
@@ -153,20 +137,8 @@ sa-token:
   # jwt秘钥
   jwt-secret-key: ${prod.sa-token.jwt-secret-key}
 
-aliyun:
-  sms:
-    enabled: true
-    accessKeyId: ${prod.aliyun.sms.accessKeyId}
-    accessKeySecret: ${prod.aliyun.sms.accessKeySecret}
-    regionId: ${prod.aliyun.sms.regionId}
-
-# WebSocket配置
-websocket:
-  # todo 是否开启（预先关闭）
-  enable: true
-  # websocket服务端口
-  port: ${prod.websocket.port}
-  # BOSS线程组线程数
-  boss-thread: ${prod.websocket.boss-thread}
-  # WORKER线程组线程数
-  worker-thread: ${prod.websocket.worker-thread}
+# DeepSeek配置
+deepseek:
+  enabled: true
+  base-url: ${prod.deepseek.baseUrl}
+  api-key: ${prod.deepseek.apiKey}
