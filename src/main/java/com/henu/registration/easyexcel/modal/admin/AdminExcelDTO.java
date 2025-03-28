@@ -53,20 +53,6 @@ public class AdminExcelDTO implements Serializable {
 		return admin;
 	}
 	
-	/**
-	 * 对象转封装类
-	 *
-	 * @param admin admin
-	 * @return {@link AdminVO}
-	 */
-	public static AdminExcelDTO objToDto(Admin admin) {
-		if (admin == null) {
-			return null;
-		}
-		AdminExcelDTO adminExcelDTO = new AdminExcelDTO();
-		BeanUtils.copyProperties(admin, adminExcelDTO);
-		return adminExcelDTO;
-	}
 	
 	
 }

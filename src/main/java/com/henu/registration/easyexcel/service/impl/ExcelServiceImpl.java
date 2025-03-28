@@ -4,8 +4,10 @@ import com.henu.registration.common.ErrorCode;
 import com.henu.registration.common.ThrowUtils;
 import com.henu.registration.common.exception.BusinessException;
 import com.henu.registration.config.easyexcel.core.ExcelResult;
+import com.henu.registration.constants.AdminConstant;
 import com.henu.registration.easyexcel.constants.ExcelConstant;
 import com.henu.registration.easyexcel.listener.AdminExcelListener;
+import com.henu.registration.easyexcel.listener.SchoolExcelListener;
 import com.henu.registration.easyexcel.modal.admin.AdminExcelDTO;
 import com.henu.registration.easyexcel.modal.admin.AdminExcelVO;
 import com.henu.registration.easyexcel.modal.cadreType.CadreTypeExcelVO;
@@ -20,6 +22,7 @@ import com.henu.registration.easyexcel.modal.messagePush.MessagePushExcelVO;
 import com.henu.registration.easyexcel.modal.operationLog.OperationLogExcelVO;
 import com.henu.registration.easyexcel.modal.registrationForm.RegistrationFormExcelVO;
 import com.henu.registration.easyexcel.modal.reviewLog.ReviewLogExcelVO;
+import com.henu.registration.easyexcel.modal.school.SchoolExcelDTO;
 import com.henu.registration.easyexcel.modal.school.SchoolExcelVO;
 import com.henu.registration.easyexcel.modal.schoolSchoolType.SchoolSchoolTypeExcelVO;
 import com.henu.registration.easyexcel.modal.schoolType.SchoolTypeExcelVO;
@@ -36,10 +39,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -136,17 +139,27 @@ public class ExcelServiceImpl implements ExcelService {
 	 * @return String
 	 */
 	@Override
-	public ExcelResult<AdminExcelDTO> importAdmin(MultipartFile file) {
+	public String importAdmin(MultipartFile file) {
 		try (InputStream inputStream = file.getInputStream()) {
-			// 使用 AdminExcelListener 解析 Excel
-			AdminExcelListener listener = new AdminExcelListener(adminService);
-			ExcelResult<AdminExcelDTO> result = ExcelUtils.importStreamAndCloseWithListener(inputStream, AdminExcelDTO.class, listener);
-			// 记录导入日志
-			log.info("管理员信息导入完成，成功导入 {} 条，失败 {} 条", result.getList().size(), result.getErrorList().size());
-			return result;
+			// 使用 Admin 解析 Excel
+			AdminExcelListener listener = new AdminExcelListener();
+			ExcelResult<AdminExcelDTO> excelResult = ExcelUtils.importStreamAndCloseWithListener(inputStream, AdminExcelDTO.class, listener);
+			// 将 DTO 转换为实体对象
+			List<Admin> adminList = excelResult.getList().stream()
+					.map(adminExcelDTO -> {
+						Admin admin = new Admin();
+						BeanUtils.copyProperties(adminExcelDTO, admin);
+						admin.setAdminPassword(adminService.getEncryptPassword(admin.getAdminPassword()));
+						admin.setAdminType(AdminConstant.ADMIN);
+						return admin;
+					})
+					.toList();
+			// 存入数据库
+			adminService.saveBatch(adminList);
+			return "管理员信息导入成功，导入数量：" + adminList.size();
 		} catch (IOException e) {
-			log.error("管理员导入失败", e);
-			throw new BusinessException(ErrorCode.EXCEL_ERROR, "Excel 导入失败");
+			log.error("导入管理员信息异常", e);
+			throw new BusinessException(ErrorCode.EXCEL_ERROR, "导入管理员信息异常");
 		}
 	}
 	
@@ -280,6 +293,7 @@ public class ExcelServiceImpl implements ExcelService {
 		}
 		
 	}
+	
 	
 	/**
 	 * 导出教育经历信息到 Excel
@@ -477,6 +491,38 @@ public class ExcelServiceImpl implements ExcelService {
 	}
 	
 	/**
+	 * 导入学校信息
+	 *
+	 * @param file file
+	 * @return String
+	 */
+	@Override
+	public String importSchool(MultipartFile file, HttpServletRequest request) {
+		// 获取当前登录的admin
+		Admin admin = adminService.getLoginAdmin(request);
+		try (InputStream inputStream = file.getInputStream()) {
+			// 使用 SchoolExcelListener 解析 Excel
+			SchoolExcelListener listener = new SchoolExcelListener();
+			ExcelResult<SchoolExcelDTO> excelResult = ExcelUtils.importStreamAndCloseWithListener(inputStream, SchoolExcelDTO.class, listener);
+			// 将 DTO 转换为实体对象
+			List<School> schoolList = excelResult.getList().stream()
+					.map(schoolExcelDTO -> {
+						School school = new School();
+						BeanUtils.copyProperties(schoolExcelDTO, school);
+						school.setAdminId(admin.getId());
+						return school;
+					})
+					.toList();
+			// 存入数据库
+			schoolService.saveBatch(schoolList);
+			return "高校信息导入成功，导入数量：" + schoolList.size();
+		} catch (IOException e) {
+			log.error("导入高校信息异常", e);
+			throw new BusinessException(ErrorCode.EXCEL_ERROR, "导入高校信息异常");
+		}
+	}
+	
+	/**
 	 * 导出学校信息到 Excel
 	 *
 	 * @param response HttpServletResponse
@@ -636,4 +682,6 @@ public class ExcelServiceImpl implements ExcelService {
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "系统消息信息导出失败");
 		}
 	}
+	
+	
 }

@@ -1,13 +1,18 @@
 package com.henu.registration.easyexcel.controller;
 
 import cn.dev33.satoken.annotation.SaCheckRole;
+import com.henu.registration.common.BaseResponse;
+import com.henu.registration.common.ErrorCode;
+import com.henu.registration.common.ResultUtils;
+import com.henu.registration.common.ThrowUtils;
+import com.henu.registration.common.exception.BusinessException;
 import com.henu.registration.constants.AdminConstant;
 import com.henu.registration.easyexcel.service.ExcelService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
@@ -23,6 +28,27 @@ public class ExcelController {
 	
 	@Resource
 	private ExcelService excelService;
+	
+	/**
+	 * 从 Excel 中导入高校信息
+	 *
+	 * @param file file
+	 * @return BaseResponse<String>
+	 */
+	@PostMapping("/import/admin")
+	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
+	public BaseResponse<String> importAdminExcel(@RequestParam("file") MultipartFile file) {
+		ThrowUtils.throwIf(file.isEmpty(), ErrorCode.EXCEL_ERROR, "文件为空");
+		try {
+			// 校验 Excel 文件格式
+			excelService.validExcel(file);
+			// 导入高校信息
+			String result = excelService.importAdmin(file);
+			return ResultUtils.success(result);
+		} catch (Exception e) {
+			throw new BusinessException(ErrorCode.EXCEL_ERROR, "导入失败：" + e.getMessage());
+		}
+	}
 	
 	/**
 	 * 导出用户信息到 Excel
@@ -130,6 +156,27 @@ public class ExcelController {
 	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public void exportReviewLog(HttpServletResponse response) throws IOException {
 		excelService.exportReviewLog(response);
+	}
+	
+	/**
+	 * 从 Excel 中导入学校信息
+	 *
+	 * @param file file
+	 * @return BaseResponse<String>
+	 */
+	@PostMapping("/import/school")
+	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
+	public BaseResponse<String> importSchoolExcel(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
+		ThrowUtils.throwIf(file.isEmpty(), ErrorCode.EXCEL_ERROR, "文件为空");
+		try {
+			// 校验 Excel 文件格式
+			excelService.validExcel(file);
+			// 导入高校信息
+			String result = excelService.importSchool(file, request);
+			return ResultUtils.success(result);
+		} catch (Exception e) {
+			throw new BusinessException(ErrorCode.EXCEL_ERROR, "导入失败：" + e.getMessage());
+		}
 	}
 	
 	/**

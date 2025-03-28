@@ -1,9 +1,8 @@
 package com.henu.registration.easyexcel.service;
 
-import com.henu.registration.config.easyexcel.core.ExcelResult;
-import com.henu.registration.easyexcel.modal.admin.AdminExcelDTO;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
@@ -27,7 +26,7 @@ public interface ExcelService {
 	 * @param file file
 	 * @return String
 	 */
-	ExcelResult<AdminExcelDTO> importAdmin(MultipartFile file);
+	String importAdmin(MultipartFile file);
 	
 	/**
 	 * 导出管理员信息到 Excel
@@ -155,4 +154,13 @@ public interface ExcelService {
 	 * @param response HttpServletResponse
 	 */
 	void exportSystemMessages(HttpServletResponse response) throws IOException;
+	
+	
+	/**
+	 * 导入学校信息到数据库
+	 *
+	 * @param file
+	 * @return
+	 */
+	String importSchool(MultipartFile file, HttpServletRequest request);
 }
