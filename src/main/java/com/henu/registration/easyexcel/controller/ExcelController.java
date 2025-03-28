@@ -158,4 +158,33 @@ public class ExcelController {
 	public void exportSchoolType(HttpServletResponse response) throws IOException {
 		excelService.exportSchoolType(response);
 	}
+	
+	/**
+	 * 导出面试消息通知到 Excel
+	 */
+	@GetMapping("/export/message/notice")
+	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
+	public void exportMessageNotice(HttpServletResponse response) throws IOException {
+		excelService.exportMessageNotice(response);
+	}
+	
+	/**
+	 * 导出消息推送信息到 Excel
+	 */
+	@GetMapping("/export/message/push")
+	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
+	public void exportMessagePush(HttpServletResponse response) throws IOException {
+		excelService.exportMessagePush(response);
+		
+	}
+	
+	/**
+	 * 导出系统消息信息到 Excel
+	 */
+	@GetMapping("/export/system/message")
+	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
+	public void exportSystemMessages(HttpServletResponse response) throws IOException {
+		excelService.exportSystemMessages(response);
+		
+	}
 }

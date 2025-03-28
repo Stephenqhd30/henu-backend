@@ -86,4 +86,19 @@ public interface ExcelConstant {
 	 * 高校类型信息
 	 */
 	String SCHOOL_TYPE = "高校类型信息";
+	
+	/**
+	 * 面试消息通知
+	 */
+	String MESSAGE_NOTICE = "面试消息通知";
+	
+	/**
+	 * 消息推送信息
+	 */
+	String MESSAGE_PUSH = "消息推送信息";
+	
+	/**
+	 * 系统消息信息
+	 */
+	String SYSTEM_MESSAGE = "系统消息信息";
 }

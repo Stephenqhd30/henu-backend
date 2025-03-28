@@ -11,6 +11,7 @@ import com.henu.registration.mapper.SystemMessagesMapper;
 import com.henu.registration.model.dto.systemMessages.SystemMessagesQueryRequest;
 import com.henu.registration.model.entity.SystemMessages;
 import com.henu.registration.model.enums.MessageTypeEnum;
+import com.henu.registration.model.enums.SystemMessageTypeEnum;
 import com.henu.registration.model.vo.systemMessages.SystemMessagesVO;
 import com.henu.registration.service.SystemMessagesService;
 import com.henu.registration.utils.sql.SqlUtils;
@@ -63,7 +64,7 @@ public class SystemMessagesServiceImpl extends ServiceImpl<SystemMessagesMapper,
 			ThrowUtils.throwIf(title.length() > 80, ErrorCode.PARAMS_ERROR, "标题过长");
 		}
 		if (StringUtils.isNotBlank(type)) {
-			ThrowUtils.throwIf(MessageTypeEnum.getEnumByValue(type) == null, ErrorCode.PARAMS_ERROR, "类型不存在");
+			ThrowUtils.throwIf(SystemMessageTypeEnum.getEnumByValue(type) == null, ErrorCode.PARAMS_ERROR, "类型不存在");
 		}
 	}
 	

@@ -15,19 +15,19 @@ import com.henu.registration.easyexcel.modal.family.FamilyExcelVO;
 import com.henu.registration.easyexcel.modal.fileLog.FileLogExcelVO;
 import com.henu.registration.easyexcel.modal.fileType.FileTypeExcelVO;
 import com.henu.registration.easyexcel.modal.job.JobExcelVO;
+import com.henu.registration.easyexcel.modal.messageNotice.MessageNoticeExcelVO;
+import com.henu.registration.easyexcel.modal.messagePush.MessagePushExcelVO;
 import com.henu.registration.easyexcel.modal.operationLog.OperationLogExcelVO;
 import com.henu.registration.easyexcel.modal.registrationForm.RegistrationFormExcelVO;
 import com.henu.registration.easyexcel.modal.reviewLog.ReviewLogExcelVO;
 import com.henu.registration.easyexcel.modal.school.SchoolExcelVO;
 import com.henu.registration.easyexcel.modal.schoolSchoolType.SchoolSchoolTypeExcelVO;
 import com.henu.registration.easyexcel.modal.schoolType.SchoolTypeExcelVO;
+import com.henu.registration.easyexcel.modal.systemMessages.SystemMessagesExcelVO;
 import com.henu.registration.easyexcel.modal.user.UserExcelVO;
 import com.henu.registration.easyexcel.service.ExcelService;
 import com.henu.registration.model.entity.*;
-import com.henu.registration.model.enums.AdminTyprEnum;
-import com.henu.registration.model.enums.MarryStatueEnum;
-import com.henu.registration.model.enums.ReviewStatusEnum;
-import com.henu.registration.model.enums.UserGenderEnum;
+import com.henu.registration.model.enums.*;
 import com.henu.registration.service.*;
 import com.henu.registration.utils.excel.ExcelUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +39,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -98,6 +99,16 @@ public class ExcelServiceImpl implements ExcelService {
 	
 	@Resource
 	private SchoolTypeService schoolTypeService;
+	
+	@Resource
+	private MessageNoticeService messageNoticeService;
+	
+	@Resource
+	private MessagePushService messagePushService;
+	
+	@Resource
+	private SystemMessagesService systemMessagesService;
+	
 	@Resource
 	private ThreadPoolExecutor threadPoolExecutor;
 	
@@ -536,6 +547,93 @@ public class ExcelServiceImpl implements ExcelService {
 		} catch (Exception e) {
 			log.error("高校类型信息导出失败: {}", e.getMessage());
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "高校类型信息导出失败");
+		}
+	}
+	
+	/**
+	 * 导出面试消息通知到 Excel
+	 *
+	 * @param response HttpServletResponse
+	 */
+	@Override
+	public void exportMessageNotice(HttpServletResponse response) throws IOException {
+		List<CompletableFuture<MessageNoticeExcelVO>> futures = messageNoticeService.list().stream().map(messageNotice -> CompletableFuture.supplyAsync(() -> {
+			MessageNoticeExcelVO messageNoticeExcelVO = new MessageNoticeExcelVO();
+			BeanUtils.copyProperties(messageNotice, messageNoticeExcelVO);
+			Long registrationId = messageNotice.getRegistrationId();
+			RegistrationForm registrationForm = registrationFormService.getById(registrationId);
+			messageNoticeExcelVO.setUserName(registrationForm.getUserName());
+			messageNoticeExcelVO.setUserPhone(registrationForm.getUserPhone());
+			return messageNoticeExcelVO;
+		}, threadPoolExecutor)).toList();
+		// 等待所有 CompletableFuture 执行完毕，并收集结果
+		List<MessageNoticeExcelVO> schoolSchoolTypeExcelVOList = futures.stream().map(CompletableFuture::join).collect(Collectors.toList());
+		// 写入 Excel 文件
+		try {
+			ExcelUtils.exportHttpServletResponse(schoolSchoolTypeExcelVOList, ExcelConstant.MESSAGE_NOTICE, MessageNoticeExcelVO.class, response);
+			log.info("面试消息通知导出成功，导出数量：{}", schoolSchoolTypeExcelVOList.size());
+		} catch (Exception e) {
+			log.error("面试消息通知导出失败: {}", e.getMessage());
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "面试消息通知导出失败");
+		}
+	}
+	
+	/**
+	 * 导出消息推送信息到 Excel
+	 *
+	 * @param response HttpServletResponse
+	 */
+	@Override
+	public void exportMessagePush(HttpServletResponse response) throws IOException {
+		List<CompletableFuture<MessagePushExcelVO>> futures = messagePushService.list().stream().map(messagePush -> CompletableFuture.supplyAsync(() -> {
+			MessagePushExcelVO messagePushExcelVO = new MessagePushExcelVO();
+			BeanUtils.copyProperties(messagePush, messagePushExcelVO);
+			Long userId = messagePush.getUserId();
+			String pushType = messagePush.getPushType();
+			Integer pushStatus = messagePush.getPushStatus();
+			User user = userService.getById(userId);
+			messagePushExcelVO.setUserName(user.getUserName());
+			messagePushExcelVO.setPushType(Objects.requireNonNull(PushTyprEnum.getEnumByValue(pushType)).getText());
+			messagePushExcelVO.setPushStatus(Objects.requireNonNull(PushStatusEnum.getEnumByValue(pushStatus)).getText());
+			return messagePushExcelVO;
+		}, threadPoolExecutor)).toList();
+		// 等待所有 CompletableFuture 执行完毕，并收集结果
+		List<MessagePushExcelVO> schoolSchoolTypeExcelVOList = futures.stream().map(CompletableFuture::join).collect(Collectors.toList());
+		// 写入 Excel 文件
+		try {
+			ExcelUtils.exportHttpServletResponse(schoolSchoolTypeExcelVOList, ExcelConstant.MESSAGE_PUSH, MessagePushExcelVO.class, response);
+			log.info("消息推送信息导出成功，导出数量：{}", schoolSchoolTypeExcelVOList.size());
+		} catch (Exception e) {
+			log.error("消息推送信息导出失败: {}", e.getMessage());
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "消息推送信息导出失败");
+		}
+	}
+	
+	/**
+	 * 导出系统消息信息到 Excel
+	 *
+	 * @param response HttpServletResponse
+	 */
+	@Override
+	public void exportSystemMessages(HttpServletResponse response) throws IOException {
+		List<CompletableFuture<SystemMessagesExcelVO>> futures = systemMessagesService.list().stream().map(systemMessages -> CompletableFuture.supplyAsync(() -> {
+			SystemMessagesExcelVO systemMessagesExcelVO = new SystemMessagesExcelVO();
+			BeanUtils.copyProperties(systemMessages, systemMessagesExcelVO);
+			Integer pushStatus = systemMessages.getPushStatus();
+			String type = systemMessages.getType();
+			systemMessagesExcelVO.setType(Objects.requireNonNull(SystemMessageTypeEnum.getEnumByValue(type)).getText());
+			systemMessagesExcelVO.setPushStatus(Objects.requireNonNull(PushStatusEnum.getEnumByValue(pushStatus)).getText());
+			return systemMessagesExcelVO;
+		}, threadPoolExecutor)).toList();
+		// 等待所有 CompletableFuture 执行完毕，并收集结果
+		List<SystemMessagesExcelVO> schoolSchoolTypeExcelVOList = futures.stream().map(CompletableFuture::join).collect(Collectors.toList());
+		// 写入 Excel 文件
+		try {
+			ExcelUtils.exportHttpServletResponse(schoolSchoolTypeExcelVOList, ExcelConstant.SYSTEM_MESSAGE, SystemMessagesExcelVO.class, response);
+			log.info("系统消息信息导出成功，导出数量：{}", schoolSchoolTypeExcelVOList.size());
+		} catch (Exception e) {
+			log.error("系统消息信息导出失败: {}", e.getMessage());
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "系统消息信息导出失败");
 		}
 	}
 }

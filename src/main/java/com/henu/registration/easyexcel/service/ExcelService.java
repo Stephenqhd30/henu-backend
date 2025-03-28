@@ -134,4 +134,25 @@ public interface ExcelService {
 	 * @param response HttpServletResponse
 	 */
 	void exportSchoolType(HttpServletResponse response) throws IOException;
+	
+	/**
+	 * 导出面试消息通知到 Excel
+	 *
+	 * @param response HttpServletResponse
+	 */
+	void exportMessageNotice(HttpServletResponse response) throws IOException;
+	
+	/**
+	 * 导出消息推送信息到 Excel
+	 *
+	 * @param response HttpServletResponse
+	 */
+	void exportMessagePush(HttpServletResponse response) throws IOException;
+	
+	/**
+	 * 导出系统消息信息到 Excel
+	 *
+	 * @param response HttpServletResponse
+	 */
+	void exportSystemMessages(HttpServletResponse response) throws IOException;
 }
