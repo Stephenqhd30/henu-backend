@@ -46,11 +46,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class MessageNoticeServiceImpl extends ServiceImpl<MessageNoticeMapper, MessageNotice> implements MessageNoticeService {
 	
-	
 	@Resource
 	private RegistrationFormService registrationFormService;
-	@Autowired
-	private MessageNoticeController messageNoticeController;
 	
 	/**
 	 * 校验数据

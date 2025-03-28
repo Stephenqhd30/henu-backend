@@ -104,14 +104,6 @@ oss:
     # 桶名称
     bucket: ${prod.oss.minio.bucket}
 
-# 讯飞星火api
-xunfei:
-  enabled: true
-  client:
-    appid: ${prod.xunfei.client.appid}
-    api-key: ${prod.xunfei.client.api-key}
-    api-secret: ${prod.xunfei.client.api-secret}
-
 ############## Sa-Token 配置 (文档: https://sa-token.cc) ##############
 sa-token:
   # todo 是否启用SaToken认证鉴权功能（此处为false并不是禁用SaToken，而是让SaToken相关注解失效，预先开启）
@@ -137,8 +129,20 @@ sa-token:
   # jwt秘钥
   jwt-secret-key: ${prod.sa-token.jwt-secret-key}
 
-# DeepSeek配置
-deepseek:
-  enabled: true
-  base-url: ${prod.deepseek.baseUrl}
-  api-key: ${prod.deepseek.apiKey}
+# WebSocket配置
+websocket:
+  # todo 是否开启（预先关闭）
+  enable: true
+  # websocket服务端口
+  port: ${prod.websocket.port}
+  # BOSS线程组线程数
+  boss-thread: ${prod.websocket.boss-thread}
+  # WORKER线程组线程数
+  worker-thread: ${prod.websocket.worker-thread}
+
+aliyun:
+  sms:
+    enabled: true
+    accessKeyId: ${prod.aliyun.sms.accessKeyId}
+    accessKeySecret: ${prod.aliyun.sms.accessKeySecret}
+    regionId: ${prod.aliyun.sms.regionId}

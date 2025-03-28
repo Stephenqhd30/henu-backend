@@ -10,6 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 import cn.hutool.core.collection.CollUtil;
 import org.springframework.beans.BeanUtils;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
@@ -22,6 +23,7 @@ import java.util.List;
 @Data
 public class RegistrationFormVO implements Serializable {
 	
+	@Serial
 	private static final long serialVersionUID = -4562133149585501968L;
 	/**
 	 * id
@@ -32,6 +34,16 @@ public class RegistrationFormVO implements Serializable {
 	 * 姓名
 	 */
 	private String userName;
+	
+	/**
+	 * 邮箱地址
+	 */
+	private String userEmail;
+	
+	/**
+	 * 联系电话
+	 */
+	private String userPhone;
 	
 	/**
 	 * 性别(0-男,1-女)

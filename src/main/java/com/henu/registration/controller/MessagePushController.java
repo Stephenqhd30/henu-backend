@@ -20,6 +20,7 @@ import com.henu.registration.model.entity.User;
 import com.henu.registration.model.enums.PushStatusEnum;
 import com.henu.registration.model.vo.messagePush.MessagePushVO;
 import com.henu.registration.service.*;
+import com.henu.registration.utils.sms.SMSUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
@@ -49,6 +50,9 @@ public class MessagePushController {
 	@Resource
 	private RegistrationFormService registrationFormService;
 	
+	@Resource
+	private SMSUtils smsUtils;
+	
 	// region 增删改查
 	
 	/**
@@ -71,8 +75,19 @@ public class MessagePushController {
 		MessageNotice messageNotice = messageNoticeService.getById(messagePush.getMessageNoticeId());
 		Long registrationId = messageNotice.getRegistrationId();
 		RegistrationForm registrationForm = registrationFormService.getById(registrationId);
-		messagePush.setUserId(registrationForm.getUserId());
-		messagePush.setPushStatus(PushStatusEnum.NOT_PUSHED.getValue());
+		Long userId = registrationForm.getUserId();
+		messagePush.setUserId(userId);
+		messagePush.setPushStatus(PushStatusEnum.SUCCEED.getValue());
+		String params = smsUtils.getParams(messagePush);
+		messagePush.setPushMessage(params);
+		// todo 调用短信发送接口
+		try {
+			smsUtils.sendMessage(registrationForm.getUserPhone(), params);
+		} catch (Exception e) {
+			messagePush.setPushStatus(PushStatusEnum.FAILED.getValue());
+			messagePush.setErrorMessage("短信发送失败：" + e.getMessage());
+			messagePush.setRetryCount(1);
+		}
 		// 写入数据库
 		boolean result = messagePushService.save(messagePush);
 		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);

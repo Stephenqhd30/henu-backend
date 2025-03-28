@@ -63,13 +63,11 @@ public class MessagePushServiceImpl extends ServiceImpl<MessagePushMapper, Messa
 		// todo 从对象中取值
 		Long messageNoticeId = messagePush.getMessageNoticeId();
 		String pushType = messagePush.getPushType();
-		String pushMessage = messagePush.getPushMessage();
 		// 创建数据时，参数不能为空
 		if (add) {
 			// todo 补充校验规则
 			ThrowUtils.throwIf(ObjectUtils.isEmpty(messageNoticeId), ErrorCode.PARAMS_ERROR, "消息通知不能为空");
 			ThrowUtils.throwIf(StringUtils.isBlank(pushType), ErrorCode.PARAMS_ERROR, "推送类型不能为空");
-			ThrowUtils.throwIf(StringUtils.isBlank(pushMessage), ErrorCode.PARAMS_ERROR, "推送内容不能为空");
 		}
 		// 修改数据时，有参数则校验
 		// todo 补充校验规则
