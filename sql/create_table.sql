@@ -247,38 +247,44 @@ create table review_log
 -- 消息通知表
 create table message_notice
 (
-    id              bigint auto_increment comment 'id'
+    id                 bigint auto_increment comment 'id'
         primary key,
-    title           varchar(255)                         not null comment '通知标题',
-    content         text                                 not null comment '通知内容',
-    read_status     tinyint(1) default 0                 not null comment '阅读状态(0-未读,1-已读)',
-    admin_id        bigint                               null comment '管理员id',
-    registration_id bigint not null comment '报名登记表id',
-    create_time     datetime   default CURRENT_TIMESTAMP not null comment '创建时间',
-    update_time     datetime   default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
-    is_delete       tinyint(1) default 0                 not null comment '是否逻辑删除(0-否,1-是)'
+    registration_id    bigint                               not null comment '报名登记表id',
+    interview_time     datetime                             not null comment '面试时间',
+    interview_location varchar(512)                         not null comment '面试地点',
+    admin_id           bigint                               null comment '管理员id',
+    create_time        datetime   default CURRENT_TIMESTAMP not null comment '创建时间',
+    update_time        datetime   default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+    is_delete          tinyint(1) default 0                 not null comment '是否逻辑删除(0-否,1-是)',
+    constraint message_notice_registration_form_id_fk
+        foreign key (registration_id) references registration_form (id)
+            on update cascade on delete cascade
 )
     comment '消息通知表';
 
 -- 消息推送表（存发送情况）
 CREATE TABLE message_push
 (
-    id                bigint auto_increment comment 'id'
-        primary key,
+    id          BIGINT AUTO_INCREMENT COMMENT 'id' PRIMARY KEY,
     user_id           BIGINT                               NOT NULL COMMENT '用户id',
     message_notice_id BIGINT                               NOT NULL COMMENT '消息通知id',
     push_type         VARCHAR(128)                         NOT NULL COMMENT '推送方式(websocket/email/sms/other)',
-    push_status       TINYINT(1) DEFAULT 0                 NOT NULL COMMENT '推送状态(0-未推送,1-成功,2-失败,3-重试中)',
+    push_status tinyint(1) default 0 not null comment '推送状态(0-未推送,1-成功,2-失败,3-重试中)',
     push_message      TEXT                                 NULL COMMENT '推送消息内容',
-    push_time         DATETIME                             NULL COMMENT '推送时间',
     retry_count       INT        DEFAULT 0                 NOT NULL COMMENT '失败重试次数',
     error_message     VARCHAR(500)                         NULL COMMENT '失败原因',
     create_time       DATETIME   DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT '创建时间',
     update_time       DATETIME   DEFAULT CURRENT_TIMESTAMP NOT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    PRIMARY KEY (id),
-    FOREIGN KEY (user_id) REFERENCES user (id),
-    FOREIGN KEY (message_notice_id) REFERENCES message_notice (id)
-) COMMENT '消息推送表';
+    CONSTRAINT fk_message_push_user FOREIGN KEY (user_id) REFERENCES user (id),
+    CONSTRAINT fk_message_push_notice FOREIGN KEY (message_notice_id) REFERENCES message_notice (id)
+)
+    COMMENT '消息推送表';
+
+-- 使 (user_id, message_notice_id, push_type) 作为唯一组合
+CREATE UNIQUE INDEX uniq_user_notice_push_type ON message_push (user_id, message_notice_id, push_type);
+
+-- 其他索引优化
+CREATE INDEX idx_push_status ON message_push (push_status);
 
 -- 系统消息表
 create table system_messages

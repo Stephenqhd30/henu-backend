@@ -15,12 +15,11 @@ import com.henu.registration.model.dto.messagePush.MessagePushQueryRequest;
 import com.henu.registration.model.dto.messagePush.MessagePushUpdateRequest;
 import com.henu.registration.model.entity.MessageNotice;
 import com.henu.registration.model.entity.MessagePush;
+import com.henu.registration.model.entity.RegistrationForm;
 import com.henu.registration.model.entity.User;
+import com.henu.registration.model.enums.PushStatusEnum;
 import com.henu.registration.model.vo.messagePush.MessagePushVO;
-import com.henu.registration.service.AdminService;
-import com.henu.registration.service.MessageNoticeService;
-import com.henu.registration.service.MessagePushService;
-import com.henu.registration.service.UserService;
+import com.henu.registration.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
@@ -45,10 +44,10 @@ public class MessagePushController {
 	private UserService userService;
 	
 	@Resource
-	private AdminService adminService;
+	private MessageNoticeService messageNoticeService;
 	
 	@Resource
-	private MessageNoticeService messageNoticeService;
+	private RegistrationFormService registrationFormService;
 	
 	// region 增删改查
 	
@@ -60,6 +59,7 @@ public class MessagePushController {
 	 * @return {@link BaseResponse<Long>}
 	 */
 	@PostMapping("/add")
+	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Long> addMessagePush(@RequestBody MessagePushAddRequest messagePushAddRequest, HttpServletRequest request) {
 		ThrowUtils.throwIf(messagePushAddRequest == null, ErrorCode.PARAMS_ERROR);
 		// todo 在此处将实体类和 DTO 进行转换
@@ -69,8 +69,10 @@ public class MessagePushController {
 		messagePushService.validMessagePush(messagePush, true);
 		// todo 填充默认值
 		MessageNotice messageNotice = messageNoticeService.getById(messagePush.getMessageNoticeId());
-		messagePush.setUserId(messagePush.getUserId());
-		messagePush.setPushMessage(messageNotice.getContent());
+		Long registrationId = messageNotice.getRegistrationId();
+		RegistrationForm registrationForm = registrationFormService.getById(registrationId);
+		messagePush.setUserId(registrationForm.getUserId());
+		messagePush.setPushStatus(PushStatusEnum.NOT_PUSHED.getValue());
 		// 写入数据库
 		boolean result = messagePushService.save(messagePush);
 		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
@@ -87,6 +89,7 @@ public class MessagePushController {
 	 * @return {@link BaseResponse<Boolean>}
 	 */
 	@PostMapping("/delete")
+	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Boolean> deleteMessagePush(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
 		if (deleteRequest == null || deleteRequest.getId() <= 0) {
 			throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -95,10 +98,6 @@ public class MessagePushController {
 		// 判断是否存在
 		MessagePush oldMessagePush = messagePushService.getById(id);
 		ThrowUtils.throwIf(oldMessagePush == null, ErrorCode.NOT_FOUND_ERROR);
-		// 仅本人或管理员可删除
-		if (!adminService.isAdmin(request)) {
-			throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
-		}
 		// 操作数据库
 		boolean result = messagePushService.removeById(id);
 		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
@@ -126,6 +125,10 @@ public class MessagePushController {
 		long id = messagePushUpdateRequest.getId();
 		MessagePush oldMessagePush = messagePushService.getById(id);
 		ThrowUtils.throwIf(oldMessagePush == null, ErrorCode.NOT_FOUND_ERROR);
+		// 重置发送状态
+		messagePush.setPushStatus(PushStatusEnum.NOT_PUSHED.getValue());
+		messagePush.setRetryCount(0);
+		messagePush.setErrorMessage(null);
 		// 操作数据库
 		boolean result = messagePushService.updateById(messagePush);
 		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
@@ -210,6 +213,5 @@ public class MessagePushController {
 		// 获取封装类
 		return ResultUtils.success(messagePushService.getMessagePushVOPage(messagePushPage, request));
 	}
-	
 	// endregion
 }

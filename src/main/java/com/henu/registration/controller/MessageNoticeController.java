@@ -10,7 +10,6 @@ import com.henu.registration.constants.AdminConstant;
 import com.henu.registration.common.exception.BusinessException;
 import com.henu.registration.common.ThrowUtils;
 import com.henu.registration.model.dto.messageNotice.MessageNoticeAddRequest;
-import com.henu.registration.model.dto.messageNotice.MessageNoticeEditRequest;
 import com.henu.registration.model.dto.messageNotice.MessageNoticeQueryRequest;
 import com.henu.registration.model.dto.messageNotice.MessageNoticeUpdateRequest;
 import com.henu.registration.model.entity.MessageNotice;
@@ -115,7 +114,6 @@ public class MessageNoticeController {
 		// todo 在此处将实体类和 DTO 进行转换
 		MessageNotice messageNotice = new MessageNotice();
 		BeanUtils.copyProperties(messageNoticeUpdateRequest, messageNotice);
-		messageNotice.setReadStatus(ReadStatusEnum.READ.getValue());
 		// 数据校验
 		messageNoticeService.validMessageNotice(messageNotice, false);
 		// 判断是否存在
@@ -206,39 +204,5 @@ public class MessageNoticeController {
 		// 获取封装类
 		return ResultUtils.success(messageNoticeService.getMessageNoticeVOPage(messageNoticePage, request));
 	}
-	
-	/**
-	 * 编辑消息通知（给用户使用）
-	 *
-	 * @param messageNoticeEditRequest messageNoticeEditRequest
-	 * @param request                  request
-	 * @return {@link BaseResponse<Boolean>}
-	 */
-	@PostMapping("/edit")
-	public BaseResponse<Boolean> editMessageNotice(@RequestBody MessageNoticeEditRequest messageNoticeEditRequest, HttpServletRequest request) {
-		if (messageNoticeEditRequest == null || messageNoticeEditRequest.getId() <= 0) {
-			throw new BusinessException(ErrorCode.PARAMS_ERROR);
-		}
-		// todo 在此处将实体类和 DTO 进行转换
-		MessageNotice messageNotice = new MessageNotice();
-		BeanUtils.copyProperties(messageNoticeEditRequest, messageNotice);
-		messageNotice.setReadStatus(ReadStatusEnum.READ.getValue());
-		// 数据校验
-		messageNoticeService.validMessageNotice(messageNotice, false);
-		Admin loginAdmin = adminService.getLoginAdmin(request);
-		// 判断是否存在
-		long id = messageNoticeEditRequest.getId();
-		MessageNotice oldMessageNotice = messageNoticeService.getById(id);
-		ThrowUtils.throwIf(oldMessageNotice == null, ErrorCode.NOT_FOUND_ERROR);
-		// 仅本人或管理员可编辑
-		if (!oldMessageNotice.getAdminId().equals(loginAdmin.getId()) && !adminService.isAdmin(loginAdmin)) {
-			throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
-		}
-		// 操作数据库
-		boolean result = messageNoticeService.updateById(messageNotice);
-		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
-		return ResultUtils.success(true);
-	}
-	
 	// endregion
 }

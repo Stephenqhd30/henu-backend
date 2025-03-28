@@ -27,7 +27,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -35,10 +34,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
+
 /**
  * 消息推送服务实现
- *
- * @author stephen qiu
+ * @author stephenqiu
+ * @description 针对表【message_push(消息推送表)】的数据库操作Service实现
+ * @createDate 2025-03-28 00:11:11
  */
 @Service
 @Slf4j
@@ -63,14 +64,12 @@ public class MessagePushServiceImpl extends ServiceImpl<MessagePushMapper, Messa
 		Long messageNoticeId = messagePush.getMessageNoticeId();
 		String pushType = messagePush.getPushType();
 		String pushMessage = messagePush.getPushMessage();
-		Date pushTime = messagePush.getPushTime();
 		// 创建数据时，参数不能为空
 		if (add) {
 			// todo 补充校验规则
 			ThrowUtils.throwIf(ObjectUtils.isEmpty(messageNoticeId), ErrorCode.PARAMS_ERROR, "消息通知不能为空");
 			ThrowUtils.throwIf(StringUtils.isBlank(pushType), ErrorCode.PARAMS_ERROR, "推送类型不能为空");
 			ThrowUtils.throwIf(StringUtils.isBlank(pushMessage), ErrorCode.PARAMS_ERROR, "推送内容不能为空");
-			ThrowUtils.throwIf(ObjectUtils.isEmpty(pushTime), ErrorCode.PARAMS_ERROR, "推送时间不能为空");
 		}
 		// 修改数据时，有参数则校验
 		// todo 补充校验规则
@@ -80,9 +79,6 @@ public class MessagePushServiceImpl extends ServiceImpl<MessagePushMapper, Messa
 		}
 		if (StringUtils.isNotBlank(pushType)) {
 			ThrowUtils.throwIf(PushTyprEnum.getEnumByValue(pushType) == null, ErrorCode.PARAMS_ERROR, "推送类型不存在");
-		}
-		if (ObjectUtils.isNotEmpty(pushTime)) {
-			ThrowUtils.throwIf(pushTime.before(new Date()), ErrorCode.PARAMS_ERROR, "推送时间不能早于当前时间");
 		}
 	}
 	
@@ -106,7 +102,6 @@ public class MessagePushServiceImpl extends ServiceImpl<MessagePushMapper, Messa
 		String pushType = messagePushQueryRequest.getPushType();
 		Integer pushStatus = messagePushQueryRequest.getPushStatus();
 		String pushMessage = messagePushQueryRequest.getPushMessage();
-		Date pushTime = messagePushQueryRequest.getPushTime();
 		Integer retryCount = messagePushQueryRequest.getRetryCount();
 		String errorMessage = messagePushQueryRequest.getErrorMessage();
 		String sortField = messagePushQueryRequest.getSortField();
@@ -117,7 +112,6 @@ public class MessagePushServiceImpl extends ServiceImpl<MessagePushMapper, Messa
 		// 模糊查询
 		queryWrapper.like(StringUtils.isNotBlank(pushMessage), "push_message", pushMessage);
 		queryWrapper.like(StringUtils.isNotBlank(errorMessage), "error_message", errorMessage);
-		queryWrapper.like(ObjectUtils.isNotEmpty(pushTime), "push_time", pushTime);
 		// 精确查询
 		queryWrapper.ne(ObjectUtils.isNotEmpty(notId), "id", notId);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(id), "id", id);

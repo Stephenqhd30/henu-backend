@@ -8,6 +8,7 @@ import com.henu.registration.common.ErrorCode;
 import com.henu.registration.common.ThrowUtils;
 import com.henu.registration.common.exception.BusinessException;
 import com.henu.registration.constants.CommonConstant;
+import com.henu.registration.controller.MessageNoticeController;
 import com.henu.registration.mapper.MessageNoticeMapper;
 import com.henu.registration.model.dto.messageNotice.MessageNoticeQueryRequest;
 import com.henu.registration.model.entity.MessageNotice;
@@ -20,10 +21,12 @@ import com.henu.registration.utils.sql.SqlUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -46,6 +49,8 @@ public class MessageNoticeServiceImpl extends ServiceImpl<MessageNoticeMapper, M
 	
 	@Resource
 	private RegistrationFormService registrationFormService;
+	@Autowired
+	private MessageNoticeController messageNoticeController;
 	
 	/**
 	 * 校验数据
@@ -57,20 +62,25 @@ public class MessageNoticeServiceImpl extends ServiceImpl<MessageNoticeMapper, M
 	public void validMessageNotice(MessageNotice messageNotice, boolean add) {
 		ThrowUtils.throwIf(messageNotice == null, ErrorCode.PARAMS_ERROR);
 		// todo 从对象中取值
-		String content = messageNotice.getContent();
 		Long registrationId = messageNotice.getRegistrationId();
+		Date interviewTime = messageNotice.getInterviewTime();
+		String interviewLocation = messageNotice.getInterviewLocation();
 		
 		// 创建数据时，参数不能为空
 		if (add) {
 			// todo 补充校验规则
-			ThrowUtils.throwIf(StringUtils.isBlank(content), ErrorCode.PARAMS_ERROR, "内容不能为空");
-			ThrowUtils.throwIf(registrationId == null, ErrorCode.PARAMS_ERROR, "报名登记表id不能为空");
+			ThrowUtils.throwIf(ObjectUtils.isEmpty(registrationId), ErrorCode.PARAMS_ERROR, "报名登记表id不能为空");
+			ThrowUtils.throwIf(ObjectUtils.isEmpty(interviewTime), ErrorCode.PARAMS_ERROR, "面试时间不能为空");
+			ThrowUtils.throwIf(StringUtils.isBlank(interviewLocation), ErrorCode.PARAMS_ERROR, "面试地点不能为空");
 		}
 		// 修改数据时，有参数则校验
 		// todo 补充校验规则
 		if (ObjectUtils.isNotEmpty(registrationId)) {
 			RegistrationForm registrationForm = registrationFormService.getById(registrationId);
 			ThrowUtils.throwIf(registrationForm == null, ErrorCode.PARAMS_ERROR, "报名登记表不存在");
+		}
+		if (ObjectUtils.isNotEmpty(interviewTime)) {
+			ThrowUtils.throwIf(interviewTime.before(new Date()), ErrorCode.PARAMS_ERROR, "面试时间不能早于当前时间");
 		}
 	}
 	
@@ -89,22 +99,23 @@ public class MessageNoticeServiceImpl extends ServiceImpl<MessageNoticeMapper, M
 		// todo 从对象中取值
 		Long id = messageNoticeQueryRequest.getId();
 		Long notId = messageNoticeQueryRequest.getNotId();
-		String content = messageNoticeQueryRequest.getContent();
-		Integer readStatus = messageNoticeQueryRequest.getReadStatus();
 		Long adminId = messageNoticeQueryRequest.getAdminId();
+		Date interviewTime = messageNoticeQueryRequest.getInterviewTime();
+		String interviewLocation = messageNoticeQueryRequest.getInterviewLocation();
 		Long registrationId = messageNoticeQueryRequest.getRegistrationId();
 		String sortField = messageNoticeQueryRequest.getSortField();
 		String sortOrder = messageNoticeQueryRequest.getSortOrder();
 		
 		// todo 补充需要的查询条件
 		// 模糊查询
-		queryWrapper.like(StringUtils.isNotBlank(content), "content", content);
+		queryWrapper.like(StringUtils.isNotBlank(interviewLocation), "interview_location", interviewLocation);
+		// 范围查询
+		queryWrapper.between(ObjectUtils.isNotEmpty(interviewTime), "interview_time", interviewTime, interviewTime);
 		// 精确查询
 		queryWrapper.ne(ObjectUtils.isNotEmpty(notId), "id", notId);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(id), "id", id);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(adminId), "admin_id", adminId);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(registrationId), "registration_id", registrationId);
-		queryWrapper.eq(ObjectUtils.isNotEmpty(readStatus), "read_status", readStatus);
 		// 排序规则
 		queryWrapper.orderBy(SqlUtils.validSortField(sortField),
 				sortOrder.equals(CommonConstant.SORT_ORDER_ASC),

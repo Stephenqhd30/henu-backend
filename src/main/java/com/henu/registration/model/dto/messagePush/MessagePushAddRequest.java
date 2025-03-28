@@ -16,11 +16,6 @@ import java.util.List;
 public class MessagePushAddRequest implements Serializable {
     
     /**
-     * 用户id
-     */
-    private Long userId;
-    
-    /**
      * 消息通知id
      */
     private Long messageNoticeId;
@@ -29,11 +24,6 @@ public class MessagePushAddRequest implements Serializable {
      * 推送方式(websocket/email/sms/other)
      */
     private String pushType;
-    
-    /**
-     * 推送时间
-     */
-    private Date pushTime;
 
     @Serial
     private static final long serialVersionUID = 1L;

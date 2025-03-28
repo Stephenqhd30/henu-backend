@@ -11,7 +11,6 @@
             <result property="pushType" column="push_type" />
             <result property="pushStatus" column="push_status" />
             <result property="pushMessage" column="push_message" />
-            <result property="pushTime" column="push_time" />
             <result property="retryCount" column="retry_count" />
             <result property="errorMessage" column="error_message" />
             <result property="createTime" column="create_time" />
@@ -19,7 +18,8 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,user_id,message_notice_id,push_type,push_status,push_message,
-        push_time,retry_count,error_message,create_time,update_time
+	    id
+	    ,user_id,message_notice_id,push_type,push_status,push_message,
+        retry_count,error_message,create_time,update_time
     </sql>
 </mapper>

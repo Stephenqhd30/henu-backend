@@ -44,11 +44,6 @@ public class MessagePushUpdateRequest implements Serializable {
      * 推送消息内容
      */
     private String pushMessage;
-    
-    /**
-     * 推送时间
-     */
-    private Date pushTime;
 
     @Serial
     private static final long serialVersionUID = 1L;

@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -28,20 +29,14 @@ public class MessageNoticeQueryRequest extends PageRequest implements Serializab
 	private Long notId;
 	
 	/**
-	 * 搜索词
+	 * 面试时间
 	 */
-	private String searchText;
+	private Date interviewTime;
 	
 	/**
-	 * 通知内容
+	 * 面试地点
 	 */
-	private String content;
-	
-	/**
-	 * 阅读状态(0-未读,1-已读)
-	 */
-	private Integer readStatus;
-	
+	private String interviewLocation;
 	/**
 	 * 管理员id
 	 */

@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -19,6 +20,7 @@ import lombok.Data;
 @TableName(value = "message_notice")
 @Data
 public class MessageNotice implements Serializable {
+	@Serial
 	private static final long serialVersionUID = -6138999993064579713L;
 	/**
 	 * id
@@ -27,14 +29,14 @@ public class MessageNotice implements Serializable {
 	private Long id;
 	
 	/**
-	 * 通知内容
+	 * 面试时间
 	 */
-	private String content;
+	private Date interviewTime;
 	
 	/**
-	 * 阅读状态(0-未读,1-已读)
+	 * 面试地点
 	 */
-	private Integer readStatus;
+	private String interviewLocation;
 	
 	/**
 	 * 管理员id

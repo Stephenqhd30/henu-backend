@@ -6,8 +6,8 @@
 
     <resultMap id="BaseResultMap" type="com.henu.registration.model.entity.MessageNotice">
             <id property="id" column="id" />
-            <result property="content" column="content" />
-            <result property="readStatus" column="read_status" />
+            <result property="interviewTime" column="interview_time"/>
+            <result property="interviewLocation" column="interview_location"/>
             <result property="adminId" column="admin_id" />
             <result property="registrationId" column="registration_id" />
             <result property="createTime" column="create_time" />
@@ -16,7 +16,8 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,content,read_status,admin_id,registration_id,
+        id
+        ,interview_location,interview_time,admin_id,registration_id,
         create_time,update_time,is_delete
     </sql>
 </mapper>

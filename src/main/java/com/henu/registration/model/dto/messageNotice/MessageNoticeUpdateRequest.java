@@ -4,6 +4,7 @@ import lombok.Data;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -20,14 +21,14 @@ public class MessageNoticeUpdateRequest implements Serializable {
 	private Long id;
 	
 	/**
-	 * 通知内容
+	 * 面试时间
 	 */
-	private String content;
+	private Date interviewTime;
 	
 	/**
-	 * 阅读状态(0-未读,1-已读)
+	 * 面试地点
 	 */
-	private Integer readStatus;
+	private String interviewLocation;
 	
 	@Serial
 	private static final long serialVersionUID = 1L;

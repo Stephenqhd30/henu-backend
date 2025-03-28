@@ -53,11 +53,6 @@ public class MessagePush implements Serializable {
 	private String pushMessage;
 	
 	/**
-	 * 推送时间
-	 */
-	private Date pushTime;
-	
-	/**
 	 * 失败重试次数
 	 */
 	private Integer retryCount;
