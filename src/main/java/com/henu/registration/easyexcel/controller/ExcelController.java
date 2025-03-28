@@ -7,7 +7,9 @@ import com.henu.registration.common.ResultUtils;
 import com.henu.registration.common.ThrowUtils;
 import com.henu.registration.common.exception.BusinessException;
 import com.henu.registration.constants.AdminConstant;
+import com.henu.registration.easyexcel.constants.ExcelConstant;
 import com.henu.registration.easyexcel.service.ExcelService;
+import com.henu.registration.utils.excel.ExcelUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -57,6 +59,15 @@ public class ExcelController {
 	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public void exportAdmin(HttpServletResponse response) throws IOException {
 		excelService.exportAdmin(response);
+	}
+	
+	/**
+	 * 导出导入用户信息模版
+	 */
+	@GetMapping("/export/template/admin")
+	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
+	public void exportAdminTemplate(HttpServletResponse response) {
+		ExcelUtils.exportTemplateHttpServletResponse(ExcelConstant.ADMIN, response);
 	}
 	
 	/**
@@ -186,6 +197,15 @@ public class ExcelController {
 	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public void exportSchool(HttpServletResponse response) throws IOException {
 		excelService.exportSchool(response);
+	}
+	
+	/**
+	 * 导出学校信息信息模版
+	 */
+	@GetMapping("/export/template/school")
+	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
+	public void exportSchoolTemplate(HttpServletResponse response) {
+		ExcelUtils.exportTemplateHttpServletResponse(ExcelConstant.SCHOOL, response);
 	}
 	
 	/**

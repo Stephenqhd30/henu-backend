@@ -149,6 +149,7 @@ application.properties
 application-prod.properties
 
 src/main/resources/templates
+src/main/resources/template
 src/main/java/com/henu/registration/generate
 src/main/java/com/henu/registration/constants/SaltConstant.java
 src/main/java/com/henu/registration/constants/SmsConstant.java

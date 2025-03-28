@@ -646,7 +646,7 @@ public class ExcelUtils {
      */
     public static void exportTemplateHttpServletResponse(String templateName, HttpServletResponse response) {
         try {
-            ClassPathResource classPathResource = new ClassPathResource("templates/excel/" + templateName + ExcelTypeEnum.XLSX.getValue());
+            ClassPathResource classPathResource = new ClassPathResource("template/excel/" + templateName + ExcelTypeEnum.XLSX.getValue());
             if (!classPathResource.exists()) {
                 throw new BusinessException(ErrorCode.EXCEL_ERROR, "模板文件[" + templateName + ".xlsx]未找到");
             }
