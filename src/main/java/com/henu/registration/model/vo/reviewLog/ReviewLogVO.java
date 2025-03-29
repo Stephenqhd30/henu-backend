@@ -3,12 +3,14 @@ package com.henu.registration.model.vo.reviewLog;
 import cn.hutool.json.JSONUtil;
 import com.henu.registration.model.entity.ReviewLog;
 import com.henu.registration.model.vo.admin.AdminVO;
+import com.henu.registration.model.vo.registrationForm.RegistrationFormVO;
 import com.henu.registration.model.vo.user.UserVO;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import cn.hutool.core.collection.CollUtil;
 import org.springframework.beans.BeanUtils;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
@@ -21,6 +23,7 @@ import java.util.List;
 @Data
 public class ReviewLogVO implements Serializable {
     
+    @Serial
     private static final long serialVersionUID = 8741670101284551406L;
     /**
      * id
@@ -63,9 +66,14 @@ public class ReviewLogVO implements Serializable {
     private Date updateTime;
 
     /**
-     * 创建用户信息
+     * 审核人信息
      */
     private AdminVO adminVO;
+    
+    /**
+     * 报名登记表信息
+     */
+    private RegistrationFormVO registrationFormVO;
 
     /**
      * 封装类转对象

@@ -15,6 +15,7 @@ import com.henu.registration.model.entity.ReviewLog;
 import com.henu.registration.model.entity.Admin;
 import com.henu.registration.model.enums.ReviewStatusEnum;
 import com.henu.registration.model.vo.admin.AdminVO;
+import com.henu.registration.model.vo.registrationForm.RegistrationFormVO;
 import com.henu.registration.model.vo.reviewLog.ReviewLogVO;
 import com.henu.registration.service.RegistrationFormService;
 import com.henu.registration.service.ReviewLogService;
@@ -137,7 +138,7 @@ public class ReviewLogServiceImpl extends ServiceImpl<ReviewLogMapper, ReviewLog
 
         // todo 可以根据需要为封装对象补充值，不需要的内容可以删除
         // region 可选
-        // 1. 关联查询用户信息
+        // 1. 关联查询审核人信息
         Long reviewerId = reviewLog.getReviewerId();
         Admin admin = null;
         if (reviewerId != null && reviewerId > 0) {
@@ -145,7 +146,14 @@ public class ReviewLogServiceImpl extends ServiceImpl<ReviewLogMapper, ReviewLog
         }
         AdminVO adminVO = adminService.getAdminVO(admin, request);
         reviewLogVO.setAdminVO(adminVO);
-
+        // 2. 关联查询报名登记表信息
+        Long registrationId = reviewLog.getRegistrationId();
+        RegistrationForm registrationForm = null;
+        if (registrationId != null && registrationId > 0) {
+            registrationForm = registrationFormService.getById(registrationId);
+        }
+        RegistrationFormVO registrationFormVO = registrationFormService.getRegistrationFormVO(registrationForm, request);
+        reviewLogVO.setRegistrationFormVO(registrationFormVO);
         // endregion
         return reviewLogVO;
     }
@@ -170,7 +178,7 @@ public class ReviewLogServiceImpl extends ServiceImpl<ReviewLogMapper, ReviewLog
                             .collect(Collectors.toList());
         // todo 可以根据需要为封装对象补充值，不需要的内容可以删除
         // region 可选
-        // 1. 关联查询用户信息
+        // 1. 关联查询审核人信息
         Set<Long> reviewIdSet = reviewLogList.stream().map(ReviewLog::getReviewerId).collect(Collectors.toSet());
         // 填充信息
         if (CollUtil.isNotEmpty(reviewIdSet)) {
@@ -186,6 +194,28 @@ public class ReviewLogServiceImpl extends ServiceImpl<ReviewLogMapper, ReviewLog
                         admin = adminIdAdminListMap.get(reviewerId).get(0);
                     }
                     reviewLogVO.setAdminVO(adminService.getAdminVO(admin, request));
+                });
+            } catch (InterruptedException | ExecutionException e) {
+                Thread.currentThread().interrupt();
+                throw new BusinessException(ErrorCode.SYSTEM_ERROR, "获取信息失败" + e.getMessage());
+            }
+        }
+        // 1. 关联查询报名登记表信息
+        Set<Long> registrationIdSet = reviewLogList.stream().map(ReviewLog::getRegistrationId).collect(Collectors.toSet());
+        // 填充信息
+        if (CollUtil.isNotEmpty(registrationIdSet)) {
+            CompletableFuture<Map<Long, List<RegistrationForm>>> mapCompletableFuture = CompletableFuture.supplyAsync(() -> registrationFormService.listByIds(registrationIdSet).stream()
+                    .collect(Collectors.groupingBy(RegistrationForm::getId)));
+            try {
+                Map<Long, List<RegistrationForm>> registreationIdListMap = mapCompletableFuture.get();
+                // 填充信息
+                reviewLogVOList.forEach(reviewLogVO -> {
+                    Long registrationId = reviewLogVO.getRegistrationId();
+                    RegistrationForm registrationForm = null;
+                    if (registreationIdListMap.containsKey(registrationId)) {
+                        registrationForm = registreationIdListMap.get(registrationId).get(0);
+                    }
+                    reviewLogVO.setRegistrationFormVO(registrationFormService.getRegistrationFormVO(registrationForm, request));
                 });
             } catch (InterruptedException | ExecutionException e) {
                 Thread.currentThread().interrupt();

@@ -15,6 +15,7 @@ import com.henu.registration.model.entity.RegistrationForm;
 import com.henu.registration.model.entity.User;
 import com.henu.registration.model.vo.job.JobVO;
 import com.henu.registration.model.vo.registrationForm.RegistrationFormVO;
+import com.henu.registration.model.vo.user.UserVO;
 import com.henu.registration.service.JobService;
 import com.henu.registration.service.RegistrationFormService;
 import com.henu.registration.service.UserService;
@@ -149,6 +150,7 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		queryWrapper.like(StringUtils.isNotBlank(workExperience), "work_experience", workExperience);
 		queryWrapper.like(StringUtils.isNotBlank(studentLeaderAwards), "student_leader_awards", studentLeaderAwards);
 		queryWrapper.like(StringUtils.isNotBlank(reviewComments), "review_comments", reviewComments);
+		queryWrapper.like(ObjectUtils.isNotEmpty(reviewTime), "review_time", reviewTime);
 		// 精确查询
 		queryWrapper.ne(ObjectUtils.isNotEmpty(notId), "review_status", notId);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(id), "id", id);
@@ -191,6 +193,14 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		}
 		JobVO jobVO = jobService.getJobVO(job, request);
 		registrationFormVO.setJobVO(jobVO);
+		// 2. 关联报名用户信息
+		Long userId = registrationForm.getUserId();
+		User user = null;
+		if (userId != null && userId > 0) {
+			user = userService.getById(jobId);
+		}
+		UserVO userVO = userService.getUserVO(user, request);
+		registrationFormVO.setUserVO(userVO);
 		// endregion
 		return registrationFormVO;
 	}
@@ -231,6 +241,28 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 						job = jobIdUserListMap.get(jobId).get(0);
 					}
 					registrationFormVO.setJobVO(jobService.getJobVO(job, request));
+				});
+			} catch (InterruptedException | ExecutionException e) {
+				Thread.currentThread().interrupt();
+				throw new BusinessException(ErrorCode.SYSTEM_ERROR, "获取信息失败" + e.getMessage());
+			}
+		}
+		// 2. 关联用户信息
+		Set<Long> userIdSet = registrationFormList.stream().map(RegistrationForm::getUserId).collect(Collectors.toSet());
+		// 填充信息
+		if (CollUtil.isNotEmpty(userIdSet)) {
+			CompletableFuture<Map<Long, List<User>>> mapCompletableFuture = CompletableFuture.supplyAsync(() -> userService.listByIds(userIdSet).stream()
+					.collect(Collectors.groupingBy(User::getId)));
+			try {
+				Map<Long, List<User>> userIdUserListMap = mapCompletableFuture.get();
+				// 填充信息
+				registrationFormVOList.forEach(registrationFormVO -> {
+					Long userId = registrationFormVO.getUserId();
+					User user = null;
+					if (userIdUserListMap.containsKey(userId)) {
+						user = userIdUserListMap.get(userId).get(0);
+					}
+					registrationFormVO.setUserVO(userService.getUserVO(user, request));
 				});
 			} catch (InterruptedException | ExecutionException e) {
 				Thread.currentThread().interrupt();

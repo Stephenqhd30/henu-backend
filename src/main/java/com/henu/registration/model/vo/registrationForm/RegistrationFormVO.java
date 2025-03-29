@@ -36,6 +36,11 @@ public class RegistrationFormVO implements Serializable {
 	private String userName;
 	
 	/**
+	 * 身份证号
+	 */
+	private String userIdCard;
+	
+	/**
 	 * 邮箱地址
 	 */
 	private String userEmail;
@@ -134,6 +139,11 @@ public class RegistrationFormVO implements Serializable {
 	 * 岗位信息
 	 */
 	private JobVO jobVO;
+	
+	/**
+	 * 申请人信息
+	 */
+	private UserVO userVO;
 	
 	/**
 	 * 封装类转对象
