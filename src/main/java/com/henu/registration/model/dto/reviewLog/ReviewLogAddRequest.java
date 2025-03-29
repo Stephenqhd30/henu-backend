@@ -2,6 +2,7 @@ package com.henu.registration.model.dto.reviewLog;
 
 import lombok.Data;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
@@ -20,6 +21,11 @@ public class ReviewLogAddRequest implements Serializable {
     private Long registrationId;
     
     /**
+     * 报名登记表id
+     */
+    private List<Long> registrationIds;
+    
+    /**
      * 审核状态(0-待审核,1-审核通过,2-审核不通过)
      */
     private Integer reviewStatus;
@@ -29,5 +35,6 @@ public class ReviewLogAddRequest implements Serializable {
      */
     private String reviewComments;
 
+    @Serial
     private static final long serialVersionUID = 1L;
 }

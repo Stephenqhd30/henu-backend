@@ -22,11 +22,13 @@ import com.henu.registration.service.ReviewLogService;
 import com.henu.registration.service.AdminService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
+import java.util.List;
 
 /**
  * 审核记录接口
@@ -57,6 +59,7 @@ public class ReviewLogController {
 	 * @return {@link BaseResponse<Long>}
 	 */
 	@PostMapping("/add")
+	@Transactional
 	public BaseResponse<Long> addReviewLog(@RequestBody ReviewLogAddRequest reviewLogAddRequest, HttpServletRequest request) {
 		ThrowUtils.throwIf(reviewLogAddRequest == null, ErrorCode.PARAMS_ERROR);
 		// todo 在此处将实体类和 DTO 进行转换
@@ -86,6 +89,50 @@ public class ReviewLogController {
 	}
 	
 	/**
+	 * 批量创建审核记录
+	 *
+	 * @param reviewLogAddRequest reviewLogAddRequest
+	 * @param request             request
+	 * @return {@link BaseResponse<String>}
+	 */
+	@PostMapping("/add/batch")
+	@Transactional
+	public BaseResponse<String> batchAddReviewLogs(@RequestBody ReviewLogAddRequest reviewLogAddRequest, HttpServletRequest request) {
+		ThrowUtils.throwIf(reviewLogAddRequest == null, ErrorCode.PARAMS_ERROR);
+		// 校验批量审核的 registrationIds
+		List<Long> registrationIds = reviewLogAddRequest.getRegistrationIds();
+		ThrowUtils.throwIf(registrationIds == null || registrationIds.isEmpty(), ErrorCode.PARAMS_ERROR);
+		Admin loginAdmin = adminService.getLoginAdmin(request);
+		// 逐个处理每个 registrationId
+		for (Long registrationId : registrationIds) {
+			// 创建审核记录
+			ReviewLog reviewLog = new ReviewLog();
+			reviewLog.setRegistrationId(registrationId);
+			reviewLog.setReviewerId(loginAdmin.getId());
+			reviewLog.setReviewStatus(reviewLogAddRequest.getReviewStatus());
+			reviewLog.setReviewComments(reviewLogAddRequest.getReviewComments());
+			reviewLog.setReviewTime(new Date());
+			// 数据校验
+			reviewLogService.validReviewLog(reviewLog, true);
+			// 保存审核记录
+			boolean result = reviewLogService.save(reviewLog);
+			ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+			// 同步修改登记表的审核状态信息
+			RegistrationForm registrationForm = new RegistrationForm();
+			registrationForm.setId(registrationId);
+			registrationForm.setReviewer(loginAdmin.getAdminName());
+			registrationForm.setReviewStatus(reviewLog.getReviewStatus());
+			registrationForm.setReviewTime(new Date());
+			registrationForm.setReviewComments(reviewLog.getReviewComments());
+			boolean b = registrationFormService.updateById(registrationForm);
+			ThrowUtils.throwIf(!b, ErrorCode.OPERATION_ERROR);
+		}
+		
+		// 返回批量审核完成的成功消息
+		return ResultUtils.success("批量审核完成");
+	}
+	
+	/**
 	 * 删除审核记录
 	 *
 	 * @param deleteRequest deleteRequest
@@ -93,6 +140,7 @@ public class ReviewLogController {
 	 * @return {@link BaseResponse<Boolean>}
 	 */
 	@PostMapping("/delete")
+	@Transactional
 	public BaseResponse<Boolean> deleteReviewLog(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
 		if (deleteRequest == null || deleteRequest.getId() <= 0) {
 			throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -129,6 +177,7 @@ public class ReviewLogController {
 	 */
 	@PostMapping("/update")
 	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
+	@Transactional
 	public BaseResponse<Boolean> updateReviewLog(@RequestBody ReviewLogUpdateRequest reviewLogUpdateRequest, HttpServletRequest request) {
 		if (reviewLogUpdateRequest == null || reviewLogUpdateRequest.getId() <= 0) {
 			throw new BusinessException(ErrorCode.PARAMS_ERROR);

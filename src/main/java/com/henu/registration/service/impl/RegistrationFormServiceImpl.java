@@ -127,6 +127,10 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		Integer marryStatus = registrationFormQueryRequest.getMarryStatus();
 		String emergencyPhone = registrationFormQueryRequest.getEmergencyPhone();
 		String address = registrationFormQueryRequest.getAddress();
+		Integer reviewStatus = registrationFormQueryRequest.getReviewStatus();
+		Date reviewTime = registrationFormQueryRequest.getReviewTime();
+		String reviewer = registrationFormQueryRequest.getReviewer();
+		String reviewComments = registrationFormQueryRequest.getReviewComments();
 		String workExperience = registrationFormQueryRequest.getWorkExperience();
 		String studentLeaderAwards = registrationFormQueryRequest.getStudentLeaderAwards();
 		Long jobId = registrationFormQueryRequest.getJobId();
@@ -144,8 +148,9 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		queryWrapper.like(StringUtils.isNotBlank(address), "address", address);
 		queryWrapper.like(StringUtils.isNotBlank(workExperience), "work_experience", workExperience);
 		queryWrapper.like(StringUtils.isNotBlank(studentLeaderAwards), "student_leader_awards", studentLeaderAwards);
+		queryWrapper.like(StringUtils.isNotBlank(reviewComments), "review_comments", reviewComments);
 		// 精确查询
-		queryWrapper.ne(ObjectUtils.isNotEmpty(notId), "id", notId);
+		queryWrapper.ne(ObjectUtils.isNotEmpty(notId), "review_status", notId);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(id), "id", id);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(userId), "user_id", userId);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(userPhone), "user_phone", userPhone);
@@ -154,6 +159,8 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		queryWrapper.eq(ObjectUtils.isNotEmpty(marryStatus), "marry_status", marryStatus);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(emergencyPhone), "emergency_phone", emergencyPhone);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(jobId), "job_id", jobId);
+		queryWrapper.eq(ObjectUtils.isNotEmpty(reviewStatus), "review_status", reviewStatus);
+		queryWrapper.eq(ObjectUtils.isNotEmpty(reviewer), "reviewer", reviewer);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(userIdCard), "user_id_card", userIdCard);
 		// 排序规则
 		queryWrapper.orderBy(SqlUtils.validSortField(sortField),

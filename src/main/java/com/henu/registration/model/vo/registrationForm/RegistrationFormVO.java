@@ -101,6 +101,26 @@ public class RegistrationFormVO implements Serializable {
 	private Long jobId;
 	
 	/**
+	 * 报名状态(0-待审核,1-审核通过,2-审核不通过)
+	 */
+	private Integer reviewStatus;
+	
+	/**
+	 * 审核时间
+	 */
+	private Date reviewTime;
+	
+	/**
+	 * 审核人姓名
+	 */
+	private String reviewer;
+	
+	/**
+	 * 审核意见
+	 */
+	private String reviewComments;
+	
+	/**
 	 * 创建时间
 	 */
 	private Date createTime;

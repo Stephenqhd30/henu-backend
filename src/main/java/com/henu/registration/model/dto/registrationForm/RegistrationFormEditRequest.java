@@ -2,6 +2,7 @@ package com.henu.registration.model.dto.registrationForm;
 
 import lombok.Data;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
 
@@ -93,5 +94,6 @@ public class RegistrationFormEditRequest implements Serializable {
 	 */
 	private Long jobId;
 	
+	@Serial
 	private static final long serialVersionUID = 1L;
 }
