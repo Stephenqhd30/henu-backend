@@ -11,12 +11,12 @@ import com.henu.registration.common.exception.BusinessException;
 import com.henu.registration.constants.CommonConstant;
 import com.henu.registration.mapper.FileLogMapper;
 import com.henu.registration.model.dto.fileLog.FileLogQueryRequest;
-import com.henu.registration.model.entity.FileLog;
-import com.henu.registration.model.entity.FileType;
-import com.henu.registration.model.entity.User;
+import com.henu.registration.model.entity.*;
 import com.henu.registration.model.vo.fileLog.FileLogVO;
+import com.henu.registration.model.vo.fileType.FileTypeVO;
 import com.henu.registration.model.vo.user.UserVO;
 import com.henu.registration.service.FileLogService;
+import com.henu.registration.service.FileTypeService;
 import com.henu.registration.service.UserService;
 import com.henu.registration.utils.sql.SqlUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -27,6 +27,10 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 /**
@@ -42,6 +46,9 @@ public class FileLogServiceImpl extends ServiceImpl<FileLogMapper, FileLog>
 	
 	@Resource
 	private UserService userService;
+	
+	@Resource
+	private FileTypeService fileTypeService;
 	/**
 	 * 校验文件
 	 *
@@ -135,6 +142,14 @@ public class FileLogServiceImpl extends ServiceImpl<FileLogMapper, FileLog>
 		}
 		UserVO userVO = userService.getUserVO(user, request);
 		fileLogVO.setUserVO(userVO);
+		// 1. 关联查询文件类型信息
+		Long fileTypeId = fileLog.getFileTypeId();
+		FileType fileType = null;
+		if (fileTypeId != null && fileTypeId > 0) {
+			fileType = fileTypeService.getById(fileTypeId);
+		}
+		FileTypeVO fileTypeVO = fileTypeService.getFileTypeVO(fileType, request);
+		fileLogVO.setFileTypeVO(fileTypeVO);
 		// endregion
 		return fileLogVO;
 	}
@@ -157,7 +172,51 @@ public class FileLogServiceImpl extends ServiceImpl<FileLogMapper, FileLog>
 		List<FileLogVO> fileLogVOList = fileLogList.stream()
 				.map(FileLogVO::objToVo)
 				.collect(Collectors.toList());
-		// todo 可以根据需要为封装对象补充值，不需要的内容可以删除
+		// 1. 关联查询用户信息
+		Set<Long> userIdSet = fileLogList.stream().map(FileLog::getUserId).collect(Collectors.toSet());
+		// 填充信息
+		if (CollUtil.isNotEmpty(userIdSet)) {
+			CompletableFuture<Map<Long, List<User>>> mapCompletableFuture = CompletableFuture.supplyAsync(() -> userService.listByIds(userIdSet).stream()
+					.collect(Collectors.groupingBy(User::getId)));
+			try {
+				Map<Long, List<User>> userIdUserListMap = mapCompletableFuture.get();
+				// 填充信息
+				fileLogVOList.forEach(fileLogVO -> {
+					Long userId = fileLogVO.getUserId();
+					User user = null;
+					if (userIdUserListMap.containsKey(userId)) {
+						user = userIdUserListMap.get(userId).get(0);
+					}
+					fileLogVO.setUserVO(userService.getUserVO(user, request));
+				});
+			} catch (InterruptedException | ExecutionException e) {
+				Thread.currentThread().interrupt();
+				throw new BusinessException(ErrorCode.SYSTEM_ERROR, "获取信息失败" + e.getMessage());
+			}
+		}
+		// 2. 关联查询文件上传类型信息
+		Set<Long> fileTypeIdSet = fileLogList.stream().map(FileLog::getFileTypeId).collect(Collectors.toSet());
+		// 填充信息
+		if (CollUtil.isNotEmpty(fileTypeIdSet)) {
+			CompletableFuture<Map<Long, List<FileType>>> mapCompletableFuture = CompletableFuture.supplyAsync(() -> fileTypeService.listByIds(fileTypeIdSet).stream()
+					.collect(Collectors.groupingBy(FileType::getId)));
+			try {
+				Map<Long, List<FileType>> fileTypeIdListMap = mapCompletableFuture.get();
+				// 填充信息
+				fileLogVOList.forEach(fileLogVO -> {
+					Long fileTypeId = fileLogVO.getFileTypeId();
+					FileType fileType = null;
+					if (fileTypeIdListMap.containsKey(fileTypeId)) {
+						fileType = fileTypeIdListMap.get(fileTypeId).get(0);
+					}
+					fileLogVO.setFileTypeVO(fileTypeService.getFileTypeVO(fileType, request));
+				});
+			} catch (InterruptedException | ExecutionException e) {
+				Thread.currentThread().interrupt();
+				throw new BusinessException(ErrorCode.SYSTEM_ERROR, "获取信息失败" + e.getMessage());
+			}
+		}
+		// endregion
 		fileLogVOPage.setRecords(fileLogVOList);
 		return fileLogVOPage;
 	}

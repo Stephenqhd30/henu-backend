@@ -1,10 +1,12 @@
 package com.henu.registration.model.vo.fileLog;
 
 import com.henu.registration.model.entity.FileLog;
+import com.henu.registration.model.vo.fileType.FileTypeVO;
 import com.henu.registration.model.vo.user.UserVO;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -16,6 +18,7 @@ import java.util.Date;
 @Data
 public class FileLogVO implements Serializable {
 	
+	@Serial
 	private static final long serialVersionUID = -5502227404138966496L;
 	/**
 	 * id
@@ -56,6 +59,11 @@ public class FileLogVO implements Serializable {
 	 * 用户
 	 */
 	private UserVO userVO;
+	
+	/**
+	 * 文件类型信息
+	 */
+	private FileTypeVO fileTypeVO;
 	
 	
 	/**
