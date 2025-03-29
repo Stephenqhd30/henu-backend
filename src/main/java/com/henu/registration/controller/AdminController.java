@@ -61,6 +61,21 @@ public class AdminController {
 		Admin admin = adminService.getLoginAdmin(request);
 		return ResultUtils.success(adminService.getLoginAdminVO(admin));
 	}
+	
+	/**
+	 * 管理员注销
+	 *
+	 * @param request request
+	 * @return BaseResponse<Boolean>
+	 */
+	@PostMapping("/logout")
+	public BaseResponse<Boolean> adminLogout(HttpServletRequest request) {
+		if (request == null) {
+			throw new BusinessException(ErrorCode.PARAMS_ERROR);
+		}
+		boolean result = adminService.adminLogout(request);
+		return ResultUtils.success(result);
+	}
 	// region 增删改查
 	
 	/**

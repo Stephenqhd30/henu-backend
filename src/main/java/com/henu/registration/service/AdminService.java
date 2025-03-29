@@ -80,7 +80,7 @@ public interface AdminService extends IService<Admin> {
 	 * @param request request
 	 * @return boolean 是否退出成功
 	 */
-	boolean AdminLogout(HttpServletRequest request);
+	boolean adminLogout(HttpServletRequest request);
 	
 	/**
 	 * 获取当前登录管理员视图类

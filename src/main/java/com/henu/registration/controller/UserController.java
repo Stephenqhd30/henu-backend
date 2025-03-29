@@ -262,7 +262,9 @@ public class UserController {
 		Page<User> userPage = userService.page(new Page<>(current, size),
 				userService.getQueryWrapper(userQueryRequest));
 		userPage.getRecords().forEach(user -> {
-			user.setUserIdCard(EncryptionUtils.decrypt(user.getUserIdCard()));
+			if (StringUtils.isNotBlank(user.getUserIdCard())) {
+				user.setUserIdCard(EncryptionUtils.decrypt(user.getUserIdCard()));
+			}
 		});
 		return ResultUtils.success(userPage);
 	}

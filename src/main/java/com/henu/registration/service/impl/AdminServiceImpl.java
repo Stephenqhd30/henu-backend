@@ -145,7 +145,7 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin>
 	 * @return boolean 是否退出成功
 	 */
 	@Override
-	public boolean AdminLogout(HttpServletRequest request) {
+	public boolean adminLogout(HttpServletRequest request) {
 		// 先检查管理员是否登录
 		StpUtil.checkLogin();
 		// 移除管理员登录态
