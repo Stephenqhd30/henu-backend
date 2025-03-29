@@ -209,6 +209,27 @@ public class ExcelController {
 	}
 	
 	/**
+	 * 从 Excel 中导入高校与高校类型关联信息
+	 *
+	 * @param file file
+	 * @return BaseResponse<String>
+	 */
+	@PostMapping("/import/school/school/type")
+	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
+	public BaseResponse<String> importSchoolSchoolTypeExcel(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
+		ThrowUtils.throwIf(file.isEmpty(), ErrorCode.EXCEL_ERROR, "文件为空");
+		try {
+			// 校验 Excel 文件格式
+			excelService.validExcel(file);
+			// 导入高校类型信息
+			String result = excelService.importSchoolSchoolType(file, request);
+			return ResultUtils.success(result);
+		} catch (Exception e) {
+			throw new BusinessException(ErrorCode.EXCEL_ERROR, "导入失败：" + e.getMessage());
+		}
+	}
+	
+	/**
 	 * 导出高校与高校类型关联信息到 Excel
 	 */
 	@GetMapping("/export/school/school/type")
@@ -218,12 +239,52 @@ public class ExcelController {
 	}
 	
 	/**
+	 * 导出高校与高校类型关联信息模版
+	 */
+	@GetMapping("/export/template/school/school/type")
+	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
+	public void exportSchoolSchoolTypeTemplate(HttpServletResponse response) {
+		ExcelUtils.exportTemplateHttpServletResponse(ExcelConstant.SCHOOL_SCHOOL_TYPE, response);
+	}
+	
+	
+	/**
+	 * 从 Excel 中导入高校类型信息
+	 *
+	 * @param file file
+	 * @return BaseResponse<String>
+	 */
+	@PostMapping("/import/school/type")
+	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
+	public BaseResponse<String> importSchoolTypeExcel(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
+		ThrowUtils.throwIf(file.isEmpty(), ErrorCode.EXCEL_ERROR, "文件为空");
+		try {
+			// 校验 Excel 文件格式
+			excelService.validExcel(file);
+			// 导入高校类型信息
+			String result = excelService.importSchoolType(file, request);
+			return ResultUtils.success(result);
+		} catch (Exception e) {
+			throw new BusinessException(ErrorCode.EXCEL_ERROR, "导入失败：" + e.getMessage());
+		}
+	}
+	
+	/**
 	 * 导出高校类型信息到 Excel
 	 */
 	@GetMapping("/export/school/type")
 	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public void exportSchoolType(HttpServletResponse response) throws IOException {
 		excelService.exportSchoolType(response);
+	}
+	
+	/**
+	 * 导出高校类型信息模版
+	 */
+	@GetMapping("/export/template/school/type")
+	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
+	public void exportSchoolTypeTemplate(HttpServletResponse response) {
+		ExcelUtils.exportTemplateHttpServletResponse(ExcelConstant.SCHOOL_TYPE, response);
 	}
 	
 	/**

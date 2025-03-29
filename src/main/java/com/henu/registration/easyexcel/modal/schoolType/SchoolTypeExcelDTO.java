@@ -1,10 +1,9 @@
-package com.henu.registration.easyexcel.modal.school;
+package com.henu.registration.easyexcel.modal.schoolType;
 
 import com.alibaba.excel.annotation.ExcelProperty;
 import com.alibaba.excel.annotation.write.style.ColumnWidth;
-import com.henu.registration.model.entity.CadreType;
 import com.henu.registration.model.entity.School;
-import com.henu.registration.model.vo.cadreType.CadreTypeVO;
+import com.henu.registration.model.entity.SchoolType;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
@@ -17,17 +16,18 @@ import java.io.Serializable;
  * @author stephen
  */
 @Data
-public class SchoolExcelDTO implements Serializable {
+public class SchoolTypeExcelDTO implements Serializable {
 	
 	@Serial
 	private static final long serialVersionUID = -5941319198049937390L;
 	
-	
 	/**
-	 * 高校名称
+	 * 高校类别名称
 	 */
-	@ExcelProperty("高校名称")
-	private String schoolName;
+	@ColumnWidth(20)
+	@ExcelProperty("高校类别名称")
+	private String typeName;
+	
 	
 	/**
 	 * 封装类转对象
@@ -35,12 +35,12 @@ public class SchoolExcelDTO implements Serializable {
 	 * @param schoolExcelDTO schoolExcelDTO
 	 * @return {@link School}
 	 */
-	public static School dtoToObj(SchoolExcelDTO schoolExcelDTO) {
+	public static SchoolType dtoToObj(SchoolTypeExcelDTO schoolExcelDTO) {
 		if (schoolExcelDTO == null) {
 			return null;
 		}
-		School school = new School();
-		BeanUtils.copyProperties(schoolExcelDTO, school);
-		return school;
+		SchoolType schoolType = new SchoolType();
+		BeanUtils.copyProperties(schoolExcelDTO, schoolType);
+		return schoolType;
 	}
 }

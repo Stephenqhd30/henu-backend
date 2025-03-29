@@ -121,11 +121,27 @@ public interface ExcelService {
 	void exportSchool(HttpServletResponse response) throws IOException;
 	
 	/**
+	 * 导入高校与高校类型关联信息
+	 *
+	 * @param file file
+	 * @return String
+	 */
+	String importSchoolSchoolType(MultipartFile file, HttpServletRequest request);
+	
+	/**
 	 * 导出高校与高校类型关联信息到 Excel
 	 *
 	 * @param response HttpServletResponse
 	 */
 	void exportSchoolSchoolType(HttpServletResponse response) throws IOException;
+	
+	/**
+	 * 导入高校类型信息
+	 *
+	 * @param file file
+	 * @return String
+	 */
+	String importSchoolType(MultipartFile file, HttpServletRequest request);
 	
 	/**
 	 * 导出高校类型信息到 Excel

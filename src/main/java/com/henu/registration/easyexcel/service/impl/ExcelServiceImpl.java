@@ -1,5 +1,6 @@
 package com.henu.registration.easyexcel.service.impl;
 
+import cn.hutool.json.JSONUtil;
 import com.henu.registration.common.ErrorCode;
 import com.henu.registration.common.ThrowUtils;
 import com.henu.registration.common.exception.BusinessException;
@@ -8,6 +9,8 @@ import com.henu.registration.constants.AdminConstant;
 import com.henu.registration.easyexcel.constants.ExcelConstant;
 import com.henu.registration.easyexcel.listener.AdminExcelListener;
 import com.henu.registration.easyexcel.listener.SchoolExcelListener;
+import com.henu.registration.easyexcel.listener.SchoolSchoolTypeExcelListener;
+import com.henu.registration.easyexcel.listener.SchoolTypeExcelListener;
 import com.henu.registration.easyexcel.modal.admin.AdminExcelDTO;
 import com.henu.registration.easyexcel.modal.admin.AdminExcelVO;
 import com.henu.registration.easyexcel.modal.cadreType.CadreTypeExcelVO;
@@ -24,7 +27,9 @@ import com.henu.registration.easyexcel.modal.registrationForm.RegistrationFormEx
 import com.henu.registration.easyexcel.modal.reviewLog.ReviewLogExcelVO;
 import com.henu.registration.easyexcel.modal.school.SchoolExcelDTO;
 import com.henu.registration.easyexcel.modal.school.SchoolExcelVO;
+import com.henu.registration.easyexcel.modal.schoolSchoolType.SchoolSchoolTypeExcelDTO;
 import com.henu.registration.easyexcel.modal.schoolSchoolType.SchoolSchoolTypeExcelVO;
+import com.henu.registration.easyexcel.modal.schoolType.SchoolTypeExcelDTO;
 import com.henu.registration.easyexcel.modal.schoolType.SchoolTypeExcelVO;
 import com.henu.registration.easyexcel.modal.systemMessages.SystemMessagesExcelVO;
 import com.henu.registration.easyexcel.modal.user.UserExcelVO;
@@ -44,6 +49,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -547,6 +553,53 @@ public class ExcelServiceImpl implements ExcelService {
 	}
 	
 	/**
+	 * 导入高校与高校类型关联信息
+	 *
+	 * @param file file
+	 * @return String
+	 */
+	@Override
+	public String importSchoolSchoolType(MultipartFile file, HttpServletRequest request) {
+		// 获取当前登录的admin
+		Admin admin = adminService.getLoginAdmin(request);
+		try (InputStream inputStream = file.getInputStream()) {
+			SchoolSchoolTypeExcelListener listener = new SchoolSchoolTypeExcelListener();
+			ExcelResult<SchoolSchoolTypeExcelDTO> excelResult =
+					ExcelUtils.importStreamAndCloseWithListener(inputStream, SchoolSchoolTypeExcelDTO.class, listener);
+			
+			// 1. 批量查询所有学校，避免 N+1 查询
+			List<School> schoolList = schoolService.list();
+			Map<String, Long> schoolNameToIdMap = schoolList.stream()
+					.collect(Collectors.toMap(School::getSchoolName, School::getId));
+			
+			// 2. 处理 Excel 数据
+			List<SchoolSchoolType> schoolSchoolTypes = excelResult.getList().stream()
+					.map(schoolSchoolTypeExcelDTO -> {
+						// 获取学校 ID
+						Long schoolId = schoolNameToIdMap.get(schoolSchoolTypeExcelDTO.getSchoolName());
+						ThrowUtils.throwIf(schoolId == null, ErrorCode.PARAMS_ERROR, "高校不存在：" + schoolSchoolTypeExcelDTO.getSchoolName());
+						// 获取高校类别列表的 JSON 字符串
+						String schoolTypesJson = schoolSchoolTypeExcelDTO.getSchoolTypes().trim();
+						// 校验 JSON 格式
+						ThrowUtils.throwIf(!JSONUtil.isTypeJSON(schoolTypesJson), ErrorCode.PARAMS_ERROR, "高校类别格式错误：" + schoolTypesJson);
+						SchoolSchoolType schoolSchoolType = new SchoolSchoolType();
+						schoolSchoolType.setSchoolId(schoolId);
+						schoolSchoolType.setSchoolTypes(schoolTypesJson);
+						schoolSchoolType.setAdminId(admin.getId());
+						return schoolSchoolType;
+					})
+					.collect(Collectors.toList());
+			
+			// 3. 批量保存到数据库
+			schoolSchoolTypeService.saveBatch(schoolSchoolTypes);
+			return "高校与高校类型关联信息导入成功，导入数量：" + schoolSchoolTypes.size();
+		} catch (IOException e) {
+			log.error("导入高校与高校类型关联信息异常", e);
+			throw new BusinessException(ErrorCode.EXCEL_ERROR, "导入高校与高校类型关联信息异常");
+		}
+	}
+	
+	/**
 	 * 导出高校与高校类型关联信息到 Excel
 	 *
 	 * @param response HttpServletResponse
@@ -569,6 +622,38 @@ public class ExcelServiceImpl implements ExcelService {
 		} catch (Exception e) {
 			log.error("高校与高校类型关联信息导出失败: {}", e.getMessage());
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "高校与高校类型关联信息导出失败");
+		}
+	}
+	
+	/**
+	 * 导入高校类型信息
+	 *
+	 * @param file file
+	 * @return String
+	 */
+	@Override
+	public String importSchoolType(MultipartFile file, HttpServletRequest request) {
+		// 获取当前登录的admin
+		Admin admin = adminService.getLoginAdmin(request);
+		try (InputStream inputStream = file.getInputStream()) {
+			// 使用 SchoolExcelListener 解析 Excel
+			SchoolTypeExcelListener listener = new SchoolTypeExcelListener();
+			ExcelResult<SchoolTypeExcelDTO> excelResult = ExcelUtils.importStreamAndCloseWithListener(inputStream, SchoolTypeExcelDTO.class, listener);
+			// 将 DTO 转换为实体对象
+			List<SchoolType> schoolTypeList = excelResult.getList().stream()
+					.map(schoolTypeExcelDTO -> {
+						SchoolType schoolType = new SchoolType();
+						BeanUtils.copyProperties(schoolTypeExcelDTO, schoolType);
+						schoolType.setAdminId(admin.getId());
+						return schoolType;
+					})
+					.toList();
+			// 存入数据库
+			schoolTypeService.saveBatch(schoolTypeList);
+			return "高校类型信息导入成功，导入数量：" + schoolTypeList.size();
+		} catch (IOException e) {
+			log.error("导入高校类型信息异常", e);
+			throw new BusinessException(ErrorCode.EXCEL_ERROR, "导入高校类型信息异常");
 		}
 	}
 	
