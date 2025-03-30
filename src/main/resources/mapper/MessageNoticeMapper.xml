@@ -10,14 +10,15 @@
             <result property="interviewLocation" column="interview_location"/>
             <result property="adminId" column="admin_id" />
             <result property="registrationId" column="registration_id" />
+            <result property="pushStatus" column="push_status"/>
             <result property="createTime" column="create_time" />
             <result property="updateTime" column="update_time" />
             <result property="isDelete" column="is_delete" />
     </resultMap>
 
     <sql id="Base_Column_List">
-        id
-        ,interview_location,interview_time,admin_id,registration_id,
-        create_time,update_time,is_delete
+	    id
+	    ,interview_location,interview_time,admin_id,registration_id,
+        push_status,create_time,update_time,is_delete
     </sql>
 </mapper>

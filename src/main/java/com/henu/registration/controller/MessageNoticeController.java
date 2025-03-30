@@ -10,6 +10,7 @@ import com.henu.registration.model.dto.messageNotice.MessageNoticeQueryRequest;
 import com.henu.registration.model.dto.messageNotice.MessageNoticeUpdateRequest;
 import com.henu.registration.model.entity.Admin;
 import com.henu.registration.model.entity.MessageNotice;
+import com.henu.registration.model.enums.PushStatusEnum;
 import com.henu.registration.model.vo.messageNotice.MessageNoticeVO;
 import com.henu.registration.service.AdminService;
 import com.henu.registration.service.MessageNoticeService;
@@ -58,6 +59,7 @@ public class MessageNoticeController {
 		// todo 填充默认值
 		Admin loginAdmin = adminService.getLoginAdmin(request);
 		messageNotice.setAdminId(loginAdmin.getId());
+		messageNotice.setPushStatus(PushStatusEnum.NOT_PUSHED.getValue());
 		// 写入数据库
 		boolean result = messageNoticeService.save(messageNotice);
 		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
@@ -115,6 +117,8 @@ public class MessageNoticeController {
 		long id = messageNoticeUpdateRequest.getId();
 		MessageNotice oldMessageNotice = messageNoticeService.getById(id);
 		ThrowUtils.throwIf(oldMessageNotice == null, ErrorCode.NOT_FOUND_ERROR);
+		// 更新数据为推送状态
+		messageNotice.setPushStatus(PushStatusEnum.NOT_PUSHED.getValue());
 		// 操作数据库
 		boolean result = messageNoticeService.updateById(messageNotice);
 		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);

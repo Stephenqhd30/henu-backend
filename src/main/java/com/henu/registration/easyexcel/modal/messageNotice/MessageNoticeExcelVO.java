@@ -41,6 +41,13 @@ public class MessageNoticeExcelVO implements Serializable {
 	private Long registrationId;
 	
 	/**
+	 * 推送状态(0-未推送,1-成功,2-失败,3-重试中)
+	 */
+	@ColumnWidth(40)
+	@ExcelProperty("推送状态")
+	private String pushStatus;
+	
+	/**
 	 * 用户姓名
 	 */
 	@ColumnWidth(40)

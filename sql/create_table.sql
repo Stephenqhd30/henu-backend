@@ -251,7 +251,9 @@ create table message_notice
         primary key,
     registration_id    bigint                               not null comment '报名登记表id',
     interview_time     datetime                             not null comment '面试时间',
-    interview_location varchar(512)                         not null comment '面试地点',
+    interview_location varchar(512)
+                                            not null comment '面试地点',
+    push_status        tinyint(1) default 0 not null comment '推送状态(0-未推送,1-成功,2-失败,3-重试中)',
     admin_id           bigint                               null comment '管理员id',
     create_time        datetime   default CURRENT_TIMESTAMP not null comment '创建时间',
     update_time        datetime   default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
@@ -279,12 +281,6 @@ CREATE TABLE message_push
     CONSTRAINT fk_message_push_notice FOREIGN KEY (message_notice_id) REFERENCES message_notice (id)
 )
     COMMENT '消息推送表';
-
--- 使 (user_id, message_notice_id, push_type) 作为唯一组合
-CREATE UNIQUE INDEX uniq_user_notice_push_type ON message_push (user_id, message_notice_id, push_type);
-
--- 其他索引优化
-CREATE INDEX idx_push_status ON message_push (push_status);
 
 -- 系统消息表
 create table system_messages

@@ -40,6 +40,11 @@ public class MessageNotice implements Serializable {
 	private String interviewLocation;
 	
 	/**
+	 * 推送状态(0-未推送,1-成功,2-失败,3-重试中)
+	 */
+	private Integer pushStatus;
+	
+	/**
 	 * 管理员id
 	 */
 	private Long adminId;

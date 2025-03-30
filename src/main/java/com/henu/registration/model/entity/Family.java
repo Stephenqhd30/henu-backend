@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -19,6 +20,7 @@ import lombok.Data;
 @TableName(value = "family")
 @Data
 public class Family implements Serializable {
+	@Serial
 	private static final long serialVersionUID = -6885927370388853335L;
 	/**
 	 * id

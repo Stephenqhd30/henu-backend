@@ -694,6 +694,7 @@ public class ExcelServiceImpl implements ExcelService {
 			RegistrationForm registrationForm = registrationFormService.getById(registrationId);
 			messageNoticeExcelVO.setUserName(registrationForm.getUserName());
 			messageNoticeExcelVO.setUserPhone(registrationForm.getUserPhone());
+			messageNoticeExcelVO.setPushStatus(Objects.requireNonNull(PushStatusEnum.getEnumByValue(messageNotice.getPushStatus())).getText());
 			return messageNoticeExcelVO;
 		}, threadPoolExecutor)).toList();
 		// 等待所有 CompletableFuture 执行完毕，并收集结果

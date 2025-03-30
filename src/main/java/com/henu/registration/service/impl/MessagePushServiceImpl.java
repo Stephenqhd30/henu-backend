@@ -111,7 +111,7 @@ public class MessagePushServiceImpl extends ServiceImpl<MessagePushMapper, Messa
 		queryWrapper.like(StringUtils.isNotBlank(pushMessage), "push_message", pushMessage);
 		queryWrapper.like(StringUtils.isNotBlank(errorMessage), "error_message", errorMessage);
 		// 精确查询
-		queryWrapper.ne(ObjectUtils.isNotEmpty(notId), "id", notId);
+		queryWrapper.ne(ObjectUtils.isNotEmpty(notId), "push_status", notId);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(id), "id", id);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(userId), "user_id", userId);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(messageNoticeId), "message_notice_id", messageNoticeId);

@@ -1,15 +1,12 @@
 package com.henu.registration.controller;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import cn.dev33.satoken.annotation.SaCheckRole;
-import com.henu.registration.common.BaseResponse;
-import com.henu.registration.common.DeleteRequest;
-import com.henu.registration.common.ErrorCode;
-import com.henu.registration.common.ResultUtils;
-import com.henu.registration.constants.AdminConstant;
-import com.henu.registration.constants.UserConstant;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.henu.registration.common.*;
 import com.henu.registration.common.exception.BusinessException;
-import com.henu.registration.common.ThrowUtils;
+import com.henu.registration.constants.AdminConstant;
 import com.henu.registration.model.dto.messagePush.MessagePushAddRequest;
 import com.henu.registration.model.dto.messagePush.MessagePushQueryRequest;
 import com.henu.registration.model.dto.messagePush.MessagePushUpdateRequest;
@@ -19,10 +16,15 @@ import com.henu.registration.model.entity.RegistrationForm;
 import com.henu.registration.model.entity.User;
 import com.henu.registration.model.enums.PushStatusEnum;
 import com.henu.registration.model.vo.messagePush.MessagePushVO;
-import com.henu.registration.service.*;
+import com.henu.registration.service.MessageNoticeService;
+import com.henu.registration.service.MessagePushService;
+import com.henu.registration.service.RegistrationFormService;
+import com.henu.registration.service.UserService;
+import com.henu.registration.utils.redisson.lock.LockUtils;
 import com.henu.registration.utils.sms.SMSUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -64,6 +66,7 @@ public class MessagePushController {
 	 */
 	@PostMapping("/add")
 	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
+	@Transactional
 	public BaseResponse<Long> addMessagePush(@RequestBody MessagePushAddRequest messagePushAddRequest, HttpServletRequest request) {
 		ThrowUtils.throwIf(messagePushAddRequest == null, ErrorCode.PARAMS_ERROR);
 		// todo 在此处将实体类和 DTO 进行转换
@@ -71,29 +74,59 @@ public class MessagePushController {
 		BeanUtils.copyProperties(messagePushAddRequest, messagePush);
 		// 数据校验
 		messagePushService.validMessagePush(messagePush, true);
-		// todo 填充默认值
-		MessageNotice messageNotice = messageNoticeService.getById(messagePush.getMessageNoticeId());
-		Long registrationId = messageNotice.getRegistrationId();
-		RegistrationForm registrationForm = registrationFormService.getById(registrationId);
-		Long userId = registrationForm.getUserId();
-		messagePush.setUserId(userId);
-		messagePush.setPushStatus(PushStatusEnum.SUCCEED.getValue());
-		String params = smsUtils.getParams(messagePush);
-		messagePush.setPushMessage(params);
-		// todo 调用短信发送接口
-		try {
-			smsUtils.sendMessage(registrationForm.getUserPhone(), params);
-		} catch (Exception e) {
-			messagePush.setPushStatus(PushStatusEnum.FAILED.getValue());
-			messagePush.setErrorMessage("短信发送失败：" + e.getMessage());
-			messagePush.setRetryCount(1);
-		}
-		// 写入数据库
-		boolean result = messagePushService.save(messagePush);
-		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
-		// 返回新写入的数据 id
-		long newMessagePushId = messagePush.getId();
-		return ResultUtils.success(newMessagePushId);
+		// 获取通知 id 作为分布式锁 Key，确保并发安全
+		String lockKey = "message_push_" + messagePush.getMessageNoticeId();
+		return LockUtils.lockEvent(lockKey, () -> {
+			// 查询是否已有推送成功的记录，防止重复推送
+			LambdaQueryWrapper<MessagePush> eq = Wrappers.lambdaQuery(MessagePush.class)
+					.eq(MessagePush::getMessageNoticeId, messagePush.getMessageNoticeId())
+					.eq(MessagePush::getPushStatus, PushStatusEnum.SUCCEED.getValue())
+					.eq(MessagePush::getUserId, messagePush.getUserId());
+			MessagePush oldMessagePush = messagePushService.getOne(eq);
+			ThrowUtils.throwIf(oldMessagePush != null, ErrorCode.PARAMS_ERROR, "该消息已经推送成功");
+			// 先保存 messagePush 记录
+			boolean saveResult = messagePushService.save(messagePush);
+			ThrowUtils.throwIf(!saveResult, ErrorCode.OPERATION_ERROR);
+			// 获取相关通知信息
+			MessageNotice messageNotice = messageNoticeService.getById(messagePush.getMessageNoticeId());
+			ThrowUtils.throwIf(messageNotice == null, ErrorCode.NOT_FOUND_ERROR, "面试通知不存在");
+			// 获取报名信息
+			Long registrationId = messageNotice.getRegistrationId();
+			RegistrationForm registrationForm = registrationFormService.getById(registrationId);
+			ThrowUtils.throwIf(registrationForm == null, ErrorCode.NOT_FOUND_ERROR, "报名信息不存在");
+			// 获取用户信息并填充
+			Long userId = registrationForm.getUserId();
+			messagePush.setUserId(userId);
+			messagePush.setPushStatus(PushStatusEnum.NOT_PUSHED.getValue());
+			String params = smsUtils.getParams(messagePush);
+			messagePush.setPushMessage(params);
+			// 更新 messagePush 记录（事务内）
+			boolean updateResult = messagePushService.updateById(messagePush);
+			ThrowUtils.throwIf(!updateResult, ErrorCode.OPERATION_ERROR);
+			// 事务提交后再发送短信（避免事务回滚影响）
+			boolean sendSuccess = true;
+			try {
+				smsUtils.sendMessage(registrationForm.getUserPhone(), params);
+				messagePush.setPushStatus(PushStatusEnum.SUCCEED.getValue());
+			} catch (Exception e) {
+				sendSuccess = false;
+				String errorMessage = "短信发送失败：" + e.getMessage();
+				messagePush.setPushStatus(PushStatusEnum.FAILED.getValue());
+				messagePush.setErrorMessage(errorMessage);
+				messagePush.setRetryCount(1);
+			}
+			// 更新推送状态
+			boolean finalUpdateResult = messagePushService.updateById(messagePush);
+			ThrowUtils.throwIf(!finalUpdateResult, ErrorCode.OPERATION_ERROR);
+			// 同步修改面试通知的推送状态
+			messageNotice.setPushStatus(sendSuccess ? PushStatusEnum.SUCCEED.getValue() : PushStatusEnum.FAILED.getValue());
+			boolean noticeUpdateResult = messageNoticeService.updateById(messageNotice);
+			ThrowUtils.throwIf(!noticeUpdateResult, ErrorCode.OPERATION_ERROR);
+			// 返回新写入的消息推送 ID
+			return ResultUtils.success(messagePush.getId());
+		}, () -> {
+			throw new BusinessException(ErrorCode.OPERATION_ERROR, "推送消息处理中，请稍后重试");
+		});
 	}
 	
 	/**
@@ -127,6 +160,7 @@ public class MessagePushController {
 	 */
 	@PostMapping("/update")
 	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
+	@Transactional
 	public BaseResponse<Boolean> updateMessagePush(@RequestBody MessagePushUpdateRequest messagePushUpdateRequest) {
 		if (messagePushUpdateRequest == null || messagePushUpdateRequest.getId() <= 0) {
 			throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -146,6 +180,11 @@ public class MessagePushController {
 		messagePush.setErrorMessage(null);
 		// 操作数据库
 		boolean result = messagePushService.updateById(messagePush);
+		// 同步修改面试通知表中的状态
+		MessageNotice messageNotice = messageNoticeService.getById(messagePush.getMessageNoticeId());
+		messageNotice.setPushStatus(PushStatusEnum.FAILED.getValue());
+		boolean b = messageNoticeService.updateById(messageNotice);
+		ThrowUtils.throwIf(!b, ErrorCode.OPERATION_ERROR);
 		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
 		return ResultUtils.success(true);
 	}
