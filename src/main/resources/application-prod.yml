@@ -73,7 +73,7 @@ server:
         domain: ${prod.server.servlet.session.cookie.domain}
 mybatis-plus:
   configuration:
-    map-underscore-to-camel-case: false
+    map-underscore-to-camel-case: true
     # 生产环境关闭日志
     log-impl: ''
   global-config:
@@ -146,3 +146,18 @@ aliyun:
     accessKeyId: ${prod.aliyun.sms.accessKeyId}
     accessKeySecret: ${prod.aliyun.sms.accessKeySecret}
     regionId: ${prod.aliyun.sms.regionId}
+
+# 验证码配置
+captcha:
+  # todo 是否使用验证码（启用的前提是redisson配置完成，预先关闭）
+  enable: true
+  # 验证码类型：char 字符类型；math 数字类型。
+  type: char
+  # 验证码类别：line 线段干扰；circle 圆圈干扰；shear 扭曲干扰。
+  category: line
+  # 数字验证码位数（1-9，否则默认为1）
+  number-length: 1
+  # 字符验证码长度（1-99，否则默认为4）
+  char-length: 4
+  # 验证码存活时间（单位：秒）
+  expired: 180
