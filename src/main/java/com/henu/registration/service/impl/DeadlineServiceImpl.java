@@ -1,7 +1,9 @@
 package com.henu.registration.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.henu.registration.common.ErrorCode;
@@ -60,6 +62,14 @@ public class DeadlineServiceImpl extends ServiceImpl<DeadlineMapper, Deadline> i
             // todo 补充校验规则
             ThrowUtils.throwIf(ObjectUtils.isEmpty(deadlineTime), ErrorCode.PARAMS_ERROR, "截止时间不能为空");
             ThrowUtils.throwIf(ObjectUtils.isEmpty(jobId), ErrorCode.PARAMS_ERROR, "岗位信息不能为空");
+            if (ObjectUtils.isNotEmpty(jobId)) {
+                Job job = jobService.getById(jobId);
+                ThrowUtils.throwIf(job == null, ErrorCode.PARAMS_ERROR, "岗位信息不存在");
+                LambdaQueryWrapper<Deadline> eq = Wrappers.lambdaQuery(Deadline.class)
+                        .eq(Deadline::getJobId, jobId);
+                Deadline deadlineList = this.getOne(eq);
+                ThrowUtils.throwIf(ObjectUtils.isNotEmpty(deadlineList), ErrorCode.PARAMS_ERROR, "该岗位已存在截止时间");
+            }
         }
         // 修改数据时，有参数则校验
         // todo 补充校验规则

@@ -58,7 +58,6 @@ public class EducationController {
 		BeanUtils.copyProperties(educationAddRequest, education);
 		// 数据校验
 		educationService.validEducation(education, true);
-		
 		// todo 填充默认值
 		User loginUser = userService.getLoginUser(request);
 		education.setUserId(loginUser.getId());
@@ -114,7 +113,6 @@ public class EducationController {
 		BeanUtils.copyProperties(educationUpdateRequest, education);
 		// 数据校验
 		educationService.validEducation(education, false);
-		
 		// 判断是否存在
 		long id = educationUpdateRequest.getId();
 		Education oldEducation = educationService.getById(id);

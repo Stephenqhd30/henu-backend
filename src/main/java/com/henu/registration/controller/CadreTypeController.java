@@ -54,7 +54,6 @@ public class CadreTypeController {
 		BeanUtils.copyProperties(cadreTypeAddRequest, cadreType);
 		// 数据校验
 		cadreTypeService.validCadreType(cadreType, true);
-		
 		// todo 填充默认值
 		Admin loginAdmin = adminService.getLoginAdmin(request);
 		cadreType.setAdminId(loginAdmin.getId());
@@ -74,19 +73,15 @@ public class CadreTypeController {
 	 * @return {@link BaseResponse<Boolean>}
 	 */
 	@PostMapping("/delete")
+	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Boolean> deleteCadreType(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
 		if (deleteRequest == null || deleteRequest.getId() <= 0) {
 			throw new BusinessException(ErrorCode.PARAMS_ERROR);
 		}
-		Admin Admin = adminService.getLoginAdmin(request);
 		long id = deleteRequest.getId();
 		// 判断是否存在
 		CadreType oldCadreType = cadreTypeService.getById(id);
 		ThrowUtils.throwIf(oldCadreType == null, ErrorCode.NOT_FOUND_ERROR);
-		// 仅本人或管理员可删除
-		if (!oldCadreType.getAdminId().equals(Admin.getId()) && !adminService.isAdmin(request)) {
-			throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
-		}
 		// 操作数据库
 		boolean result = cadreTypeService.removeById(id);
 		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
@@ -110,7 +105,6 @@ public class CadreTypeController {
 		BeanUtils.copyProperties(cadreTypeUpdateRequest, cadreType);
 		// 数据校验
 		cadreTypeService.validCadreType(cadreType, false);
-		
 		// 判断是否存在
 		long id = cadreTypeUpdateRequest.getId();
 		CadreType oldCadreType = cadreTypeService.getById(id);

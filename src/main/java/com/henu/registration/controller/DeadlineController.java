@@ -73,6 +73,7 @@ public class DeadlineController {
 	 * @return {@link BaseResponse<Boolean>}
 	 */
 	@PostMapping("/delete")
+	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Boolean> deleteDeadline(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
 		if (deleteRequest == null || deleteRequest.getId() <= 0) {
 			throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -82,10 +83,6 @@ public class DeadlineController {
 		// 判断是否存在
 		Deadline oldDeadline = deadlineService.getById(id);
 		ThrowUtils.throwIf(oldDeadline == null, ErrorCode.NOT_FOUND_ERROR);
-		// 仅本人或系统管理员可删除
-		if (!oldDeadline.getAdminId().equals(admin.getId()) && !adminService.isAdmin(request)) {
-			throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
-		}
 		// 操作数据库
 		boolean result = deadlineService.removeById(id);
 		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);

@@ -112,6 +112,7 @@ public class AdminController {
 	 * @return {@link BaseResponse<Boolean>}
 	 */
 	@PostMapping("/delete")
+	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Boolean> deleteAdmin(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
 		if (deleteRequest == null || deleteRequest.getId() <= 0) {
 			throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -120,10 +121,6 @@ public class AdminController {
 		// 判断是否存在
 		Admin oldAdmin = adminService.getById(id);
 		ThrowUtils.throwIf(oldAdmin == null, ErrorCode.NOT_FOUND_ERROR);
-		// 仅系统管理员可删除
-		if (!adminService.isAdmin(request)) {
-			throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
-		}
 		// 操作数据库
 		boolean result = adminService.removeById(id);
 		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
@@ -147,10 +144,6 @@ public class AdminController {
 		BeanUtils.copyProperties(adminUpdateRequest, admin);
 		// 数据校验
 		adminService.validAdmin(admin, false);
-		// 仅系统管理员可用
-		if (!adminService.isAdmin(request)) {
-			throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
-		}
 		// 判断是否存在
 		long id = adminUpdateRequest.getId();
 		Admin oldAdmin = adminService.getById(id);
