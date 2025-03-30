@@ -57,9 +57,6 @@ public class FileTypeServiceImpl extends ServiceImpl<FileTypeMapper, FileType> i
 		// todo 补充校验规则
 		if (StringUtils.isNotBlank(typeName)) {
 			ThrowUtils.throwIf(typeName.length() > 80, ErrorCode.PARAMS_ERROR, "类型名称过长");
-			LambdaQueryWrapper<FileType> eq = Wrappers.lambdaQuery(FileType.class)
-					.eq(FileType::getTypeName, typeName);
-			ThrowUtils.throwIf(this.count(eq) > 0, ErrorCode.PARAMS_ERROR, "类型名称已存在");
 		}
 	}
 	

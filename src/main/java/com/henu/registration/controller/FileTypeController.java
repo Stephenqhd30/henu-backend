@@ -2,6 +2,8 @@ package com.henu.registration.controller;
 
 import cn.dev33.satoken.annotation.SaCheckRole;
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.henu.registration.common.*;
 import com.henu.registration.common.exception.BusinessException;
@@ -57,7 +59,9 @@ public class FileTypeController {
 		fileType.setTypeValues(typeValues);
 		// 数据校验
 		fileTypeService.validFileType(fileType, true);
-		
+		LambdaQueryWrapper<FileType> eq = Wrappers.lambdaQuery(FileType.class)
+				.eq(FileType::getTypeName, fileType.getTypeName());
+		ThrowUtils.throwIf(fileTypeService.count(eq) > 0, ErrorCode.PARAMS_ERROR, "类型名称已存在");
 		// todo 填充默认值
 		Admin loginAdmin = adminService.getLoginAdmin(request);
 		fileType.setAdminId(loginAdmin.getId());
@@ -115,7 +119,6 @@ public class FileTypeController {
 		fileType.setTypeValues(typeValues);
 		// 数据校验
 		fileTypeService.validFileType(fileType, false);
-		
 		// 判断是否存在
 		long id = fileTypeUpdateRequest.getId();
 		FileType oldFileType = fileTypeService.getById(id);
