@@ -45,9 +45,19 @@ public class RegistrationFormEditRequest implements Serializable {
 	private Integer userGender;
 	
 	/**
-	 * 用户头像
+	 * 证件照
 	 */
 	private String userAvatar;
+	
+	/**
+	 * 生活照
+	 */
+	private String userLifePhoto;
+	
+	/**
+	 * 报名登记表文件
+	 */
+	private String registrationForm;
 	
 	/**
 	 * 民族

@@ -54,11 +54,6 @@ public class RegistrationForm implements Serializable {
 	private Integer userGender;
 	
 	/**
-	 * 用户头像
-	 */
-	private String userAvatar;
-	
-	/**
 	 * 民族
 	 */
 	private String ethnic;
@@ -77,6 +72,21 @@ public class RegistrationForm implements Serializable {
 	 * 婚姻状况(0-未婚，1-已婚)
 	 */
 	private Integer marryStatus;
+	
+	/**
+	 * 证件照
+	 */
+	private String userAvatar;
+	
+	/**
+	 * 生活照
+	 */
+	private String userLifePhoto;
+	
+	/**
+	 * 报名登记表文件
+	 */
+	private String registrationForm;
 	
 	/**
 	 * 紧急联系电话

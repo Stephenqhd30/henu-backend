@@ -40,24 +40,31 @@ public class RegistrationFormExcelVO implements Serializable {
 	private String userGender;
 	
 	/**
-	 * 用户生活照
+	 * 证件照
 	 */
 	@ColumnWidth(40)
 	@ExcelProperty("证件照")
 	private String userAvatar;
 	
 	/**
-	 * 用户证件照
+	 * 生活照
 	 */
 	@ColumnWidth(40)
-	@ExcelProperty("用户证件照")
-	private String userCertificate;
+	@ExcelProperty("生活照")
+	private String userLifePhoto;
+	
+	/**
+	 * 报名登记表文件
+	 */
+	@ColumnWidth(40)
+	@ExcelProperty("报名登记表文件")
+	private String registrationForm;
 	
 	/**
 	 * 民族
 	 */
 	@ColumnWidth(20)
-	@ExcelProperty("证件民族照")
+	@ExcelProperty("民族")
 	private String ethnic;
 	
 	/**

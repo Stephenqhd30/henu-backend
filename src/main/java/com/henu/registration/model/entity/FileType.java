@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -19,6 +20,7 @@ import lombok.Data;
 @TableName(value = "file_type")
 @Data
 public class FileType implements Serializable {
+	@Serial
 	private static final long serialVersionUID = -8643178839468158058L;
 	/**
 	 * id

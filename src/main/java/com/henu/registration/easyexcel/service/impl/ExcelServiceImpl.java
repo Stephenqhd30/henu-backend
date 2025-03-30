@@ -451,7 +451,6 @@ public class ExcelServiceImpl implements ExcelService {
 			User user = userService.getById(registrationForm.getUserId());
 			registrationFormExcelVO.setUserIdCard(userService.getDecryptIdCard(user.getUserIdCard()));
 			registrationFormExcelVO.setSubmitter(user.getUserName());
-			registrationFormExcelVO.setUserCertificate(user.getUserAvatar());
 			Job job = jobService.getById(registrationForm.getJobId());
 			registrationFormExcelVO.setJobName(job.getJobName());
 			return registrationFormExcelVO;
