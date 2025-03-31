@@ -2,6 +2,8 @@ package com.henu.registration.controller;
 
 import cn.dev33.satoken.annotation.SaCheckRole;
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.henu.registration.common.*;
 import com.henu.registration.common.exception.BusinessException;
@@ -10,11 +12,14 @@ import com.henu.registration.model.dto.schoolSchoolType.SchoolSchoolTypeAddReque
 import com.henu.registration.model.dto.schoolSchoolType.SchoolSchoolTypeQueryRequest;
 import com.henu.registration.model.dto.schoolSchoolType.SchoolSchoolTypeUpdateRequest;
 import com.henu.registration.model.entity.Admin;
+import com.henu.registration.model.entity.School;
 import com.henu.registration.model.entity.SchoolSchoolType;
 import com.henu.registration.model.vo.schoolSchoolType.SchoolSchoolTypeVO;
 import com.henu.registration.service.AdminService;
 import com.henu.registration.service.SchoolSchoolTypeService;
+import com.henu.registration.service.SchoolService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,6 +43,9 @@ public class SchoolSchoolTypeController {
 	@Resource
 	private AdminService adminService;
 	
+	@Resource
+	private SchoolService schoolService;
+	
 	// region 增删改查
 	
 	/**
@@ -60,6 +68,13 @@ public class SchoolSchoolTypeController {
 		BeanUtils.copyProperties(schoolSchoolTypeAddRequest, schoolSchoolType);
 		String schoolTypes = JSONUtil.toJsonStr(schoolSchoolTypeAddRequest.getSchoolTypes());
 		schoolSchoolType.setSchoolTypes(schoolTypes);
+		String schoolName = schoolSchoolTypeAddRequest.getSchoolName();
+		if (StringUtils.isNotBlank(schoolName)) {
+			LambdaQueryWrapper<School> eq = Wrappers.lambdaQuery(School.class).eq(School::getSchoolName, schoolName);
+			School school = schoolService.getOne(eq);
+			ThrowUtils.throwIf(school == null, ErrorCode.PARAMS_ERROR, "高校不存在");
+			schoolSchoolType.setSchoolId(school.getId());
+		}
 		// 数据校验
 		schoolSchoolTypeService.validSchoolSchoolType(schoolSchoolType, true);
 		// todo 填充默认值
@@ -82,6 +97,7 @@ public class SchoolSchoolTypeController {
 	 * @return {@link BaseResponse<Boolean>}
 	 */
 	@PostMapping("/delete")
+	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Boolean> deleteSchoolSchoolType(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
 		if (deleteRequest == null || deleteRequest.getId() <= 0) {
 			throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -91,10 +107,6 @@ public class SchoolSchoolTypeController {
 		// 判断是否存在
 		SchoolSchoolType oldSchoolSchoolType = schoolSchoolTypeService.getById(id);
 		ThrowUtils.throwIf(oldSchoolSchoolType == null, ErrorCode.NOT_FOUND_ERROR);
-		// 仅本人或管理员可删除
-		if (!oldSchoolSchoolType.getAdminId().equals(admin.getId()) && !adminService.isAdmin(request)) {
-			throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
-		}
 		// 操作数据库
 		boolean result = schoolSchoolTypeService.removeById(id);
 		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
@@ -118,6 +130,13 @@ public class SchoolSchoolTypeController {
 		BeanUtils.copyProperties(schoolSchoolTypeUpdateRequest, schoolSchoolType);
 		String schoolTypes = JSONUtil.toJsonStr(schoolSchoolTypeUpdateRequest.getSchoolTypes());
 		schoolSchoolType.setSchoolTypes(schoolTypes);
+		String schoolName = schoolSchoolTypeUpdateRequest.getSchoolName();
+		if (StringUtils.isNotBlank(schoolName)) {
+			LambdaQueryWrapper<School> eq = Wrappers.lambdaQuery(School.class).eq(School::getSchoolName, schoolName);
+			School school = schoolService.getOne(eq);
+			ThrowUtils.throwIf(school == null, ErrorCode.PARAMS_ERROR, "高校不存在");
+			schoolSchoolType.setSchoolId(school.getId());
+		}
 		// 数据校验
 		schoolSchoolTypeService.validSchoolSchoolType(schoolSchoolType, false);
 		

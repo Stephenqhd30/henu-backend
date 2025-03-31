@@ -4,6 +4,7 @@ import com.henu.registration.common.PageRequest;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
 
@@ -46,5 +47,6 @@ public class SchoolSchoolTypeQueryRequest extends PageRequest implements Seriali
      */
     private Long adminId;
 
+    @Serial
     private static final long serialVersionUID = 1L;
 }

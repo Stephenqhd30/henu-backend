@@ -2,6 +2,7 @@ package com.henu.registration.model.dto.schoolType;
 
 import lombok.Data;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
 
@@ -17,21 +18,13 @@ public class SchoolTypeUpdateRequest implements Serializable {
      * id
      */
     private Long id;
-
+    
     /**
-     * 标题
+     * 高校类别名称
      */
-    private String title;
-
-    /**
-     * 内容
-     */
-    private String content;
-
-    /**
-     * 标签列表
-     */
-    private List<String> tags;
-
+    private String typeName;
+    
+    
+    @Serial
     private static final long serialVersionUID = 1L;
 }

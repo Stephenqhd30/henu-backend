@@ -2,6 +2,7 @@ package com.henu.registration.model.dto.schoolType;
 
 import lombok.Data;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -18,5 +19,6 @@ public class SchoolTypeAddRequest implements Serializable {
 	private String typeName;
 	
 	
+	@Serial
 	private static final long serialVersionUID = 1L;
 }

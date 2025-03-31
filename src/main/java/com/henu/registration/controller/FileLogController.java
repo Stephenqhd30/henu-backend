@@ -17,6 +17,7 @@ import com.henu.registration.service.AdminService;
 import com.henu.registration.service.FileLogService;
 import com.henu.registration.service.FileTypeService;
 import com.henu.registration.service.UserService;
+import com.henu.registration.utils.encrypt.MD5Utils;
 import com.henu.registration.utils.oss.MinioUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.UUID;
 
 /**
  * 文件接口
@@ -65,10 +67,12 @@ public class FileLogController {
 		ThrowUtils.throwIf(fileType == null, ErrorCode.PARAMS_ERROR, "文件上传有误");
 		// 校验文件类型
 		fileLogService.validFile(multipartFile, fileType);
+		// 生成 UUID 作为文件夹名称
+		String uniqueDir = MD5Utils.encrypt(fileType.getTypeName());
 		// 获取当前登录用户信息
 		User loginUser = userService.getLoginUser(request);
 		// 文件目录：根据业务、用户来划分
-		String path = String.format("/%s/%s/%s", "henu", loginUser.getId(), fileType.getTypeName());
+		String path = String.format("/%s/%s", uniqueDir, loginUser.getId());
 		// 直接上传文件
 		String s = MinioUtils.uploadFile(multipartFile, path);
 		// 记录日志

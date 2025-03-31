@@ -74,6 +74,7 @@ public class SchoolTypeController {
 	 * @return {@link BaseResponse<Boolean>}
 	 */
 	@PostMapping("/delete")
+	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Boolean> deleteSchoolType(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
 		if (deleteRequest == null || deleteRequest.getId() <= 0) {
 			throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -83,10 +84,6 @@ public class SchoolTypeController {
 		// 判断是否存在
 		SchoolType oldSchoolType = schoolTypeService.getById(id);
 		ThrowUtils.throwIf(oldSchoolType == null, ErrorCode.NOT_FOUND_ERROR);
-		// 仅本人或管理员可删除
-		if (!oldSchoolType.getAdminId().equals(admin.getId()) && !adminService.isAdmin(request)) {
-			throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
-		}
 		// 操作数据库
 		boolean result = schoolTypeService.removeById(id);
 		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
@@ -110,7 +107,6 @@ public class SchoolTypeController {
 		BeanUtils.copyProperties(schoolTypeUpdateRequest, schoolType);
 		// 数据校验
 		schoolTypeService.validSchoolType(schoolType, false);
-		
 		// 判断是否存在
 		long id = schoolTypeUpdateRequest.getId();
 		SchoolType oldSchoolType = schoolTypeService.getById(id);
