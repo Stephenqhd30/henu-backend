@@ -1,5 +1,6 @@
 package com.henu.registration.rabbitmq.consumer.model;
 
+import com.henu.registration.model.entity.MessagePush;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

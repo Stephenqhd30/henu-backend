@@ -20,6 +20,7 @@ import com.henu.registration.service.MessageNoticeService;
 import com.henu.registration.service.MessagePushService;
 import com.henu.registration.service.RegistrationFormService;
 import com.henu.registration.service.UserService;
+import com.henu.registration.utils.rabbitmq.RabbitMqUtils;
 import com.henu.registration.utils.redisson.lock.LockUtils;
 import com.henu.registration.utils.sms.SMSUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +30,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * 消息推送接口
@@ -52,9 +54,6 @@ public class MessagePushController {
 	@Resource
 	private RegistrationFormService registrationFormService;
 	
-	@Resource
-	private SMSUtils smsUtils;
-	
 	// region 增删改查
 	
 	/**
@@ -69,27 +68,26 @@ public class MessagePushController {
 	@Transactional
 	public BaseResponse<Long> addMessagePush(@RequestBody MessagePushAddRequest messagePushAddRequest, HttpServletRequest request) {
 		ThrowUtils.throwIf(messagePushAddRequest == null, ErrorCode.PARAMS_ERROR);
-		// todo 在此处将实体类和 DTO 进行转换
+		
 		MessagePush messagePush = new MessagePush();
 		BeanUtils.copyProperties(messagePushAddRequest, messagePush);
-		// 数据校验
+		
 		messagePushService.validMessagePush(messagePush, true);
-		// 获取通知 id 作为分布式锁 Key，确保并发安全
+		
 		String lockKey = "message_push_" + messagePush.getMessageNoticeId();
 		return LockUtils.lockEvent(lockKey, () -> {
-			// 查询是否已有推送成功的记录，防止重复推送
 			LambdaQueryWrapper<MessagePush> eq = Wrappers.lambdaQuery(MessagePush.class)
 					.eq(MessagePush::getMessageNoticeId, messagePush.getMessageNoticeId())
 					.eq(MessagePush::getPushStatus, PushStatusEnum.SUCCEED.getValue())
+					.eq(MessagePush::getPushType, messagePushAddRequest.getPushType())
 					.eq(MessagePush::getUserId, messagePush.getUserId());
 			MessagePush oldMessagePush = messagePushService.getOne(eq);
 			ThrowUtils.throwIf(oldMessagePush != null, ErrorCode.PARAMS_ERROR, "该消息已经推送成功");
-			// 先保存 messagePush 记录
-			boolean saveResult = messagePushService.save(messagePush);
-			ThrowUtils.throwIf(!saveResult, ErrorCode.OPERATION_ERROR);
-			// 获取相关通知信息
+			
+			// 获取通知信息
 			MessageNotice messageNotice = messageNoticeService.getById(messagePush.getMessageNoticeId());
 			ThrowUtils.throwIf(messageNotice == null, ErrorCode.NOT_FOUND_ERROR, "面试通知不存在");
+			
 			// 获取报名信息
 			Long registrationId = messageNotice.getRegistrationId();
 			RegistrationForm registrationForm = registrationFormService.getById(registrationId);
@@ -98,31 +96,14 @@ public class MessagePushController {
 			Long userId = registrationForm.getUserId();
 			messagePush.setUserId(userId);
 			messagePush.setPushStatus(PushStatusEnum.NOT_PUSHED.getValue());
-			String params = smsUtils.getParams(messagePush);
-			messagePush.setPushMessage(params);
-			// 更新 messagePush 记录（事务内）
-			boolean updateResult = messagePushService.updateById(messagePush);
-			ThrowUtils.throwIf(!updateResult, ErrorCode.OPERATION_ERROR);
-			// 事务提交后再发送短信（避免事务回滚影响）
-			boolean sendSuccess = true;
-			try {
-				smsUtils.sendMessage(registrationForm.getUserPhone(), params);
-				messagePush.setPushStatus(PushStatusEnum.SUCCEED.getValue());
-			} catch (Exception e) {
-				sendSuccess = false;
-				String errorMessage = "短信发送失败：" + e.getMessage();
-				messagePush.setPushStatus(PushStatusEnum.FAILED.getValue());
-				messagePush.setErrorMessage(errorMessage);
-				messagePush.setRetryCount(1);
-			}
-			// 更新推送状态
-			boolean finalUpdateResult = messagePushService.updateById(messagePush);
-			ThrowUtils.throwIf(!finalUpdateResult, ErrorCode.OPERATION_ERROR);
-			// 同步修改面试通知的推送状态
-			messageNotice.setPushStatus(sendSuccess ? PushStatusEnum.SUCCEED.getValue() : PushStatusEnum.FAILED.getValue());
-			boolean noticeUpdateResult = messageNoticeService.updateById(messageNotice);
-			ThrowUtils.throwIf(!noticeUpdateResult, ErrorCode.OPERATION_ERROR);
-			// 返回新写入的消息推送 ID
+			// 保存 messagePush 记录
+			boolean saveResult = messagePushService.save(messagePush);
+			ThrowUtils.throwIf(!saveResult, ErrorCode.OPERATION_ERROR);
+			// 异步发送消息到 RabbitMQ，避免阻塞主线程
+			CompletableFuture.runAsync(() -> {
+				log.info("异步发送消息到 RabbitMQ: {}", messagePush);
+				RabbitMqUtils.defaultSendMsg(messagePush);
+			});
 			return ResultUtils.success(messagePush.getId());
 		}, () -> {
 			throw new BusinessException(ErrorCode.OPERATION_ERROR, "推送消息处理中，请稍后重试");

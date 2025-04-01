@@ -5,31 +5,27 @@ import com.aliyuncs.IAcsClient;
 import com.aliyuncs.dysmsapi.model.v20170525.SendSmsRequest;
 import com.aliyuncs.dysmsapi.model.v20170525.SendSmsResponse;
 import com.aliyuncs.exceptions.ClientException;
-import com.henu.registration.common.exception.BusinessException;
 import com.henu.registration.common.ErrorCode;
+import com.henu.registration.common.exception.BusinessException;
 import com.henu.registration.constants.SmsConstant;
 import com.henu.registration.manager.redis.RedisLimiterManager;
 import com.henu.registration.model.entity.MessageNotice;
 import com.henu.registration.model.entity.MessagePush;
 import com.henu.registration.model.entity.RegistrationForm;
-import com.henu.registration.model.entity.User;
 import com.henu.registration.service.MessageNoticeService;
 import com.henu.registration.service.RegistrationFormService;
-import com.henu.registration.service.UserService;
+import com.henu.registration.utils.redisson.cache.CacheUtils;
 import com.henu.registration.utils.redisson.rateLimit.model.TimeModel;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * 短信发送工具类
@@ -45,9 +41,6 @@ public class SMSUtils {
 	
 	@Resource
 	private RedisLimiterManager redisLimiterManager;
-	
-	@Resource
-	private RedisTemplate<String, String> redisTemplate;
 	
 	@Resource
 	private RegistrationFormService registrationFormService;
@@ -86,7 +79,7 @@ public class SMSUtils {
 			// 使用手机号作为 key
 			String redisKey = "verify_code:" + phoneNumbers;
 			// 存入 Redis，并设置过期时间为 5 分钟
-			redisTemplate.opsForValue().set(redisKey, verifyCode, 5, TimeUnit.MINUTES);
+			CacheUtils.putWithExpiration(redisKey, verifyCode, TimeUnit.MINUTES.toMinutes(5));
 			log.info("密码重置验证码已发送，手机号：{}", phoneNumbers);
 		} catch (ClientException e) {
 			log.error("验证码发送异常：{}", e.getMessage(), e);
@@ -103,7 +96,7 @@ public class SMSUtils {
 	public void verifyRecoveryCode(String phoneNumbers, String inputCode) {
 		// 从 Redis 获取存储的验证码
 		String redisKey = "verify_code:" + phoneNumbers;
-		String storedCode = redisTemplate.opsForValue().get(redisKey);
+		String storedCode = CacheUtils.get(redisKey);
 		
 		if (storedCode == null) {
 			// 如果 Redis 中没有存储该验证码，表示验证码已过期或从未发送
