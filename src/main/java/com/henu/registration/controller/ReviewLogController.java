@@ -1,25 +1,21 @@
 package com.henu.registration.controller;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import cn.dev33.satoken.annotation.SaCheckRole;
-import com.henu.registration.common.BaseResponse;
-import com.henu.registration.common.DeleteRequest;
-import com.henu.registration.common.ErrorCode;
-import com.henu.registration.common.ResultUtils;
-import com.henu.registration.constants.AdminConstant;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.henu.registration.common.*;
 import com.henu.registration.common.exception.BusinessException;
-import com.henu.registration.common.ThrowUtils;
+import com.henu.registration.constants.AdminConstant;
 import com.henu.registration.model.dto.reviewLog.ReviewLogAddRequest;
 import com.henu.registration.model.dto.reviewLog.ReviewLogQueryRequest;
 import com.henu.registration.model.dto.reviewLog.ReviewLogUpdateRequest;
+import com.henu.registration.model.entity.Admin;
 import com.henu.registration.model.entity.RegistrationForm;
 import com.henu.registration.model.entity.ReviewLog;
-import com.henu.registration.model.entity.Admin;
 import com.henu.registration.model.enums.ReviewStatusEnum;
 import com.henu.registration.model.vo.reviewLog.ReviewLogVO;
+import com.henu.registration.service.AdminService;
 import com.henu.registration.service.RegistrationFormService;
 import com.henu.registration.service.ReviewLogService;
-import com.henu.registration.service.AdminService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.transaction.annotation.Transactional;
@@ -69,7 +65,7 @@ public class ReviewLogController {
 		reviewLogService.validReviewLog(reviewLog, true);
 		// todo 填充默认值
 		Admin loginAdmin = adminService.getLoginAdmin(request);
-		reviewLog.setReviewerId(loginAdmin.getId());
+		reviewLog.setReviewer(loginAdmin.getAdminName());
 		reviewLog.setReviewTime(new Date());
 		// 写入数据库
 		boolean result = reviewLogService.save(reviewLog);
@@ -108,7 +104,7 @@ public class ReviewLogController {
 			// 创建审核记录
 			ReviewLog reviewLog = new ReviewLog();
 			reviewLog.setRegistrationId(registrationId);
-			reviewLog.setReviewerId(loginAdmin.getId());
+			reviewLog.setReviewer(loginAdmin.getAdminName());
 			reviewLog.setReviewStatus(reviewLogAddRequest.getReviewStatus());
 			reviewLog.setReviewComments(reviewLogAddRequest.getReviewComments());
 			reviewLog.setReviewTime(new Date());
@@ -140,32 +136,27 @@ public class ReviewLogController {
 	 * @return {@link BaseResponse<Boolean>}
 	 */
 	@PostMapping("/delete")
-	@Transactional
+	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Boolean> deleteReviewLog(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
 		if (deleteRequest == null || deleteRequest.getId() <= 0) {
 			throw new BusinessException(ErrorCode.PARAMS_ERROR);
 		}
-		Admin admin = adminService.getLoginAdmin(request);
 		long id = deleteRequest.getId();
 		// 判断是否存在
 		ReviewLog oldReviewLog = reviewLogService.getById(id);
 		ThrowUtils.throwIf(oldReviewLog == null, ErrorCode.NOT_FOUND_ERROR);
-		// 仅本人或管理员可删除
-		if (!oldReviewLog.getReviewerId().equals(admin.getId()) && !adminService.isAdmin(request)) {
-			throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
-		}
 		// 操作数据库
 		boolean result = reviewLogService.removeById(id);
 		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
 		// 同步修改登记表的审核状态信息
-		RegistrationForm registrationForm = new RegistrationForm();
-		registrationForm.setId(oldReviewLog.getRegistrationId());
-		registrationForm.setReviewer(null);
-		registrationForm.setReviewStatus(ReviewStatusEnum.REVIEWING.getValue());
-		registrationForm.setReviewTime(new Date());
-		registrationForm.setReviewComments("报名登记信息修改，需管理员重新审核");
-		boolean b = registrationFormService.updateById(registrationForm);
-		ThrowUtils.throwIf(!b, ErrorCode.OPERATION_ERROR);
+		Long registrationId = oldReviewLog.getRegistrationId();
+		boolean update = registrationFormService.lambdaUpdate()
+				.set(RegistrationForm::getReviewStatus, ReviewStatusEnum.REVIEWING.getValue())
+				.set(RegistrationForm::getReviewComments, "系统管理员删除了此条审核记录")
+				.set(RegistrationForm::getReviewTime, new Date())
+				.eq(RegistrationForm::getId, registrationId)
+				.update();
+		ThrowUtils.throwIf(!update, ErrorCode.OPERATION_ERROR);
 		return ResultUtils.success(true);
 	}
 	
@@ -193,21 +184,20 @@ public class ReviewLogController {
 		ThrowUtils.throwIf(oldReviewLog == null, ErrorCode.NOT_FOUND_ERROR);
 		// todo 填充默认值
 		Admin loginAdmin = adminService.getLoginAdmin(request);
-		reviewLog.setReviewerId(loginAdmin.getId());
+		reviewLog.setReviewer(loginAdmin.getAdminName());
 		reviewLog.setReviewTime(new Date());
 		// 操作数据库
 		boolean result = reviewLogService.updateById(reviewLog);
 		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
 		// 同步修改登记表的审核状态信息
-		RegistrationForm registrationForm = new RegistrationForm();
-		registrationForm.setId(reviewLog.getRegistrationId());
-		registrationForm.setReviewer(loginAdmin.getAdminName());
-		registrationForm.setReviewStatus(ReviewStatusEnum.REVIEWING.getValue());
-		registrationForm.setReviewTime(new Date());
-		registrationForm.setReviewComments("报名登记信息修改，需管理员重新审核");
-		boolean b = registrationFormService.updateById(registrationForm);
-		ThrowUtils.throwIf(!b, ErrorCode.OPERATION_ERROR);
-		
+		Long registrationId = oldReviewLog.getRegistrationId();
+		boolean update = registrationFormService.lambdaUpdate()
+				.set(RegistrationForm::getReviewStatus, reviewLog.getReviewStatus())
+				.set(RegistrationForm::getReviewComments, reviewLog.getReviewComments())
+				.set(RegistrationForm::getReviewTime, reviewLog.getReviewTime())
+				.eq(RegistrationForm::getId, registrationId)
+				.update();
+		ThrowUtils.throwIf(!update, ErrorCode.OPERATION_ERROR);
 		return ResultUtils.success(true);
 	}
 	
@@ -254,31 +244,6 @@ public class ReviewLogController {
 	@PostMapping("/list/page/vo")
 	public BaseResponse<Page<ReviewLogVO>> listReviewLogVOByPage(@RequestBody ReviewLogQueryRequest reviewLogQueryRequest,
 	                                                             HttpServletRequest request) {
-		long current = reviewLogQueryRequest.getCurrent();
-		long size = reviewLogQueryRequest.getPageSize();
-		// 限制爬虫
-		ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
-		// 查询数据库
-		Page<ReviewLog> reviewLogPage = reviewLogService.page(new Page<>(current, size),
-				reviewLogService.getQueryWrapper(reviewLogQueryRequest));
-		// 获取封装类
-		return ResultUtils.success(reviewLogService.getReviewLogVOPage(reviewLogPage, request));
-	}
-	
-	/**
-	 * 分页获取当前登录用户创建的审核记录列表
-	 *
-	 * @param reviewLogQueryRequest reviewLogQueryRequest
-	 * @param request               request
-	 * @return {@link BaseResponse<Page<ReviewLogVO>>}
-	 */
-	@PostMapping("/my/list/page/vo")
-	public BaseResponse<Page<ReviewLogVO>> listMyReviewLogVOByPage(@RequestBody ReviewLogQueryRequest reviewLogQueryRequest,
-	                                                               HttpServletRequest request) {
-		ThrowUtils.throwIf(reviewLogQueryRequest == null, ErrorCode.PARAMS_ERROR);
-		// 补充查询条件，只查询当前登录用户的数据
-		Admin loginAdmin = adminService.getLoginAdmin(request);
-		reviewLogQueryRequest.setReviewerId(loginAdmin.getId());
 		long current = reviewLogQueryRequest.getCurrent();
 		long size = reviewLogQueryRequest.getPageSize();
 		// 限制爬虫

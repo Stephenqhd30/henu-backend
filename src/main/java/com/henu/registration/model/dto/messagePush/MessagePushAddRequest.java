@@ -21,6 +21,11 @@ public class MessagePushAddRequest implements Serializable {
     private Long messageNoticeId;
     
     /**
+     * 通知用户名
+     */
+    private String userName;
+    
+    /**
      * 推送方式(websocket/email/sms/other)
      */
     private String pushType;

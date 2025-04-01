@@ -29,6 +29,11 @@ public class MessageNoticeQueryRequest extends PageRequest implements Serializab
 	private Long notId;
 	
 	/**
+	 * 通知用户名
+	 */
+	private String userName;
+	
+	/**
 	 * 面试时间
 	 */
 	private Date interviewTime;

@@ -7,7 +7,7 @@
     <resultMap id="BaseResultMap" type="com.henu.registration.model.entity.ReviewLog">
             <id property="id" column="id" />
             <result property="registrationId" column="registration_id" />
-            <result property="reviewerId" column="reviewer_id" />
+            <result property="reviewer" column="reviewer" />
             <result property="reviewStatus" column="review_status" />
             <result property="reviewComments" column="review_comments" />
             <result property="reviewTime" column="review_time" />

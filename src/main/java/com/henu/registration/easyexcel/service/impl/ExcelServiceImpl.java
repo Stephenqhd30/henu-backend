@@ -479,8 +479,6 @@ public class ExcelServiceImpl implements ExcelService {
 			ReviewLogExcelVO reviewLogExcelVO = new ReviewLogExcelVO();
 			BeanUtils.copyProperties(reviewLog, reviewLogExcelVO);
 			reviewLogExcelVO.setReviewStatus(Objects.requireNonNull(ReviewStatusEnum.getEnumByValue(reviewLog.getReviewStatus())).getText());
-			Admin admin = adminService.getById(reviewLog.getReviewerId());
-			reviewLogExcelVO.setReviewerName(admin.getAdminName());
 			return reviewLogExcelVO;
 		}, threadPoolExecutor)).toList();
 		// 等待所有 CompletableFuture 执行完毕，并收集结果

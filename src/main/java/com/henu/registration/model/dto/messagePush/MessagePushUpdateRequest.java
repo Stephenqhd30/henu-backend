@@ -21,16 +21,6 @@ public class MessagePushUpdateRequest implements Serializable {
     private Long id;
     
     /**
-     * 用户id
-     */
-    private Long userId;
-    
-    /**
-     * 消息通知id
-     */
-    private Long messageNoticeId;
-    
-    /**
      * 推送方式(websocket/email/sms/other)
      */
     private String pushType;

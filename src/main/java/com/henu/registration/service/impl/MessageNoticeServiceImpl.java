@@ -60,6 +60,7 @@ public class MessageNoticeServiceImpl extends ServiceImpl<MessageNoticeMapper, M
 		ThrowUtils.throwIf(messageNotice == null, ErrorCode.PARAMS_ERROR);
 		// todo 从对象中取值
 		Long registrationId = messageNotice.getRegistrationId();
+		String userName = messageNotice.getUserName();
 		Date interviewTime = messageNotice.getInterviewTime();
 		String interviewLocation = messageNotice.getInterviewLocation();
 		

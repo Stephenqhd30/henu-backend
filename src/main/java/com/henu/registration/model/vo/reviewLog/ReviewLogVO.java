@@ -36,9 +36,9 @@ public class ReviewLogVO implements Serializable {
     private Long registrationId;
     
     /**
-     * 审核人id
+     * 审核人
      */
-    private Long reviewerId;
+    private String reviewer;
     
     /**
      * 审核状态(0-待审核,1-审核通过,2-审核不通过)
@@ -64,11 +64,6 @@ public class ReviewLogVO implements Serializable {
      * 更新时间
      */
     private Date updateTime;
-
-    /**
-     * 审核人信息
-     */
-    private AdminVO adminVO;
     
     /**
      * 报名登记表信息

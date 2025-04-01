@@ -25,6 +25,11 @@ public class MessageNoticeVO implements Serializable {
 	private Long id;
 	
 	/**
+	 * 通知用户名
+	 */
+	private String userName;
+	
+	/**
 	 * 面试时间
 	 */
 	private Date interviewTime;

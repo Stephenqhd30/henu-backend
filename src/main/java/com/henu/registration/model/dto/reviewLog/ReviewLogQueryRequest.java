@@ -37,9 +37,9 @@ public class ReviewLogQueryRequest extends PageRequest implements Serializable {
     private Long registrationId;
     
     /**
-     * 审核人id
+     * 审核人
      */
-    private Long reviewerId;
+    private String reviewer;
     
     /**
      * 审核状态(0-待审核,1-审核通过,2-审核不通过)

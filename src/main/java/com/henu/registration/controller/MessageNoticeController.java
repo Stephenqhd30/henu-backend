@@ -10,10 +10,12 @@ import com.henu.registration.model.dto.messageNotice.MessageNoticeQueryRequest;
 import com.henu.registration.model.dto.messageNotice.MessageNoticeUpdateRequest;
 import com.henu.registration.model.entity.Admin;
 import com.henu.registration.model.entity.MessageNotice;
+import com.henu.registration.model.entity.RegistrationForm;
 import com.henu.registration.model.enums.PushStatusEnum;
 import com.henu.registration.model.vo.messageNotice.MessageNoticeVO;
 import com.henu.registration.service.AdminService;
 import com.henu.registration.service.MessageNoticeService;
+import com.henu.registration.service.RegistrationFormService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
@@ -37,6 +39,9 @@ public class MessageNoticeController {
 	@Resource
 	private AdminService adminService;
 	
+	@Resource
+	private RegistrationFormService registrationFormService;
+	
 	
 	// region 增删改查
 	
@@ -59,7 +64,11 @@ public class MessageNoticeController {
 		// todo 填充默认值
 		Admin loginAdmin = adminService.getLoginAdmin(request);
 		messageNotice.setAdminId(loginAdmin.getId());
+		Long registrationId = messageNoticeAddRequest.getRegistrationId();
+		RegistrationForm registrationForm = registrationFormService.getById(registrationId);
+		messageNotice.setUserName(registrationForm.getUserName());
 		messageNotice.setPushStatus(PushStatusEnum.NOT_PUSHED.getValue());
+		
 		// 写入数据库
 		boolean result = messageNoticeService.save(messageNotice);
 		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);

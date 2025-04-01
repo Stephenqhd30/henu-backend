@@ -96,6 +96,7 @@ public class MessagePushController {
 			Long userId = registrationForm.getUserId();
 			messagePush.setUserId(userId);
 			messagePush.setPushStatus(PushStatusEnum.NOT_PUSHED.getValue());
+			messagePush.setUserName(registrationForm.getUserName());
 			// 保存 messagePush 记录
 			boolean saveResult = messagePushService.save(messagePush);
 			ThrowUtils.throwIf(!saveResult, ErrorCode.OPERATION_ERROR);

@@ -16,6 +16,7 @@ import com.henu.registration.model.vo.user.UserVO;
 import com.henu.registration.service.AdminService;
 import com.henu.registration.service.UserService;
 import com.henu.registration.utils.encrypt.EncryptionUtils;
+import com.henu.registration.utils.redisson.lock.LockUtils;
 import com.henu.registration.utils.regex.RegexUtils;
 import com.henu.registration.utils.sms.SMSUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
 
 
 /**
@@ -340,11 +342,7 @@ public class UserController {
 		// 2. 生成验证码
 		String verificationCode = RandomUtil.randomNumbers(6);
 		// 3. 发送验证码到手机号
-		try {
-			smsUtils.sendRecoveryCode(userPhone, verificationCode);
-		} catch (Exception e) {
-			throw new BusinessException(ErrorCode.OPERATION_ERROR, "验证码发送失败");
-		}
+		smsUtils.sendRecoveryCode(userPhone, verificationCode);
 		return ResultUtils.success(true);
 	}
 	
@@ -378,21 +376,24 @@ public class UserController {
 	@PostMapping("/update/password")
 	public BaseResponse<Boolean> updatePassword(@RequestBody UserUpdatePasswordRequest userUpdatePasswordRequest) {
 		ThrowUtils.throwIf(userUpdatePasswordRequest == null, ErrorCode.PARAMS_ERROR);
-		// 对用户数据进行校验
-		String userPhone = userUpdatePasswordRequest.getUserPhone();
-		String userPassword = userUpdatePasswordRequest.getUserPassword();
-		String checkUserPassword = userUpdatePasswordRequest.getCheckUserPassword();
-		ThrowUtils.throwIf(!RegexUtils.checkPhone(userPhone), ErrorCode.PARAMS_ERROR, "手机号格式不正确");
-		if (!userPassword.equals(checkUserPassword)) {
-			return ResultUtils.error(ErrorCode.PARAMS_ERROR, "两次密码不一致");
-		}
-		LambdaQueryWrapper<User> eq = Wrappers.lambdaQuery(User.class).eq(User::getUserPhone, userPhone);
-		User user = userService.getOne(eq);
-		ThrowUtils.throwIf(user == null, ErrorCode.NOT_FOUND_ERROR, "该手机号未注册");
-		user.setUserPassword(userService.getEncryptPassword(userPassword));
-		boolean result = userService.updateById(user);
-		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
-		return ResultUtils.success(true);
+		return LockUtils.lockEvent(userUpdatePasswordRequest.getUserPhone().intern(), () -> {
+			// 对用户数据进行校验
+			String userPhone = userUpdatePasswordRequest.getUserPhone();
+			String userPassword = userUpdatePasswordRequest.getUserPassword();
+			String checkUserPassword = userUpdatePasswordRequest.getCheckUserPassword();
+			ThrowUtils.throwIf(!RegexUtils.checkPhone(userPhone), ErrorCode.PARAMS_ERROR, "手机号格式不正确");
+			if (!userPassword.equals(checkUserPassword)) {
+				return ResultUtils.error(ErrorCode.PARAMS_ERROR, "两次密码不一致");
+			}
+			LambdaQueryWrapper<User> eq = Wrappers.lambdaQuery(User.class).eq(User::getUserPhone, userPhone);
+			User user = userService.getOne(eq);
+			ThrowUtils.throwIf(user == null, ErrorCode.NOT_FOUND_ERROR, "该手机号未注册");
+			user.setUserPassword(userService.getEncryptPassword(userPassword));
+			boolean result = userService.updateById(user);
+			ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+			return ResultUtils.success(true);
+		}, () -> {
+			throw new BusinessException(ErrorCode.OPERATION_ERROR, "操作过于频繁");
+		});
 	}
-	
 }

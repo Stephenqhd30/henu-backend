@@ -31,7 +31,7 @@ public class ReviewLogExcelVO implements Serializable {
 	 */
 	@ColumnWidth(20)
 	@ExcelProperty("审核人")
-	private String reviewerName;
+	private String reviewer;
 	
 	/**
 	 * 审核状态(0-待审核,1-审核通过,2-审核不通过)
