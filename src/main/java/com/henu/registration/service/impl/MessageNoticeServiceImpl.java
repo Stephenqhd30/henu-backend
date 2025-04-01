@@ -99,6 +99,7 @@ public class MessageNoticeServiceImpl extends ServiceImpl<MessageNoticeMapper, M
 		Long adminId = messageNoticeQueryRequest.getAdminId();
 		Date interviewTime = messageNoticeQueryRequest.getInterviewTime();
 		String interviewLocation = messageNoticeQueryRequest.getInterviewLocation();
+		Integer pushStatus = messageNoticeQueryRequest.getPushStatus();
 		Long registrationId = messageNoticeQueryRequest.getRegistrationId();
 		String sortField = messageNoticeQueryRequest.getSortField();
 		String sortOrder = messageNoticeQueryRequest.getSortOrder();
@@ -109,9 +110,10 @@ public class MessageNoticeServiceImpl extends ServiceImpl<MessageNoticeMapper, M
 		// 范围查询
 		queryWrapper.between(ObjectUtils.isNotEmpty(interviewTime), "interview_time", interviewTime, interviewTime);
 		// 精确查询
-		queryWrapper.ne(ObjectUtils.isNotEmpty(notId), "id", notId);
+		queryWrapper.ne(ObjectUtils.isNotEmpty(notId), "push_status", notId);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(id), "id", id);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(adminId), "admin_id", adminId);
+		queryWrapper.eq(ObjectUtils.isNotEmpty(pushStatus), "push_status", pushStatus);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(registrationId), "registration_id", registrationId);
 		// 排序规则
 		queryWrapper.orderBy(SqlUtils.validSortField(sortField),

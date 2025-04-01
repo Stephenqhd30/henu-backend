@@ -3,6 +3,7 @@ package com.henu.registration.rabbitmq.consumer;
 import cn.hutool.json.JSONUtil;
 import com.henu.registration.common.ErrorCode;
 import com.henu.registration.common.ThrowUtils;
+import com.henu.registration.model.entity.MessageNotice;
 import com.henu.registration.model.entity.MessagePush;
 import com.henu.registration.model.entity.User;
 import com.henu.registration.model.enums.PushStatusEnum;
@@ -10,6 +11,7 @@ import com.henu.registration.rabbitmq.consumer.model.RabbitMessage;
 import com.henu.registration.rabbitmq.defaultMq.DefaultRabbitMq;
 import com.henu.registration.rabbitmq.defaultMq.DefaultRabbitMqWithDelay;
 import com.henu.registration.rabbitmq.defaultMq.DefaultRabbitMqWithDlx;
+import com.henu.registration.service.MessageNoticeService;
 import com.henu.registration.service.MessagePushService;
 import com.henu.registration.service.UserService;
 import com.henu.registration.utils.sms.SMSUtils;
@@ -42,6 +44,9 @@ public class RabbitMqConsumer {
 	
 	@Resource
 	private MessagePushService messagePushService;
+	
+	@Resource
+	private MessageNoticeService messageNoticeService;
 	
 	/**
 	 * 处理普通队列消息
@@ -135,6 +140,11 @@ public class RabbitMqConsumer {
 					.set(MessagePush::getPushMessage, params)
 					.set(MessagePush::getPushStatus, PushStatusEnum.SUCCEED.getValue())
 					.eq(MessagePush::getId, messagePush.getId())
+					.update();
+			// 同步更新消息通知表
+			messageNoticeService.lambdaUpdate()
+					.set(MessageNotice::getPushStatus, PushStatusEnum.SUCCEED.getValue())
+					.eq(MessageNotice::getId, messagePush.getMessageNoticeId())
 					.update();
 			// 确认消息处理成功
 			channel.basicAck(tag, false);
