@@ -67,10 +67,4 @@ public class OperationLog implements Serializable {
 	 * 操作时间
 	 */
 	private Date createTime;
-	
-	/**
-	 * 是否逻辑删除
-	 */
-	@TableLogic
-	private Integer isDelete;
 }

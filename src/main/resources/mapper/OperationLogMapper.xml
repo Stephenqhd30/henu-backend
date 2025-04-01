@@ -14,11 +14,10 @@
             <result property="responseTime" column="response_time" />
             <result property="userAgent" column="user_agent" />
             <result property="createTime" column="create_time" />
-            <result property="isDelete" column="is_delete" />
     </resultMap>
 
     <sql id="Base_Column_List">
         id,request_id,request_path,request_method,request_ip,request_params,
-        response_time,user_agent,create_time,is_delete
+        response_time,user_agent,create_time
     </sql>
 </mapper>

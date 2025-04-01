@@ -1,6 +1,9 @@
 package com.henu.registration.controller;
 
 import cn.dev33.satoken.annotation.SaCheckRole;
+import cn.hutool.core.util.ObjUtil;
+import cn.hutool.core.util.RandomUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.henu.registration.common.*;
 import com.henu.registration.common.exception.BusinessException;
@@ -13,12 +16,16 @@ import com.henu.registration.model.entity.School;
 import com.henu.registration.model.vo.school.SchoolVO;
 import com.henu.registration.service.AdminService;
 import com.henu.registration.service.SchoolService;
+import com.henu.registration.utils.caffeine.LocalCacheUtils;
+import com.henu.registration.utils.redisson.cache.CacheUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 高校信息接口
@@ -166,9 +173,42 @@ public class SchoolController {
 		long size = schoolQueryRequest.getPageSize();
 		// 限制爬虫
 		ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
-		// 查询数据库
+		// 使用多级缓存优化查询
+		// 构建缓存 key（基于查询条件的 MD5 哈希值）
+		String queryCondition = JSONUtil.toJsonStr(schoolQueryRequest);
+		String hashKey = DigestUtils.md5DigestAsHex(queryCondition.getBytes());
+		String cacheKey = "listSchoolVOByPage:" + hashKey;
+		// 1. 尝试从本地缓存中获取数据
+		String cachedValue = (String) LocalCacheUtils.get(cacheKey);
+		if (ObjUtil.isNotEmpty(cachedValue)) {
+			// 如果缓存命中，直接返回缓存中的分页结果
+			Page<SchoolVO> cachedPage = JSONUtil.toBean(cachedValue, Page.class);
+			return ResultUtils.success(cachedPage);
+		}
+		// 2. 如果本地缓存未命中，尝试从 Redis 缓存中获取数据
+		cachedValue = CacheUtils.get(cacheKey);
+		if (ObjUtil.isNotEmpty(cachedValue)) {
+			// 如果 Redis 缓存命中，将其存入本地缓存并返回
+			LocalCacheUtils.put(cacheKey, cachedValue);
+			Page<SchoolVO> cachedPage = JSONUtil.toBean(cachedValue, Page.class);
+			return ResultUtils.success(cachedPage);
+		}
+		// 3. 如果缓存都未命中，查询数据库
 		Page<School> schoolPage = schoolService.page(new Page<>(current, size),
 				schoolService.getQueryWrapper(schoolQueryRequest));
+		// 4. 将数据库查询结果转换为 VO 页面对象
+		Page<SchoolVO> schoolVOPage = schoolService.getSchoolVOPage(schoolPage, request);
+		String cacheValue = JSONUtil.toJsonStr(schoolVOPage);
+		// 5. 更新本地缓存和 Redis 缓存
+		try {
+			// 更新本地缓存
+			LocalCacheUtils.put(cacheKey, cacheValue);
+			// 更新 Redis 缓存, 并设置随机过期时间为 2~5 分钟
+			CacheUtils.put(cacheKey, cacheValue, TimeUnit.MINUTES.toMinutes(RandomUtil.randomLong(2, 5)));
+		} catch (Exception e) {
+			// 如果 Redis 缓存更新失败，记录日志以便排查问题
+			log.error("更新缓存失败, cacheKey: {}", cacheKey, e);
+		}
 		// 获取封装类
 		return ResultUtils.success(schoolService.getSchoolVOPage(schoolPage, request));
 	}
