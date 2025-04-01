@@ -89,7 +89,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 			ThrowUtils.throwIf(userPassword.length() < 8, ErrorCode.PARAMS_ERROR, "密码过短");
 		}
 		if (StringUtils.isNotBlank(userIdCard)) {
-			ThrowUtils.throwIf(!RegexUtils.checkIdCard(userIdCard), ErrorCode.PARAMS_ERROR, "身份证号输入有误");
+			ThrowUtils.throwIf(RegexUtils.checkIdCard(userIdCard), ErrorCode.PARAMS_ERROR, "身份证号输入有误");
 		}
 		if (StringUtils.isNotBlank(userEmail)) {
 			ThrowUtils.throwIf(!RegexUtils.checkEmail(userEmail), ErrorCode.PARAMS_ERROR, "邮箱输入有误");
@@ -157,7 +157,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 		return LockUtils.lockEvent(userAccount.intern(), () -> {
 			// 账户不能重复
 			LambdaQueryWrapper<User> eq = Wrappers.lambdaQuery(User.class)
-					.eq(User::getUserAccount, userAccount);
+					.eq(User::getUserAccount, userAccount)
+					.eq(User::getIsDelete, false);;
 			long count = this.count(eq);
 			if (count > 0) {
 				throw new BusinessException(ErrorCode.PARAMS_ERROR, "账号重复");

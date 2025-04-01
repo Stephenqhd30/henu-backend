@@ -82,7 +82,7 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		// 修改数据时，有参数则校验
 		// todo 补充校验规则
 		if (StringUtils.isNotBlank(userIdCard)) {
-			ThrowUtils.throwIf(!RegexUtils.checkIdCard(userIdCard), ErrorCode.PARAMS_ERROR, "身份证号输入有误");
+			ThrowUtils.throwIf(RegexUtils.checkIdCard(userIdCard), ErrorCode.PARAMS_ERROR, "身份证号输入有误");
 		}
 		if (StringUtils.isNotBlank(userEmail)) {
 			ThrowUtils.throwIf(!RegexUtils.checkEmail(userEmail), ErrorCode.PARAMS_ERROR, "邮箱输入有误");

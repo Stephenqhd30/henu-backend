@@ -10,6 +10,7 @@ import com.henu.registration.model.entity.Admin;
 import com.henu.registration.model.vo.admin.AdminVO;
 import com.henu.registration.model.vo.admin.LoginAdminVO;
 import com.henu.registration.service.AdminService;
+import com.henu.registration.utils.redisson.lock.LockUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -92,16 +93,20 @@ public class AdminController {
 		// todo 在此处将实体类和 DTO 进行转换
 		Admin admin = new Admin();
 		BeanUtils.copyProperties(adminAddRequest, admin);
-		// 数据校验
-		adminService.validAdmin(admin, true);
-		// 对密码进行加密
-		admin.setAdminPassword(adminService.getEncryptPassword(admin.getAdminPassword()));
 		// 写入数据库
-		boolean result = adminService.save(admin);
-		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
-		// 返回新写入的数据 id
-		long newAdminId = admin.getId();
-		return ResultUtils.success(newAdminId);
+		return LockUtils.lockEvent(adminAddRequest.getAdminNumber().intern(), () -> {
+			// 数据校验
+			adminService.validAdmin(admin, true);
+			// 对密码进行加密
+			admin.setAdminPassword(adminService.getEncryptPassword(admin.getAdminPassword()));
+			boolean result = adminService.save(admin);
+			ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+			// 返回新写入的数据 id
+			long newAdminId = admin.getId();
+			return ResultUtils.success(newAdminId);
+		}, () -> {
+			throw new BusinessException(ErrorCode.PARAMS_ERROR, "管理员编号已存在");
+		});
 	}
 	
 	/**

@@ -174,7 +174,8 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin>
 			ThrowUtils.throwIf(StringUtils.isBlank(adminName), ErrorCode.PARAMS_ERROR, "管理员名不能为空");
 			if (StringUtils.isNotBlank(adminNumber)) {
 				LambdaQueryWrapper<Admin> eq = Wrappers.lambdaQuery(Admin.class)
-						.eq(Admin::getAdminNumber, adminNumber);
+						.eq(Admin::getAdminNumber, adminNumber)
+						.eq(Admin::getIsDelete, false);
 				Admin one = this.getOne(eq);
 				ThrowUtils.throwIf(one != null, ErrorCode.PARAMS_ERROR, "管理员编号已存在");
 			}

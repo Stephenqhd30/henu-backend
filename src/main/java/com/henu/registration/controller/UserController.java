@@ -152,7 +152,7 @@ public class UserController {
 	@PostMapping("/delete")
 	public BaseResponse<Boolean> deleteUser(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
 		ThrowUtils.throwIf(deleteRequest == null || deleteRequest.getId() <= 0, ErrorCode.PARAMS_ERROR);
-		// 2. 获取当前登录用户和管理员
+		// 1. 获取当前登录用户和管理员
 		// 普通用户（可能为空）
 		User user = userService.getLoginUserPermitNull(request);
 		// 管理员（可能为空）
@@ -160,13 +160,8 @@ public class UserController {
 		long id = deleteRequest.getId();
 		User oldUser = userService.getById(id);
 		ThrowUtils.throwIf(oldUser == null, ErrorCode.NOT_FOUND_ERROR);
-		// 3. 权限校验
-		// 是否是自己
-		boolean isCurrentUser = (user != null && oldUser.getId().equals(user.getId()));
-		// 是否是系统管理员
-		boolean isAdmin = (loginAdmin != null && adminService.isAdmin(loginAdmin));
-		// 仅允许“自己”或“管理员”删除用户
-		if (!isCurrentUser && !isAdmin) {
+		// 2. 权限校验
+		if (!oldUser.getId().equals(user.getId()) && !adminService.isAdmin(loginAdmin)) {
 			throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
 		}
 		// 操作数据库
