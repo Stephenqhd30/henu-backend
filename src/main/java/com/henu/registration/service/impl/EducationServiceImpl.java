@@ -116,7 +116,6 @@ public class EducationServiceImpl extends ServiceImpl<EducationMapper, Education
 		String sortOrder = educationQueryRequest.getSortOrder();
 		
 		// todo 补充需要的查询条件
-		// 从多字段中搜索
 		// 模糊查询
 		queryWrapper.like(StringUtils.isNotBlank(major), "major", major);
 		queryWrapper.like(StringUtils.isNotBlank(certifier), "certifier", certifier);

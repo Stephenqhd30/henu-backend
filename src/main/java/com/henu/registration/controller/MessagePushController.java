@@ -9,7 +9,6 @@ import com.henu.registration.common.exception.BusinessException;
 import com.henu.registration.constants.AdminConstant;
 import com.henu.registration.model.dto.messagePush.MessagePushAddRequest;
 import com.henu.registration.model.dto.messagePush.MessagePushQueryRequest;
-import com.henu.registration.model.dto.messagePush.MessagePushUpdateRequest;
 import com.henu.registration.model.entity.MessageNotice;
 import com.henu.registration.model.entity.MessagePush;
 import com.henu.registration.model.entity.RegistrationForm;
@@ -22,7 +21,6 @@ import com.henu.registration.service.RegistrationFormService;
 import com.henu.registration.service.UserService;
 import com.henu.registration.utils.rabbitmq.RabbitMqUtils;
 import com.henu.registration.utils.redisson.lock.LockUtils;
-import com.henu.registration.utils.sms.SMSUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.transaction.annotation.Transactional;
@@ -130,43 +128,6 @@ public class MessagePushController {
 		ThrowUtils.throwIf(oldMessagePush == null, ErrorCode.NOT_FOUND_ERROR);
 		// 操作数据库
 		boolean result = messagePushService.removeById(id);
-		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
-		return ResultUtils.success(true);
-	}
-	
-	/**
-	 * 更新消息推送（仅管理员可用）
-	 *
-	 * @param messagePushUpdateRequest messagePushUpdateRequest
-	 * @return {@link BaseResponse<Boolean>}
-	 */
-	@PostMapping("/update")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
-	@Transactional
-	public BaseResponse<Boolean> updateMessagePush(@RequestBody MessagePushUpdateRequest messagePushUpdateRequest) {
-		if (messagePushUpdateRequest == null || messagePushUpdateRequest.getId() <= 0) {
-			throw new BusinessException(ErrorCode.PARAMS_ERROR);
-		}
-		// todo 在此处将实体类和 DTO 进行转换
-		MessagePush messagePush = new MessagePush();
-		BeanUtils.copyProperties(messagePushUpdateRequest, messagePush);
-		// 数据校验
-		messagePushService.validMessagePush(messagePush, false);
-		// 判断是否存在
-		long id = messagePushUpdateRequest.getId();
-		MessagePush oldMessagePush = messagePushService.getById(id);
-		ThrowUtils.throwIf(oldMessagePush == null, ErrorCode.NOT_FOUND_ERROR);
-		// 重置发送状态
-		messagePush.setPushStatus(PushStatusEnum.NOT_PUSHED.getValue());
-		messagePush.setRetryCount(0);
-		messagePush.setErrorMessage(null);
-		// 操作数据库
-		boolean result = messagePushService.updateById(messagePush);
-		// 同步修改面试通知表中的状态
-		MessageNotice messageNotice = messageNoticeService.getById(messagePush.getMessageNoticeId());
-		messageNotice.setPushStatus(PushStatusEnum.FAILED.getValue());
-		boolean b = messageNoticeService.updateById(messageNotice);
-		ThrowUtils.throwIf(!b, ErrorCode.OPERATION_ERROR);
 		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
 		return ResultUtils.success(true);
 	}

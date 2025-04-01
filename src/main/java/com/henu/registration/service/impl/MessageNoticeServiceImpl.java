@@ -108,8 +108,7 @@ public class MessageNoticeServiceImpl extends ServiceImpl<MessageNoticeMapper, M
 		// todo 补充需要的查询条件
 		// 模糊查询
 		queryWrapper.like(StringUtils.isNotBlank(interviewLocation), "interview_location", interviewLocation);
-		// 范围查询
-		queryWrapper.between(ObjectUtils.isNotEmpty(interviewTime), "interview_time", interviewTime, interviewTime);
+		queryWrapper.like(ObjectUtils.isNotEmpty(interviewTime), "interview_time", interviewTime);
 		// 精确查询
 		queryWrapper.ne(ObjectUtils.isNotEmpty(notId), "push_status", notId);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(id), "id", id);
