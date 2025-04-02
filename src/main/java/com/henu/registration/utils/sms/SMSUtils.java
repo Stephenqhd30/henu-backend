@@ -14,6 +14,7 @@ import com.henu.registration.model.entity.MessagePush;
 import com.henu.registration.model.entity.RegistrationForm;
 import com.henu.registration.service.MessageNoticeService;
 import com.henu.registration.service.RegistrationFormService;
+import com.henu.registration.utils.redisson.KeyPrefixConstants;
 import com.henu.registration.utils.redisson.cache.CacheUtils;
 import com.henu.registration.utils.redisson.rateLimit.model.TimeModel;
 import lombok.extern.slf4j.Slf4j;
@@ -67,7 +68,7 @@ public class SMSUtils {
 		request.setTemplateCode(SmsConstant.PASSWORD);
 		request.setSignName(SmsConstant.SIGN_NAME);
 		request.setTemplateParam("{\"code\":\"" + verifyCode + "\"}");
-		redisLimiterManager.doRateLimit(phoneNumbers, new TimeModel(1L, TimeUnit.MINUTES), 2L, 1L);
+		// redisLimiterManager.doRateLimit(phoneNumbers, new TimeModel(1L, TimeUnit.MINUTES), 2L, 1L);
 		try {
 			// 调用短信服务发送验证码
 			SendSmsResponse response = smsClient.getAcsResponse(request);
@@ -77,9 +78,9 @@ public class SMSUtils {
 			}
 			// 将验证码存入 Redis，设置过期时间为 5 分钟
 			// 使用手机号作为 key
-			String redisKey = "verify_code:" + phoneNumbers;
+			String redisKey = KeyPrefixConstants.CAPTCHA_PREFIX + phoneNumbers;
 			// 存入 Redis，并设置过期时间为 5 分钟
-			CacheUtils.putWithExpiration(redisKey, verifyCode, TimeUnit.MINUTES.toMinutes(5));
+			CacheUtils.putString(redisKey, verifyCode);
 			log.info("密码重置验证码已发送，手机号：{}", phoneNumbers);
 		} catch (ClientException e) {
 			log.error("验证码发送异常：{}", e.getMessage(), e);
@@ -95,8 +96,8 @@ public class SMSUtils {
 	 */
 	public void verifyRecoveryCode(String phoneNumbers, String inputCode) {
 		// 从 Redis 获取存储的验证码
-		String redisKey = "verify_code:" + phoneNumbers;
-		String storedCode = CacheUtils.get(redisKey);
+		String redisKey = KeyPrefixConstants.CAPTCHA_PREFIX + phoneNumbers;
+		String storedCode = CacheUtils.getString(redisKey);
 		
 		if (storedCode == null) {
 			// 如果 Redis 中没有存储该验证码，表示验证码已过期或从未发送
@@ -111,26 +112,6 @@ public class SMSUtils {
 		}
 		// 如果验证码正确，可以进行后续操作
 		log.info("验证码正确，手机号：{}", phoneNumbers);
-	}
-	
-	/**
-	 * 发送面试通知短信（失败自动重试）
-	 * @param phoneNumber 目标手机号
-	 * @param params 短信参数（JSON格式）
-	 */
-	public void sendWithRetry(String phoneNumber, String params) {
-		int retryCount = 0;
-		while (retryCount < MAX_RETRY_COUNT) {
-			try {
-				sendMessage(phoneNumber, params);
-				log.info("面试通知短信发送成功 -> 手机号：{}，内容：{}", phoneNumber, params);
-				return;
-			} catch (BusinessException e) {
-				log.error("短信发送失败（不可重试） -> 手机号：{}，错误信息：{}", phoneNumber, e.getMessage());
-				return;
-			}
-		}
-		log.error("面试通知短信最终发送失败 -> 手机号：{}，已达最大重试次数", phoneNumber);
 	}
 	
 	/**
