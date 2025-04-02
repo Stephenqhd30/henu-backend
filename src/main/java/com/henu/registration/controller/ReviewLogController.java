@@ -3,15 +3,12 @@ package com.henu.registration.controller;
 import cn.dev33.satoken.annotation.SaCheckRole;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.henu.registration.common.*;
-import com.henu.registration.common.exception.BusinessException;
 import com.henu.registration.constants.AdminConstant;
 import com.henu.registration.model.dto.reviewLog.ReviewLogAddRequest;
 import com.henu.registration.model.dto.reviewLog.ReviewLogQueryRequest;
-import com.henu.registration.model.dto.reviewLog.ReviewLogUpdateRequest;
 import com.henu.registration.model.entity.Admin;
 import com.henu.registration.model.entity.RegistrationForm;
 import com.henu.registration.model.entity.ReviewLog;
-import com.henu.registration.model.enums.ReviewStatusEnum;
 import com.henu.registration.model.vo.reviewLog.ReviewLogVO;
 import com.henu.registration.service.AdminService;
 import com.henu.registration.service.RegistrationFormService;
@@ -127,79 +124,7 @@ public class ReviewLogController {
 		// 返回批量审核完成的成功消息
 		return ResultUtils.success("批量审核完成");
 	}
-	
-	/**
-	 * 删除审核记录
-	 *
-	 * @param deleteRequest deleteRequest
-	 * @param request       request
-	 * @return {@link BaseResponse<Boolean>}
-	 */
-	@PostMapping("/delete")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
-	public BaseResponse<Boolean> deleteReviewLog(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
-		if (deleteRequest == null || deleteRequest.getId() <= 0) {
-			throw new BusinessException(ErrorCode.PARAMS_ERROR);
-		}
-		long id = deleteRequest.getId();
-		// 判断是否存在
-		ReviewLog oldReviewLog = reviewLogService.getById(id);
-		ThrowUtils.throwIf(oldReviewLog == null, ErrorCode.NOT_FOUND_ERROR);
-		// 操作数据库
-		boolean result = reviewLogService.removeById(id);
-		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
-		// 同步修改登记表的审核状态信息
-		Long registrationId = oldReviewLog.getRegistrationId();
-		boolean update = registrationFormService.lambdaUpdate()
-				.set(RegistrationForm::getReviewStatus, ReviewStatusEnum.REVIEWING.getValue())
-				.set(RegistrationForm::getReviewComments, "系统管理员删除了此条审核记录")
-				.set(RegistrationForm::getReviewTime, new Date())
-				.eq(RegistrationForm::getId, registrationId)
-				.update();
-		ThrowUtils.throwIf(!update, ErrorCode.OPERATION_ERROR);
-		return ResultUtils.success(true);
-	}
-	
-	/**
-	 * 更新审核记录（仅管理员可用）
-	 *
-	 * @param reviewLogUpdateRequest reviewLogUpdateRequest
-	 * @return {@link BaseResponse<Boolean>}
-	 */
-	@PostMapping("/update")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
-	@Transactional
-	public BaseResponse<Boolean> updateReviewLog(@RequestBody ReviewLogUpdateRequest reviewLogUpdateRequest, HttpServletRequest request) {
-		if (reviewLogUpdateRequest == null || reviewLogUpdateRequest.getId() <= 0) {
-			throw new BusinessException(ErrorCode.PARAMS_ERROR);
-		}
-		// todo 在此处将实体类和 DTO 进行转换
-		ReviewLog reviewLog = new ReviewLog();
-		BeanUtils.copyProperties(reviewLogUpdateRequest, reviewLog);
-		// 数据校验
-		reviewLogService.validReviewLog(reviewLog, false);
-		// 判断是否存在
-		long id = reviewLogUpdateRequest.getId();
-		ReviewLog oldReviewLog = reviewLogService.getById(id);
-		ThrowUtils.throwIf(oldReviewLog == null, ErrorCode.NOT_FOUND_ERROR);
-		// todo 填充默认值
-		Admin loginAdmin = adminService.getLoginAdmin(request);
-		reviewLog.setReviewer(loginAdmin.getAdminName());
-		reviewLog.setReviewTime(new Date());
-		// 操作数据库
-		boolean result = reviewLogService.updateById(reviewLog);
-		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
-		// 同步修改登记表的审核状态信息
-		Long registrationId = oldReviewLog.getRegistrationId();
-		boolean update = registrationFormService.lambdaUpdate()
-				.set(RegistrationForm::getReviewStatus, reviewLog.getReviewStatus())
-				.set(RegistrationForm::getReviewComments, reviewLog.getReviewComments())
-				.set(RegistrationForm::getReviewTime, reviewLog.getReviewTime())
-				.eq(RegistrationForm::getId, registrationId)
-				.update();
-		ThrowUtils.throwIf(!update, ErrorCode.OPERATION_ERROR);
-		return ResultUtils.success(true);
-	}
+
 	
 	/**
 	 * 根据 id 获取审核记录（封装类）
