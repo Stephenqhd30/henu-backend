@@ -7,6 +7,11 @@ spring:
   config:
     activate:
       on-profile: prod
+  # 缓存
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=500,expireAfterAccess=600s
   # 支持 swagger3
   mvc:
     pathmatch:
@@ -81,6 +86,19 @@ mybatis-plus:
       logic-delete-field: isDelete # 全局逻辑删除的实体字段名
       logic-delete-value: 1 # 逻辑已删除值（默认为 1）
       logic-not-delete-value: 0 # 逻辑未删除值（默认为 0）
+
+#  Caffeine配置
+caffeine:
+  # todo 是否开启（预先关闭）
+  enable: true
+  # 最后一次写入或访问后经过固定时间过期，单位：秒
+  expired: 1000
+  # 缓存初始容量
+  initCapacity: 256
+  # 缓存最大容量，超过之后会按照最近最少策略进行缓存剔除
+  maxCapacity: 1000
+  # 是否允许空值null作为缓存的value
+  allowNullValue: true
 
 # Redisson 配置
 redisson:
