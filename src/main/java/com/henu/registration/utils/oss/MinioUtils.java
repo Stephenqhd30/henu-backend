@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Stack;
 
 /**
  * MinIO工具类
@@ -35,6 +36,15 @@ public class MinioUtils {
 		} catch (IOException e) {
 			throw new BusinessException(ErrorCode.SYSTEM_ERROR, "文件上传失败");
 		}
+	}
+	
+	/**
+	 * 删除文件
+	 *
+	 * @param url url
+	 */
+	public static void deleteInMinioByUrl(String url) {
+		MINIO_MANAGER.deleteInMinioByUrl(url);
 	}
 	
 }

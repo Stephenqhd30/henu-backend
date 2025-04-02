@@ -25,7 +25,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.UUID;
 
 /**
  * 文件接口
@@ -73,18 +72,30 @@ public class FileLogController {
 		User loginUser = userService.getLoginUser(request);
 		// 文件目录：根据业务、用户来划分
 		String path = String.format("/%s/%s", uniqueDir, loginUser.getId());
-		// 直接上传文件
-		String s = MinioUtils.uploadFile(multipartFile, path);
-		// 记录日志
-		FileLog fileLog = new FileLog();
-		fileLog.setFileTypeId(fileType.getId());
-		fileLog.setFileName(fileType.getTypeName());
-		fileLog.setFilePath(path);
-		fileLog.setUserId(loginUser.getId());
-		boolean save = fileLogService.save(fileLog);
-		ThrowUtils.throwIf(!save, ErrorCode.OPERATION_ERROR);
+		LambdaQueryWrapper<FileLog> fileLogLambdaQueryWrapper = Wrappers.lambdaQuery(FileLog.class)
+				.eq(FileLog::getUserId, loginUser.getId())
+				.eq(FileLog::getFileTypeId, fileType.getId());
+		FileLog oldFileLog = fileLogService.getById(fileLogLambdaQueryWrapper);
+		// 如果改文件已经存在则替换该文件
+		String fileUrl = MinioUtils.uploadFile(multipartFile, path);
+		if (oldFileLog != null) {
+			// 更新数据库中的文件记录
+			oldFileLog.setFilePath(fileUrl);
+			oldFileLog.setFileName(multipartFile.getOriginalFilename());
+			boolean update = fileLogService.updateById(oldFileLog);
+			ThrowUtils.throwIf(!update, ErrorCode.OPERATION_ERROR, "文件更新失败");
+		} else {
+			// 如果文件不存在，则直接插入新记录
+			FileLog fileLog = new FileLog();
+			fileLog.setFileTypeId(fileType.getId());
+			fileLog.setFileName(multipartFile.getOriginalFilename());
+			fileLog.setFilePath(fileUrl);
+			fileLog.setUserId(loginUser.getId());
+			boolean save = fileLogService.save(fileLog);
+			ThrowUtils.throwIf(!save, ErrorCode.OPERATION_ERROR, "文件保存失败");
+		}
 		// 返回可访问地址
-		return ResultUtils.success(s);
+		return ResultUtils.success(fileUrl);
 		
 	}
 	

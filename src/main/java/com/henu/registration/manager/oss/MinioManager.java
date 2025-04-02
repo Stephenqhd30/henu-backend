@@ -85,7 +85,7 @@ public class MinioManager {
 	 *
 	 * @param url 文件URL
 	 */
-	private void deleteInMinioByUrl(String url) {
+	public void deleteInMinioByUrl(String url) {
 		ThrowUtils.throwIf(StringUtils.isEmpty(url), ErrorCode.NOT_FOUND_ERROR, "被删除地址为空");
 		String[] split = url.split(minioProperties.getEndpoint() + "/" + minioProperties.getBucket() + "/");
 		ThrowUtils.throwIf(split.length != 2, ErrorCode.NOT_FOUND_ERROR, "文件不存在");

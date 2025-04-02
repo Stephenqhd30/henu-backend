@@ -20,6 +20,7 @@ import com.henu.registration.service.MessagePushService;
 import com.henu.registration.service.RegistrationFormService;
 import com.henu.registration.service.UserService;
 import com.henu.registration.utils.rabbitmq.RabbitMqUtils;
+import com.henu.registration.utils.redisson.KeyPrefixConstants;
 import com.henu.registration.utils.redisson.lock.LockUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -72,7 +73,7 @@ public class MessagePushController {
 		
 		messagePushService.validMessagePush(messagePush, true);
 		
-		String lockKey = "message_push_" + messagePush.getMessageNoticeId();
+		String lockKey = KeyPrefixConstants.RATE_LIMIT_ANNOTATION_PREFIX + messagePush.getMessageNoticeId();
 		return LockUtils.lockEvent(lockKey, () -> {
 			LambdaQueryWrapper<MessagePush> eq = Wrappers.lambdaQuery(MessagePush.class)
 					.eq(MessagePush::getMessageNoticeId, messagePush.getMessageNoticeId())

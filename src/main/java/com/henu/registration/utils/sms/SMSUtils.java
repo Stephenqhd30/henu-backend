@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+
 /**
  * 短信发送工具类
  *
@@ -68,7 +69,7 @@ public class SMSUtils {
 		request.setTemplateCode(SmsConstant.PASSWORD);
 		request.setSignName(SmsConstant.SIGN_NAME);
 		request.setTemplateParam("{\"code\":\"" + verifyCode + "\"}");
-		// redisLimiterManager.doRateLimit(phoneNumbers, new TimeModel(1L, TimeUnit.MINUTES), 2L, 1L);
+		redisLimiterManager.doRateLimit(phoneNumbers, new TimeModel(1L, TimeUnit.MINUTES), 2L, 1L);
 		try {
 			// 调用短信服务发送验证码
 			SendSmsResponse response = smsClient.getAcsResponse(request);
