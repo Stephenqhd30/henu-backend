@@ -1,24 +1,26 @@
 package com.henu.registration.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.henu.registration.common.ErrorCode;
-import com.henu.registration.constants.CommonConstant;
 import com.henu.registration.common.ThrowUtils;
-import com.henu.registration.mapper.RegistrationFormMapper;
 import com.henu.registration.common.exception.BusinessException;
+import com.henu.registration.constants.CommonConstant;
+import com.henu.registration.mapper.RegistrationFormMapper;
 import com.henu.registration.model.dto.registrationForm.RegistrationFormQueryRequest;
+import com.henu.registration.model.entity.Education;
+import com.henu.registration.model.entity.Family;
 import com.henu.registration.model.entity.Job;
 import com.henu.registration.model.entity.RegistrationForm;
-import com.henu.registration.model.entity.User;
+import com.henu.registration.model.vo.education.EducationVO;
+import com.henu.registration.model.vo.family.FamilyVO;
 import com.henu.registration.model.vo.job.JobVO;
 import com.henu.registration.model.vo.registrationForm.RegistrationFormVO;
-import com.henu.registration.model.vo.user.UserVO;
-import com.henu.registration.service.JobService;
-import com.henu.registration.service.RegistrationFormService;
-import com.henu.registration.service.UserService;
+import com.henu.registration.service.*;
 import com.henu.registration.utils.regex.RegexUtils;
 import com.henu.registration.utils.sql.SqlUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -50,6 +52,12 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 	
 	@Resource
 	private JobService jobService;
+	
+	@Resource
+	private EducationService educationService;
+	
+	@Resource
+	private FamilyService familyService;
 	
 	/**
 	 * 校验数据
@@ -193,14 +201,19 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		}
 		JobVO jobVO = jobService.getJobVO(job, request);
 		registrationFormVO.setJobVO(jobVO);
-		// 2. 关联报名用户信息
+		// 2. 关联报名用户教育经历信息
 		Long userId = registrationForm.getUserId();
-		User user = null;
-		if (userId != null && userId > 0) {
-			user = userService.getById(jobId);
-		}
-		UserVO userVO = userService.getUserVO(user, request);
-		registrationFormVO.setUserVO(userVO);
+		LambdaQueryWrapper<Education> educationLambdaQueryWrapper = Wrappers.lambdaQuery(Education.class)
+				.eq(Education::getUserId, userId);
+		List<Education> educationList = educationService.list(educationLambdaQueryWrapper);
+		List<EducationVO> educationVOList = educationList.stream().map(EducationVO::objToVo).toList();
+		registrationFormVO.setEducationVOList(educationVOList);
+		// 3. 关系报名用户家庭关系信息
+		LambdaQueryWrapper<Family> familyLambdaQueryWrapper = Wrappers.lambdaQuery(Family.class)
+				.eq(Family::getUserId, userId);
+		List<Family> familyList = familyService.list(familyLambdaQueryWrapper);
+		List<FamilyVO> familyVOList = familyList.stream().map(FamilyVO::objToVo).toList();
+		registrationFormVO.setFamilyVOList(familyVOList);
 		// endregion
 		return registrationFormVO;
 	}
@@ -225,50 +238,33 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 				.collect(Collectors.toList());
 		// todo 可以根据需要为封装对象补充值，不需要的内容可以删除
 		// region 可选
-		// 1. 关联查询岗位信息
 		Set<Long> jobIdSet = registrationFormList.stream().map(RegistrationForm::getJobId).collect(Collectors.toSet());
-		// 填充信息
-		if (CollUtil.isNotEmpty(jobIdSet)) {
-			CompletableFuture<Map<Long, List<Job>>> mapCompletableFuture = CompletableFuture.supplyAsync(() -> jobService.listByIds(jobIdSet).stream()
-					.collect(Collectors.groupingBy(Job::getId)));
-			try {
-				Map<Long, List<Job>> jobIdUserListMap = mapCompletableFuture.get();
-				// 填充信息
-				registrationFormVOList.forEach(registrationFormVO -> {
-					Long jobId = registrationFormVO.getJobId();
-					Job job = null;
-					if (jobIdUserListMap.containsKey(jobId)) {
-						job = jobIdUserListMap.get(jobId).get(0);
-					}
-					registrationFormVO.setJobVO(jobService.getJobVO(job, request));
-				});
-			} catch (InterruptedException | ExecutionException e) {
-				Thread.currentThread().interrupt();
-				throw new BusinessException(ErrorCode.SYSTEM_ERROR, "获取信息失败" + e.getMessage());
-			}
-		}
-		// 2. 关联用户信息
 		Set<Long> userIdSet = registrationFormList.stream().map(RegistrationForm::getUserId).collect(Collectors.toSet());
-		// 填充信息
-		if (CollUtil.isNotEmpty(userIdSet)) {
-			CompletableFuture<Map<Long, List<User>>> mapCompletableFuture = CompletableFuture.supplyAsync(() -> userService.listByIds(userIdSet).stream()
-					.collect(Collectors.groupingBy(User::getId)));
-			try {
-				Map<Long, List<User>> userIdUserListMap = mapCompletableFuture.get();
-				// 填充信息
-				registrationFormVOList.forEach(registrationFormVO -> {
-					Long userId = registrationFormVO.getUserId();
-					User user = null;
-					if (userIdUserListMap.containsKey(userId)) {
-						user = userIdUserListMap.get(userId).get(0);
-					}
-					registrationFormVO.setUserVO(userService.getUserVO(user, request));
-				});
-			} catch (InterruptedException | ExecutionException e) {
-				Thread.currentThread().interrupt();
-				throw new BusinessException(ErrorCode.SYSTEM_ERROR, "获取信息失败" + e.getMessage());
-			}
-		}
+		// 并行查询 job、education、family
+		CompletableFuture<Map<Long, List<Job>>> jobFuture = CompletableFuture.supplyAsync(() ->
+				jobService.list(new LambdaQueryWrapper<Job>().in(Job::getId, jobIdSet))
+						.stream().collect(Collectors.groupingBy(Job::getId))
+		);
+		CompletableFuture<Map<Long, List<Education>>> educationFuture = CompletableFuture.supplyAsync(() ->
+				educationService.list(new LambdaQueryWrapper<Education>().in(Education::getUserId, userIdSet))
+						.stream().collect(Collectors.groupingBy(Education::getUserId))
+		);
+		CompletableFuture<Map<Long, List<Family>>> familyFuture = CompletableFuture.supplyAsync(() ->
+				familyService.list(new LambdaQueryWrapper<Family>().in(Family::getUserId, userIdSet))
+						.stream().collect(Collectors.groupingBy(Family::getUserId))
+		);
+		// 等待所有任务完成
+		CompletableFuture.allOf(jobFuture, educationFuture, familyFuture).join();
+		// 获取结果
+		Map<Long, List<Job>> jobIdUserListMap = jobFuture.join();
+		Map<Long, List<Education>> userIdEducationListMap = educationFuture.join();
+		Map<Long, List<Family>> userIdFamilyListMap = familyFuture.join();
+		// 填充数据
+		registrationFormVOList.forEach(registrationFormVO -> {
+			registrationFormVO.setJobVO(jobService.getJobVO(jobIdUserListMap.getOrDefault(registrationFormVO.getJobId(), List.of()).stream().findFirst().orElse(null), request));
+			registrationFormVO.setEducationVOList(Optional.ofNullable(userIdEducationListMap.get(registrationFormVO.getUserId())).orElse(Collections.emptyList()).stream().map(education -> educationService.getEducationVO(education, request)).toList());
+			registrationFormVO.setFamilyVOList(Optional.ofNullable(userIdFamilyListMap.get(registrationFormVO.getUserId())).orElse(Collections.emptyList()).stream().map(family -> familyService.getFamilyVO(family, request)).toList());
+		});
 		// endregion
 		registrationFormVOPage.setRecords(registrationFormVOList);
 		return registrationFormVOPage;

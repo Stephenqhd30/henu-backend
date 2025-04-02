@@ -1,6 +1,8 @@
 package com.henu.registration.controller;
 
 import cn.dev33.satoken.annotation.SaCheckRole;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.henu.registration.common.*;
 import com.henu.registration.common.exception.BusinessException;
@@ -61,8 +63,15 @@ public class EducationController {
 		// todo 填充默认值
 		User loginUser = userService.getLoginUser(request);
 		education.setUserId(loginUser.getId());
+		LambdaQueryWrapper<Education> eq = Wrappers.lambdaQuery(Education.class)
+				.eq(Education::getUserId, loginUser.getId())
+				.eq(Education::getEducationalStage, education.getEducationalStage());
+		Education oldEducation = educationService.getOne(eq);
+		if (oldEducation != null) {
+			education.setId(oldEducation.getId());
+		}
 		// 写入数据库
-		boolean result = educationService.save(education);
+		boolean result = educationService.saveOrUpdate(education);
 		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
 		// 返回新写入的数据 id
 		long newEducationId = education.getId();

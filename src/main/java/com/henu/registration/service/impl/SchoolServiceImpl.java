@@ -1,25 +1,37 @@
 package com.henu.registration.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.henu.registration.common.ErrorCode;
 import com.henu.registration.common.ThrowUtils;
+import com.henu.registration.common.exception.BusinessException;
 import com.henu.registration.constants.CommonConstant;
 import com.henu.registration.mapper.SchoolMapper;
 import com.henu.registration.model.dto.school.SchoolQueryRequest;
 import com.henu.registration.model.entity.School;
+import com.henu.registration.model.entity.SchoolSchoolType;
 import com.henu.registration.model.vo.school.SchoolVO;
+import com.henu.registration.service.SchoolSchoolTypeService;
 import com.henu.registration.service.SchoolService;
 import com.henu.registration.utils.sql.SqlUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 /**
@@ -33,6 +45,9 @@ import java.util.stream.Collectors;
 @Slf4j
 public class SchoolServiceImpl extends ServiceImpl<SchoolMapper, School> implements SchoolService {
 	
+	@Resource
+	@Lazy
+	private SchoolSchoolTypeService schoolSchoolTypeService;
 	/**
 	 * 校验数据
 	 *
@@ -100,16 +115,21 @@ public class SchoolServiceImpl extends ServiceImpl<SchoolMapper, School> impleme
 	@Override
 	public SchoolVO getSchoolVO(School school, HttpServletRequest request) {
 		// 对象转封装类
-		return SchoolVO.objToVo(school);
+		SchoolVO schoolVO = SchoolVO.objToVo(school);
+		
+		// todo 可以根据需要为封装对象补充值，不需要的内容可以删除
+		// region 可选
+		// 1. 关联查询学校类型信息
+		LambdaQueryWrapper<SchoolSchoolType> eq = Wrappers.lambdaQuery(SchoolSchoolType.class).eq(SchoolSchoolType::getSchoolId, school.getId());
+		SchoolSchoolType schoolSchoolType = schoolSchoolTypeService.getOne(eq);
+		if (schoolSchoolType != null && schoolSchoolType.getSchoolId() > 0) {
+			List<String> schoolTypeList = JSONUtil.toList(schoolSchoolType.getSchoolTypes(), String.class);
+			schoolVO.setSchoolTypes(schoolTypeList);
+		}
+		// endregion
+		return schoolVO;
 	}
 	
-	/**
-	 * 分页获取高校信息封装
-	 *
-	 * @param schoolPage schoolPage
-	 * @param request    request
-	 * @return {@link Page<SchoolVO>}
-	 */
 	@Override
 	public Page<SchoolVO> getSchoolVOPage(Page<School> schoolPage, HttpServletRequest request) {
 		List<School> schoolList = schoolPage.getRecords();
@@ -121,6 +141,40 @@ public class SchoolServiceImpl extends ServiceImpl<SchoolMapper, School> impleme
 		List<SchoolVO> schoolVOList = schoolList.stream()
 				.map(SchoolVO::objToVo)
 				.collect(Collectors.toList());
+		// 关联查询学校类型信息
+		Set<Long> schoolIdSet = schoolList.stream()
+				.map(School::getId)
+				.collect(Collectors.toSet());
+		// 异步查询学校类型
+		if (CollUtil.isNotEmpty(schoolIdSet)) {
+			CompletableFuture<Map<Long, List<String>>> schoolTypeMapFuture = CompletableFuture.supplyAsync(() -> {
+				// 关联查询学校类型信息
+				List<SchoolSchoolType> schoolSchoolTypeList = schoolSchoolTypeService.list(
+						Wrappers.lambdaQuery(SchoolSchoolType.class).in(SchoolSchoolType::getSchoolId, schoolIdSet)
+				);
+				// 正确地将查询结果转化为 Map<Long, List<String>> 的结构
+				return schoolSchoolTypeList.stream()
+						.collect(Collectors.toMap(
+								SchoolSchoolType::getSchoolId,
+								schoolSchoolType -> JSONUtil.toList(schoolSchoolType.getSchoolTypes(), String.class)
+						));
+			});
+			try {
+				// 填充学校类型信息
+				Map<Long, List<String>> schoolTypeMap = schoolTypeMapFuture.get();
+				schoolVOList.forEach(schoolVO -> {
+					Long schoolId = schoolVO.getId();
+					if (schoolTypeMap.containsKey(schoolId)) {
+						// 直接设置学校类型
+						schoolVO.setSchoolTypes(schoolTypeMap.get(schoolId));
+					}
+				});
+			} catch (InterruptedException | ExecutionException e) {
+				Thread.currentThread().interrupt();
+				throw new BusinessException(ErrorCode.SYSTEM_ERROR, "获取学校类型信息失败：" + e.getMessage());
+			}
+		}
+		// 设置最终的结果
 		schoolVOPage.setRecords(schoolVOList);
 		return schoolVOPage;
 	}

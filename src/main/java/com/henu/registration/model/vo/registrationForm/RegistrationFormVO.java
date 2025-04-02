@@ -1,13 +1,10 @@
 package com.henu.registration.model.vo.registrationForm;
 
-import cn.hutool.json.JSONUtil;
 import com.henu.registration.model.entity.RegistrationForm;
+import com.henu.registration.model.vo.education.EducationVO;
+import com.henu.registration.model.vo.family.FamilyVO;
 import com.henu.registration.model.vo.job.JobVO;
-import com.henu.registration.model.vo.user.UserVO;
-import com.henu.registration.utils.encrypt.AESUtils;
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
-import cn.hutool.core.collection.CollUtil;
 import org.springframework.beans.BeanUtils;
 
 import java.io.Serial;
@@ -151,9 +148,14 @@ public class RegistrationFormVO implements Serializable {
 	private JobVO jobVO;
 	
 	/**
-	 * 申请人信息
+	 * 申请人教育经历信息
 	 */
-	private UserVO userVO;
+	private List<EducationVO> educationVOList;
+	
+	/**
+	 * 申请人家庭关系信息
+	 */
+	private List<FamilyVO> familyVOList;
 	
 	/**
 	 * 封装类转对象

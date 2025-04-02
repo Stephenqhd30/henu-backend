@@ -8,6 +8,7 @@ import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
@@ -20,6 +21,7 @@ import java.util.List;
 @Data
 public class SchoolSchoolTypeVO implements Serializable {
 	
+	@Serial
 	private static final long serialVersionUID = 2241706733027810025L;
 	/**
 	 * id

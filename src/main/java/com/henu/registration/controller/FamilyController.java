@@ -1,6 +1,8 @@
 package com.henu.registration.controller;
 
 import cn.dev33.satoken.annotation.SaCheckRole;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.henu.registration.common.*;
 import com.henu.registration.common.exception.BusinessException;
@@ -58,12 +60,16 @@ public class FamilyController {
 		BeanUtils.copyProperties(familyAddRequest, family);
 		// 数据校验
 		familyService.validFamily(family, true);
-		
 		// todo 填充默认值
 		User loginUser = userService.getLoginUser(request);
 		family.setUserId(loginUser.getId());
+		LambdaQueryWrapper<Family> eq = Wrappers.lambdaQuery(Family.class).eq(Family::getUserId, loginUser.getId()).eq(Family::getAppellation, family.getAppellation());
+		Family oldFamily = familyService.getOne(eq);
+		if (oldFamily != null) {
+			family.setId(oldFamily.getId());
+		}
 		// 写入数据库
-		boolean result = familyService.save(family);
+		boolean result = familyService.saveOrUpdate(family);
 		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
 		// 返回新写入的数据 id
 		long newFamilyId = family.getId();

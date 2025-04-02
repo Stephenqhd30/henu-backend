@@ -5,8 +5,10 @@ import com.henu.registration.model.vo.admin.AdminVO;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 /**
  * 高校信息视图
@@ -16,6 +18,7 @@ import java.util.Date;
 @Data
 public class SchoolVO implements Serializable {
 	
+	@Serial
 	private static final long serialVersionUID = -5941319198049937390L;
 	/**
 	 * id
@@ -41,6 +44,11 @@ public class SchoolVO implements Serializable {
 	 * 更新时间
 	 */
 	private Date updateTime;
+	
+	/**
+	 * 高校类别列表(JSON存储)
+	 */
+	private List<String> schoolTypes;
 	
 	/**
 	 * 封装类转对象

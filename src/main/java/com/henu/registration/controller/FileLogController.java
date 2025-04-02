@@ -78,22 +78,17 @@ public class FileLogController {
 		FileLog oldFileLog = fileLogService.getById(fileLogLambdaQueryWrapper);
 		// 如果改文件已经存在则替换该文件
 		String fileUrl = MinioUtils.uploadFile(multipartFile, path);
+		// 如果文件不存在，则直接插入新记录
+		FileLog fileLog = new FileLog();
+		fileLog.setFileTypeId(fileType.getId());
+		fileLog.setFileName(multipartFile.getOriginalFilename());
+		fileLog.setFilePath(fileUrl);
+		fileLog.setUserId(loginUser.getId());
 		if (oldFileLog != null) {
-			// 更新数据库中的文件记录
-			oldFileLog.setFilePath(fileUrl);
-			oldFileLog.setFileName(multipartFile.getOriginalFilename());
-			boolean update = fileLogService.updateById(oldFileLog);
-			ThrowUtils.throwIf(!update, ErrorCode.OPERATION_ERROR, "文件更新失败");
-		} else {
-			// 如果文件不存在，则直接插入新记录
-			FileLog fileLog = new FileLog();
-			fileLog.setFileTypeId(fileType.getId());
-			fileLog.setFileName(multipartFile.getOriginalFilename());
-			fileLog.setFilePath(fileUrl);
-			fileLog.setUserId(loginUser.getId());
-			boolean save = fileLogService.save(fileLog);
-			ThrowUtils.throwIf(!save, ErrorCode.OPERATION_ERROR, "文件保存失败");
+			fileLog.setId(oldFileLog.getId());
 		}
+		boolean save = fileLogService.saveOrUpdate(fileLog);
+		ThrowUtils.throwIf(!save, ErrorCode.OPERATION_ERROR, "文件保存失败");
 		// 返回可访问地址
 		return ResultUtils.success(fileUrl);
 		

@@ -18,7 +18,6 @@ import com.henu.registration.model.entity.SchoolSchoolType;
 import com.henu.registration.model.entity.SchoolType;
 import com.henu.registration.model.vo.school.SchoolVO;
 import com.henu.registration.model.vo.schoolSchoolType.SchoolSchoolTypeVO;
-import com.henu.registration.service.AdminService;
 import com.henu.registration.service.SchoolSchoolTypeService;
 import com.henu.registration.service.SchoolService;
 import com.henu.registration.service.SchoolTypeService;
@@ -47,9 +46,6 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class SchoolSchoolTypeServiceImpl extends ServiceImpl<SchoolSchoolTypeMapper, SchoolSchoolType> implements SchoolSchoolTypeService {
-	
-	@Resource
-	private AdminService adminService;
 	
 	@Resource
 	private SchoolService schoolService;
