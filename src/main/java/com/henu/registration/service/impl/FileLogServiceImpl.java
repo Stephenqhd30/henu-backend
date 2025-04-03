@@ -131,7 +131,6 @@ public class FileLogServiceImpl extends ServiceImpl<FileLogMapper, FileLog>
 	public FileLogVO getFileLogVO(FileLog fileLog, HttpServletRequest request) {
 		// 对象转封装类
 		FileLogVO fileLogVO = FileLogVO.objToVo(fileLog);
-		
 		// todo 可以根据需要为封装对象补充值，不需要的内容可以删除
 		// region 可选
 		// 1. 关联查询用户信息
@@ -142,7 +141,7 @@ public class FileLogServiceImpl extends ServiceImpl<FileLogMapper, FileLog>
 		}
 		UserVO userVO = userService.getUserVO(user, request);
 		fileLogVO.setUserVO(userVO);
-		// 1. 关联查询文件类型信息
+		// 2. 关联查询文件类型信息
 		Long fileTypeId = fileLog.getFileTypeId();
 		FileType fileType = null;
 		if (fileTypeId != null && fileTypeId > 0) {

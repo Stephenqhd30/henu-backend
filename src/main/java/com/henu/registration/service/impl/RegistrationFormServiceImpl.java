@@ -9,14 +9,13 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.henu.registration.common.ErrorCode;
 import com.henu.registration.common.ThrowUtils;
 import com.henu.registration.constants.CommonConstant;
+import com.henu.registration.constants.FileConstant;
 import com.henu.registration.mapper.RegistrationFormMapper;
 import com.henu.registration.model.dto.registrationForm.RegistrationFormQueryRequest;
-import com.henu.registration.model.entity.Education;
-import com.henu.registration.model.entity.Family;
-import com.henu.registration.model.entity.Job;
-import com.henu.registration.model.entity.RegistrationForm;
+import com.henu.registration.model.entity.*;
 import com.henu.registration.model.vo.education.EducationVO;
 import com.henu.registration.model.vo.family.FamilyVO;
+import com.henu.registration.model.vo.fileLog.FileLogVO;
 import com.henu.registration.model.vo.job.JobVO;
 import com.henu.registration.model.vo.registrationForm.RegistrationFormVO;
 import com.henu.registration.service.*;
@@ -46,7 +45,7 @@ import java.util.stream.Collectors;
 public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMapper, RegistrationForm> implements RegistrationFormService {
 	
 	@Resource
-	private UserService userService;
+	private FileLogService fileLogService;
 	
 	@Resource
 	private JobService jobService;
@@ -251,6 +250,12 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		List<Family> familyList = familyService.list(familyLambdaQueryWrapper);
 		List<FamilyVO> familyVOList = familyList.stream().map(FamilyVO::objToVo).toList();
 		registrationFormVO.setFamilyVOList(familyVOList);
+		// 3. 关联文件上传附件信息
+		LambdaQueryWrapper<FileLog> fileLogLambdaQueryWrapper = Wrappers.lambdaQuery(FileLog.class)
+				.eq(FileLog::getUserId, userId);
+		List<FileLog> fileLogList = fileLogService.list(fileLogLambdaQueryWrapper);
+		List<FileLogVO> fileLogVOList = fileLogList.stream().map(FileLogVO::objToVo).toList();
+		registrationFormVO.setFileLogVOList(fileLogVOList);
 		// endregion
 		return registrationFormVO;
 	}
@@ -290,17 +295,23 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 				familyService.list(new LambdaQueryWrapper<Family>().in(Family::getUserId, userIdSet))
 						.stream().collect(Collectors.groupingBy(Family::getUserId))
 		);
+		CompletableFuture<Map<Long, List<FileLog>>> fileLogFuture = CompletableFuture.supplyAsync(() ->
+				fileLogService.list(new LambdaQueryWrapper<FileLog>().in(FileLog::getUserId, userIdSet))
+						.stream().collect(Collectors.groupingBy(FileLog::getUserId))
+		);
 		// 等待所有任务完成
 		CompletableFuture.allOf(jobFuture, educationFuture, familyFuture).join();
 		// 获取结果
 		Map<Long, List<Job>> jobIdUserListMap = jobFuture.join();
 		Map<Long, List<Education>> userIdEducationListMap = educationFuture.join();
 		Map<Long, List<Family>> userIdFamilyListMap = familyFuture.join();
+		Map<Long, List<FileLog>> userIdFileLogListMap = fileLogFuture.join();
 		// 填充数据
 		registrationFormVOList.forEach(registrationFormVO -> {
 			registrationFormVO.setJobVO(jobService.getJobVO(jobIdUserListMap.getOrDefault(registrationFormVO.getJobId(), List.of()).stream().findFirst().orElse(null), request));
 			registrationFormVO.setEducationVOList(Optional.ofNullable(userIdEducationListMap.get(registrationFormVO.getUserId())).orElse(Collections.emptyList()).stream().map(education -> educationService.getEducationVO(education, request)).toList());
 			registrationFormVO.setFamilyVOList(Optional.ofNullable(userIdFamilyListMap.get(registrationFormVO.getUserId())).orElse(Collections.emptyList()).stream().map(family -> familyService.getFamilyVO(family, request)).toList());
+			registrationFormVO.setFileLogVOList(Optional.ofNullable(userIdFileLogListMap.get(registrationFormVO.getUserId())).orElse(Collections.emptyList()).stream().map(fileLog -> fileLogService.getFileLogVO(fileLog, request)).toList());
 		});
 		// endregion
 		registrationFormVOPage.setRecords(registrationFormVOList);

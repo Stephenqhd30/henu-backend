@@ -3,6 +3,7 @@ package com.henu.registration.model.vo.registrationForm;
 import com.henu.registration.model.entity.RegistrationForm;
 import com.henu.registration.model.vo.education.EducationVO;
 import com.henu.registration.model.vo.family.FamilyVO;
+import com.henu.registration.model.vo.fileLog.FileLogVO;
 import com.henu.registration.model.vo.job.JobVO;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
@@ -161,6 +162,11 @@ public class RegistrationFormVO implements Serializable {
 	 * 申请人家庭关系信息
 	 */
 	private List<FamilyVO> familyVOList;
+	
+	/**
+	 * 上传附件信息
+	 */
+	private List<FileLogVO> fileLogVOList;
 	
 	/**
 	 * 封装类转对象
