@@ -6,7 +6,7 @@
 
 	<resultMap id="BaseResultMap" type="com.henu.registration.model.entity.FileLog">
 		<id property="id" column="id"/>
-		<result property="fileType" column="file_type"/>
+		<result property="fileTypeId" column="file_type_id"/>
 		<result property="fileName" column="file_name"/>
 		<result property="filePath" column="file_path"/>
 		<result property="userId" column="user_id"/>
@@ -15,6 +15,6 @@
 
 	<sql id="Base_Column_List">
 		id
-		,file_type,file_name,file_path,user_id,create_time
+		,file_type_id,file_name,file_path,user_id,create_time
 	</sql>
 </mapper>

@@ -111,7 +111,7 @@ public class FileLogServiceImpl extends ServiceImpl<FileLogMapper, FileLog>
 		// 精确查询
 		queryWrapper.ne(ObjectUtils.isNotEmpty(notId), "id", notId);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(id), "id", id);
-		queryWrapper.eq(ObjectUtils.isNotEmpty(userId), "userId", userId);
+		queryWrapper.eq(ObjectUtils.isNotEmpty(userId), "user_id", userId);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(fileTypeId), "file_type_id", fileTypeId);
 		// 排序规则
 		queryWrapper.orderBy(SqlUtils.validSortField(sortField),

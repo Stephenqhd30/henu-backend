@@ -75,7 +75,7 @@ public class FileLogController {
 		LambdaQueryWrapper<FileLog> fileLogLambdaQueryWrapper = Wrappers.lambdaQuery(FileLog.class)
 				.eq(FileLog::getUserId, loginUser.getId())
 				.eq(FileLog::getFileTypeId, fileType.getId());
-		FileLog oldFileLog = fileLogService.getById(fileLogLambdaQueryWrapper);
+		FileLog oldFileLog = fileLogService.getOne(fileLogLambdaQueryWrapper);
 		// 如果改文件已经存在则替换该文件
 		String fileUrl = MinioUtils.uploadFile(multipartFile, path);
 		// 如果文件不存在，则直接插入新记录
