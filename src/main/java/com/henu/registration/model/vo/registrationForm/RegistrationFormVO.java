@@ -103,6 +103,11 @@ public class RegistrationFormVO implements Serializable {
 	private String studentLeaderAwards;
 	
 	/**
+	 * 紧急联系电话
+	 */
+	private String emergencyPhone;
+	
+	/**
 	 * 用户id
 	 */
 	private Long userId;

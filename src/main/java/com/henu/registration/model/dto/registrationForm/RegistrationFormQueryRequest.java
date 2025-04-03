@@ -34,24 +34,9 @@ public class RegistrationFormQueryRequest extends PageRequest implements Seriali
 	private String searchText;
 	
 	/**
-	 * 身份证号码
-	 */
-	private String userIdCard;
-	
-	/**
 	 * 姓名
 	 */
 	private String userName;
-	
-	/**
-	 * 邮箱地址
-	 */
-	private String userEmail;
-	
-	/**
-	 * 联系电话
-	 */
-	private String userPhone;
 	
 	/**
 	 * 性别(0-男,1-女)
@@ -59,34 +44,9 @@ public class RegistrationFormQueryRequest extends PageRequest implements Seriali
 	private Integer userGender;
 	
 	/**
-	 * 民族
-	 */
-	private String ethnic;
-	
-	/**
-	 * 入党时间
-	 */
-	private String partyTime;
-	
-	/**
-	 * 出生日期
-	 */
-	private String birthDate;
-	
-	/**
 	 * 婚姻状况(0-未婚，1-已婚)
 	 */
 	private Integer marryStatus;
-	
-	/**
-	 * 紧急联系电话
-	 */
-	private String emergencyPhone;
-	
-	/**
-	 * 家庭住址
-	 */
-	private String address;
 	
 	/**
 	 * 工作经历
@@ -114,19 +74,14 @@ public class RegistrationFormQueryRequest extends PageRequest implements Seriali
 	private Integer reviewStatus;
 	
 	/**
-	 * 审核时间
-	 */
-	private Date reviewTime;
-	
-	/**
 	 * 审核人姓名
 	 */
 	private String reviewer;
 	
 	/**
-	 * 审核意见
+	 * 高校类别列表(JSON存储)
 	 */
-	private String reviewComments;
+	private List<String> schoolTypes;
 	
 	@Serial
 	private static final long serialVersionUID = 1L;

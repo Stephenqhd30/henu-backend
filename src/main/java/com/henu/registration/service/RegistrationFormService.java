@@ -8,6 +8,7 @@ import com.henu.registration.model.entity.RegistrationForm;
 import com.henu.registration.model.vo.registrationForm.RegistrationFormVO;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 
 /**
@@ -34,6 +35,9 @@ public interface RegistrationFormService extends IService<RegistrationForm> {
 	 * @return {@link QueryWrapper<RegistrationForm>}
 	 */
 	QueryWrapper<RegistrationForm> getQueryWrapper(RegistrationFormQueryRequest registrationFormQueryRequest);
+	
+	
+	QueryWrapper<RegistrationForm> getQueryWrapper(RegistrationFormQueryRequest registrationFormQueryRequest, List<Long> schoolSchoolTypes);
 	
 	/**
 	 * 获取报名登记封装

@@ -1,5 +1,10 @@
 package com.henu.registration.controller;
 
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import cn.dev33.satoken.annotation.SaCheckRole;
 import com.henu.registration.common.BaseResponse;
@@ -14,12 +19,14 @@ import com.henu.registration.model.dto.registrationForm.RegistrationFormAddReque
 import com.henu.registration.model.dto.registrationForm.RegistrationFormEditRequest;
 import com.henu.registration.model.dto.registrationForm.RegistrationFormQueryRequest;
 import com.henu.registration.model.dto.registrationForm.RegistrationFormUpdateRequest;
+import com.henu.registration.model.entity.Education;
 import com.henu.registration.model.entity.RegistrationForm;
+import com.henu.registration.model.entity.SchoolSchoolType;
 import com.henu.registration.model.entity.User;
+import com.henu.registration.model.vo.education.EducationVO;
 import com.henu.registration.model.vo.registrationForm.RegistrationFormVO;
-import com.henu.registration.service.AdminService;
-import com.henu.registration.service.RegistrationFormService;
-import com.henu.registration.service.UserService;
+import com.henu.registration.model.vo.school.SchoolVO;
+import com.henu.registration.service.*;
 import com.henu.registration.utils.encrypt.EncryptionUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -28,6 +35,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 报名登记接口
@@ -47,6 +56,15 @@ public class RegistrationFormController {
 	
 	@Resource
 	private AdminService adminService;
+	
+	@Resource
+	private EducationService educationService;
+	
+	@Resource
+	private SchoolSchoolTypeService schoolSchoolTypeService;
+	
+	@Resource
+	private SchoolService schoolService;
 	
 	// region 增删改查
 	
@@ -187,9 +205,22 @@ public class RegistrationFormController {
 		long size = registrationFormQueryRequest.getPageSize();
 		// 限制爬虫
 		ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
+		List<String> schoolTypes = registrationFormQueryRequest.getSchoolTypes();
+		List<Long> schoolIdList = null;
+		// 获取符合条件的学校 ID 列表
+		if (CollUtil.isNotEmpty(schoolTypes)) {
+			QueryWrapper<SchoolSchoolType> queryWrapper = new QueryWrapper<>();
+			for (String schoolTypeName : schoolTypes) {
+				queryWrapper.like("school_types", "\"" + schoolTypeName + "\"");
+			}
+			// 获取符合条件的学校 ID 列表
+			schoolIdList = schoolSchoolTypeService.list(queryWrapper).stream()
+					.map(SchoolSchoolType::getSchoolId)
+					.toList();
+		}
 		// 查询数据库
 		Page<RegistrationForm> registrationFormPage = registrationFormService.page(new Page<>(current, size),
-				registrationFormService.getQueryWrapper(registrationFormQueryRequest));
+				registrationFormService.getQueryWrapper(registrationFormQueryRequest, schoolIdList));
 		// 获取封装类
 		registrationFormPage.getRecords().forEach(registrationForm -> {
 			registrationForm.setUserIdCard(userService.getDecryptIdCard(registrationForm.getUserIdCard()));
@@ -218,6 +249,10 @@ public class RegistrationFormController {
 		// 查询数据库
 		Page<RegistrationForm> registrationFormPage = registrationFormService.page(new Page<>(current, size),
 				registrationFormService.getQueryWrapper(registrationFormQueryRequest));
+		// 获取封装类
+		registrationFormPage.getRecords().forEach(registrationForm -> {
+			registrationForm.setUserIdCard(userService.getDecryptIdCard(registrationForm.getUserIdCard()));
+		});
 		// 获取封装类
 		return ResultUtils.success(registrationFormService.getRegistrationFormVOPage(registrationFormPage, request));
 	}

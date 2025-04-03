@@ -8,7 +8,6 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.henu.registration.common.ErrorCode;
 import com.henu.registration.common.ThrowUtils;
-import com.henu.registration.common.exception.BusinessException;
 import com.henu.registration.constants.CommonConstant;
 import com.henu.registration.mapper.RegistrationFormMapper;
 import com.henu.registration.model.dto.registrationForm.RegistrationFormQueryRequest;
@@ -32,7 +31,6 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 
@@ -122,24 +120,11 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		// todo 从对象中取值
 		Long id = registrationFormQueryRequest.getId();
 		Long notId = registrationFormQueryRequest.getNotId();
-		String userIdCard = registrationFormQueryRequest.getUserIdCard();
-		if (StringUtils.isNotBlank(userIdCard)) {
-			userIdCard = userService.getEncryptIdCard(userIdCard);
-		}
 		String userName = registrationFormQueryRequest.getUserName();
-		String userEmail = registrationFormQueryRequest.getUserEmail();
-		String userPhone = registrationFormQueryRequest.getUserPhone();
 		Integer userGender = registrationFormQueryRequest.getUserGender();
-		String ethnic = registrationFormQueryRequest.getEthnic();
-		String partyTime = registrationFormQueryRequest.getPartyTime();
-		String birthDate = registrationFormQueryRequest.getBirthDate();
 		Integer marryStatus = registrationFormQueryRequest.getMarryStatus();
-		String emergencyPhone = registrationFormQueryRequest.getEmergencyPhone();
-		String address = registrationFormQueryRequest.getAddress();
 		Integer reviewStatus = registrationFormQueryRequest.getReviewStatus();
-		Date reviewTime = registrationFormQueryRequest.getReviewTime();
 		String reviewer = registrationFormQueryRequest.getReviewer();
-		String reviewComments = registrationFormQueryRequest.getReviewComments();
 		String workExperience = registrationFormQueryRequest.getWorkExperience();
 		String studentLeaderAwards = registrationFormQueryRequest.getStudentLeaderAwards();
 		Long jobId = registrationFormQueryRequest.getJobId();
@@ -150,28 +135,80 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		// todo 补充需要的查询条件
 		// 模糊查询
 		queryWrapper.like(StringUtils.isNotBlank(userName), "user_name", userName);
-		queryWrapper.like(StringUtils.isNotBlank(userEmail), "user_email", userEmail);
-		queryWrapper.like(StringUtils.isNotBlank(userEmail), "user_email", userEmail);
-		queryWrapper.like(StringUtils.isNotBlank(partyTime), "party_time", partyTime);
-		queryWrapper.like(StringUtils.isNotBlank(birthDate), "birth_date", birthDate);
-		queryWrapper.like(StringUtils.isNotBlank(address), "address", address);
 		queryWrapper.like(StringUtils.isNotBlank(workExperience), "work_experience", workExperience);
 		queryWrapper.like(StringUtils.isNotBlank(studentLeaderAwards), "student_leader_awards", studentLeaderAwards);
-		queryWrapper.like(StringUtils.isNotBlank(reviewComments), "review_comments", reviewComments);
-		queryWrapper.like(ObjectUtils.isNotEmpty(reviewTime), "review_time", reviewTime);
 		// 精确查询
 		queryWrapper.ne(ObjectUtils.isNotEmpty(notId), "review_status", notId);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(id), "id", id);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(userId), "user_id", userId);
-		queryWrapper.eq(ObjectUtils.isNotEmpty(userPhone), "user_phone", userPhone);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(userGender), "user_gender", userGender);
-		queryWrapper.eq(ObjectUtils.isNotEmpty(ethnic), "ethnic", ethnic);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(marryStatus), "marry_status", marryStatus);
-		queryWrapper.eq(ObjectUtils.isNotEmpty(emergencyPhone), "emergency_phone", emergencyPhone);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(jobId), "job_id", jobId);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(reviewStatus), "review_status", reviewStatus);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(reviewer), "reviewer", reviewer);
-		queryWrapper.eq(ObjectUtils.isNotEmpty(userIdCard), "user_id_card", userIdCard);
+		// 排序规则
+		queryWrapper.orderBy(SqlUtils.validSortField(sortField),
+				sortOrder.equals(CommonConstant.SORT_ORDER_ASC),
+				sortField);
+		return queryWrapper;
+	}
+	
+	/**
+	 * 获取查询条件
+	 *
+	 * @param registrationFormQueryRequest registrationFormQueryRequest
+	 * @param schoolIdList                 schoolIdList
+	 * @return {@link QueryWrapper<RegistrationForm>}
+	 */
+	@Override
+	public QueryWrapper<RegistrationForm> getQueryWrapper(RegistrationFormQueryRequest registrationFormQueryRequest, List<Long> schoolIdList) {
+		QueryWrapper<RegistrationForm> queryWrapper = new QueryWrapper<>();
+		if (registrationFormQueryRequest == null) {
+			return queryWrapper;
+		}
+		// todo 从对象中取值
+		Long id = registrationFormQueryRequest.getId();
+		Long notId = registrationFormQueryRequest.getNotId();
+		String userName = registrationFormQueryRequest.getUserName();
+		Integer userGender = registrationFormQueryRequest.getUserGender();
+		Integer marryStatus = registrationFormQueryRequest.getMarryStatus();
+		Integer reviewStatus = registrationFormQueryRequest.getReviewStatus();
+		String reviewer = registrationFormQueryRequest.getReviewer();
+		String workExperience = registrationFormQueryRequest.getWorkExperience();
+		String studentLeaderAwards = registrationFormQueryRequest.getStudentLeaderAwards();
+		String sortField = registrationFormQueryRequest.getSortField();
+		String sortOrder = registrationFormQueryRequest.getSortOrder();
+		
+		// todo 补充需要的查询条件
+		// 模糊查询
+		queryWrapper.like(StringUtils.isNotBlank(userName), "user_name", userName);
+		queryWrapper.like(StringUtils.isNotBlank(workExperience), "work_experience", workExperience);
+		queryWrapper.like(StringUtils.isNotBlank(studentLeaderAwards), "student_leader_awards", studentLeaderAwards);
+		// 精确查询
+		queryWrapper.ne(ObjectUtils.isNotEmpty(notId), "review_status", notId);
+		queryWrapper.eq(ObjectUtils.isNotEmpty(id), "id", id);
+		queryWrapper.eq(ObjectUtils.isNotEmpty(userGender), "user_gender", userGender);
+		queryWrapper.eq(ObjectUtils.isNotEmpty(marryStatus), "marry_status", marryStatus);
+		queryWrapper.eq(ObjectUtils.isNotEmpty(reviewStatus), "review_status", reviewStatus);
+		queryWrapper.eq(ObjectUtils.isNotEmpty(reviewer), "reviewer", reviewer);
+		// 过滤符合 schoolIdList 的用户
+		if (CollUtil.isNotEmpty(schoolIdList)) {
+			// 查询符合 schoolIdList 的用户 ID，并去重
+			List<Long> userIdList = educationService.list(
+							Wrappers.lambdaQuery(Education.class)
+									.select(Education::getUserId)
+									.in(Education::getSchoolId, schoolIdList)
+					).stream()
+					.map(Education::getUserId)
+					.distinct()
+					.collect(Collectors.toList());
+			// 如果没有匹配的用户 ID，则直接返回一个无效查询条件，确保返回空数据
+			if (CollUtil.isEmpty(userIdList)) {
+				queryWrapper.eq("id", -1);
+				return queryWrapper;
+			}
+			queryWrapper.in("user_id", userIdList);
+		}
 		// 排序规则
 		queryWrapper.orderBy(SqlUtils.validSortField(sortField),
 				sortOrder.equals(CommonConstant.SORT_ORDER_ASC),
