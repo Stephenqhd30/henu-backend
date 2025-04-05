@@ -104,9 +104,14 @@ public class RegistrationForm implements Serializable {
 	private String workExperience;
 	
 	/**
-	 * 主要学生干部经历及获奖情况
+	 * 主要学生干部经历
 	 */
-	private String studentLeaderAwards;
+	private String studentLeader;
+	
+	/**
+	 * 获奖情况
+	 */
+	private String studentAwards;
 	
 	/**
 	 * 用户id

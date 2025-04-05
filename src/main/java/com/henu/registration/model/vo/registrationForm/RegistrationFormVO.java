@@ -1,5 +1,8 @@
 package com.henu.registration.model.vo.registrationForm;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.henu.registration.model.entity.RegistrationForm;
 import com.henu.registration.model.vo.education.EducationVO;
 import com.henu.registration.model.vo.family.FamilyVO;
@@ -99,9 +102,14 @@ public class RegistrationFormVO implements Serializable {
 	private String workExperience;
 	
 	/**
-	 * 主要学生干部经历及获奖情况
+	 * 主要学生干部经历
 	 */
-	private String studentLeaderAwards;
+	private List<String> studentLeader;
+	
+	/**
+	 * 获奖情况
+	 */
+	private String studentAwards;
 	
 	/**
 	 * 紧急联系电话
@@ -180,6 +188,10 @@ public class RegistrationFormVO implements Serializable {
 		}
 		RegistrationForm registrationForm = new RegistrationForm();
 		BeanUtils.copyProperties(registrationFormVO, registrationForm);
+		List<String> studentLeader = registrationFormVO.getStudentLeader();
+		if (CollUtil.isNotEmpty(studentLeader)) {
+			registrationForm.setStudentLeader(JSONUtil.toJsonStr(studentLeader));
+		}
 		return registrationForm;
 	}
 	
@@ -195,6 +207,10 @@ public class RegistrationFormVO implements Serializable {
 		}
 		RegistrationFormVO registrationFormVO = new RegistrationFormVO();
 		BeanUtils.copyProperties(registrationForm, registrationFormVO);
+		String studentLeader = registrationForm.getStudentLeader();
+		if (StrUtil.isNotEmpty(studentLeader)) {
+			registrationFormVO.setStudentLeader(JSONUtil.toList(studentLeader, String.class));
+		}
 		return registrationFormVO;
 	}
 }

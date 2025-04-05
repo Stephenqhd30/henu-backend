@@ -1,33 +1,22 @@
 package com.henu.registration.controller;
 
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.collection.CollUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import cn.dev33.satoken.annotation.SaCheckRole;
-import com.henu.registration.common.BaseResponse;
-import com.henu.registration.common.DeleteRequest;
-import com.henu.registration.common.ErrorCode;
-import com.henu.registration.common.ResultUtils;
-import com.henu.registration.constants.AdminConstant;
-import com.henu.registration.constants.UserConstant;
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.henu.registration.common.*;
 import com.henu.registration.common.exception.BusinessException;
-import com.henu.registration.common.ThrowUtils;
+import com.henu.registration.constants.AdminConstant;
 import com.henu.registration.model.dto.registrationForm.RegistrationFormAddRequest;
 import com.henu.registration.model.dto.registrationForm.RegistrationFormEditRequest;
 import com.henu.registration.model.dto.registrationForm.RegistrationFormQueryRequest;
 import com.henu.registration.model.dto.registrationForm.RegistrationFormUpdateRequest;
-import com.henu.registration.model.entity.Education;
 import com.henu.registration.model.entity.RegistrationForm;
 import com.henu.registration.model.entity.SchoolSchoolType;
 import com.henu.registration.model.entity.User;
-import com.henu.registration.model.vo.education.EducationVO;
 import com.henu.registration.model.vo.registrationForm.RegistrationFormVO;
-import com.henu.registration.model.vo.school.SchoolVO;
 import com.henu.registration.service.*;
-import com.henu.registration.utils.encrypt.EncryptionUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -35,8 +24,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.List;
 
 /**
  * 报名登记接口
@@ -58,13 +46,7 @@ public class RegistrationFormController {
 	private AdminService adminService;
 	
 	@Resource
-	private EducationService educationService;
-	
-	@Resource
 	private SchoolSchoolTypeService schoolSchoolTypeService;
-	
-	@Resource
-	private SchoolService schoolService;
 	
 	// region 增删改查
 	
@@ -81,6 +63,10 @@ public class RegistrationFormController {
 		// todo 在此处将实体类和 DTO 进行转换
 		RegistrationForm registrationForm = new RegistrationForm();
 		BeanUtils.copyProperties(registrationFormAddRequest, registrationForm);
+		List<String> studentLeaderList = registrationFormAddRequest.getStudentLeader();
+		if (CollUtil.isNotEmpty(studentLeaderList)) {
+			registrationForm.setStudentLeader(JSONUtil.toJsonStr(studentLeaderList));
+		}
 		// 数据校验
 		registrationFormService.validRegistrationForm(registrationForm, true);
 		// todo 填充默认值
@@ -138,6 +124,10 @@ public class RegistrationFormController {
 		// todo 在此处将实体类和 DTO 进行转换
 		RegistrationForm registrationForm = new RegistrationForm();
 		BeanUtils.copyProperties(registrationFormUpdateRequest, registrationForm);
+		List<String> studentLeaderList = registrationFormUpdateRequest.getStudentLeader();
+		if (CollUtil.isNotEmpty(studentLeaderList)) {
+			registrationForm.setStudentLeader(JSONUtil.toJsonStr(studentLeaderList));
+		}
 		// 数据校验
 		registrationFormService.validRegistrationForm(registrationForm, false);
 		// 判断是否存在
@@ -272,6 +262,10 @@ public class RegistrationFormController {
 		// todo 在此处将实体类和 DTO 进行转换
 		RegistrationForm registrationForm = new RegistrationForm();
 		BeanUtils.copyProperties(registrationFormEditRequest, registrationForm);
+		List<String> studentLeaderList = registrationFormEditRequest.getStudentLeader();
+		if (CollUtil.isNotEmpty(studentLeaderList)) {
+			registrationForm.setStudentLeader(JSONUtil.toJsonStr(studentLeaderList));
+		}
 		// 数据校验
 		registrationFormService.validRegistrationForm(registrationForm, false);
 		User loginUser = userService.getLoginUser(request);

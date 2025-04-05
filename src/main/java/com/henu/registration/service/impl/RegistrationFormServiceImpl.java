@@ -1,6 +1,7 @@
 package com.henu.registration.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -9,7 +10,6 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.henu.registration.common.ErrorCode;
 import com.henu.registration.common.ThrowUtils;
 import com.henu.registration.constants.CommonConstant;
-import com.henu.registration.constants.FileConstant;
 import com.henu.registration.mapper.RegistrationFormMapper;
 import com.henu.registration.model.dto.registrationForm.RegistrationFormQueryRequest;
 import com.henu.registration.model.entity.*;
@@ -125,17 +125,24 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		Integer reviewStatus = registrationFormQueryRequest.getReviewStatus();
 		String reviewer = registrationFormQueryRequest.getReviewer();
 		String workExperience = registrationFormQueryRequest.getWorkExperience();
-		String studentLeaderAwards = registrationFormQueryRequest.getStudentLeaderAwards();
+		List<String> studentLeader = registrationFormQueryRequest.getStudentLeader();
+		String studentAwards = registrationFormQueryRequest.getStudentAwards();
 		Long jobId = registrationFormQueryRequest.getJobId();
 		Long userId = registrationFormQueryRequest.getUserId();
 		String sortField = registrationFormQueryRequest.getSortField();
 		String sortOrder = registrationFormQueryRequest.getSortOrder();
 		
 		// todo 补充需要的查询条件
+		// 多字段查询
+		if (CollUtil.isNotEmpty(studentLeader)) {
+			for (String leader : studentLeader) {
+				queryWrapper.like("student_leader", "\"" + leader + "\"");
+			}
+		}
 		// 模糊查询
 		queryWrapper.like(StringUtils.isNotBlank(userName), "user_name", userName);
 		queryWrapper.like(StringUtils.isNotBlank(workExperience), "work_experience", workExperience);
-		queryWrapper.like(StringUtils.isNotBlank(studentLeaderAwards), "student_leader_awards", studentLeaderAwards);
+		queryWrapper.like(StringUtils.isNotBlank(studentAwards), "student_awards", studentAwards);
 		// 精确查询
 		queryWrapper.ne(ObjectUtils.isNotEmpty(notId), "review_status", notId);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(id), "id", id);
@@ -174,15 +181,22 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		Integer reviewStatus = registrationFormQueryRequest.getReviewStatus();
 		String reviewer = registrationFormQueryRequest.getReviewer();
 		String workExperience = registrationFormQueryRequest.getWorkExperience();
-		String studentLeaderAwards = registrationFormQueryRequest.getStudentLeaderAwards();
+		List<String> studentLeader = registrationFormQueryRequest.getStudentLeader();
+		String studentAwards = registrationFormQueryRequest.getStudentAwards();
 		String sortField = registrationFormQueryRequest.getSortField();
 		String sortOrder = registrationFormQueryRequest.getSortOrder();
 		
 		// todo 补充需要的查询条件
+		// 多字段查询
+		if (CollUtil.isNotEmpty(studentLeader)) {
+			for (String leader : studentLeader) {
+				queryWrapper.like("student_leader", "\"" + leader + "\"");
+			}
+		}
 		// 模糊查询
 		queryWrapper.like(StringUtils.isNotBlank(userName), "user_name", userName);
 		queryWrapper.like(StringUtils.isNotBlank(workExperience), "work_experience", workExperience);
-		queryWrapper.like(StringUtils.isNotBlank(studentLeaderAwards), "student_leader_awards", studentLeaderAwards);
+		queryWrapper.like(StringUtils.isNotBlank(studentAwards), "student_awards", studentAwards);
 		// 精确查询
 		queryWrapper.ne(ObjectUtils.isNotEmpty(notId), "review_status", notId);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(id), "id", id);
