@@ -1,7 +1,6 @@
 package com.henu.registration.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -125,7 +124,7 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		Integer reviewStatus = registrationFormQueryRequest.getReviewStatus();
 		String reviewer = registrationFormQueryRequest.getReviewer();
 		String workExperience = registrationFormQueryRequest.getWorkExperience();
-		List<String> studentLeader = registrationFormQueryRequest.getStudentLeader();
+		List<String> studentLeaders = registrationFormQueryRequest.getStudentLeaders();
 		String studentAwards = registrationFormQueryRequest.getStudentAwards();
 		Long jobId = registrationFormQueryRequest.getJobId();
 		Long userId = registrationFormQueryRequest.getUserId();
@@ -134,9 +133,9 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		
 		// todo 补充需要的查询条件
 		// 多字段查询
-		if (CollUtil.isNotEmpty(studentLeader)) {
-			for (String leader : studentLeader) {
-				queryWrapper.like("student_leader", "\"" + leader + "\"");
+		if (CollUtil.isNotEmpty(studentLeaders)) {
+			for (String leader : studentLeaders) {
+				queryWrapper.like("student_leaders", "\"" + leader + "\"");
 			}
 		}
 		// 模糊查询
@@ -181,16 +180,16 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		Integer reviewStatus = registrationFormQueryRequest.getReviewStatus();
 		String reviewer = registrationFormQueryRequest.getReviewer();
 		String workExperience = registrationFormQueryRequest.getWorkExperience();
-		List<String> studentLeader = registrationFormQueryRequest.getStudentLeader();
+		List<String> studentLeaders = registrationFormQueryRequest.getStudentLeaders();
 		String studentAwards = registrationFormQueryRequest.getStudentAwards();
 		String sortField = registrationFormQueryRequest.getSortField();
 		String sortOrder = registrationFormQueryRequest.getSortOrder();
 		
 		// todo 补充需要的查询条件
 		// 多字段查询
-		if (CollUtil.isNotEmpty(studentLeader)) {
-			for (String leader : studentLeader) {
-				queryWrapper.like("student_leader", "\"" + leader + "\"");
+		if (CollUtil.isNotEmpty(studentLeaders)) {
+			for (String leader : studentLeaders) {
+				queryWrapper.like("student_leaders", "\"" + leader + "\"");
 			}
 		}
 		// 模糊查询

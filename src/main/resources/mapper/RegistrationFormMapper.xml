@@ -21,7 +21,8 @@
             <result property="emergencyPhone" column="emergency_phone" />
             <result property="address" column="address" />
             <result property="workExperience" column="work_experience" />
-            <result property="studentLeader" column="student_leader"/>
+            <result property="studentLeaders" column="student_leaders"/>
+            <result property="leaderExperience" column="leader_experience"/>
             <result property="studentAwards" column="student_awards"/>
             <result property="reviewStatus" column="review_status" />
             <result property="reviewTime" column="review_time" />
@@ -37,7 +38,7 @@
     <sql id="Base_Column_List">
         id,user_id_card,user_name,user_email,user_phone,user_gender,
         user_avatar,user_lift_photo,registration_form,ethnic,party_time,birth_date,marry_status,
-        emergency_phone,address,work_experience,student_leader,student_awards,review_status,
+        emergency_phone,address,work_experience,student_leaders,leader_experience,student_awards,review_status,
         review_time,reviewer,review_comments,job_id,user_id,create_time,
         update_time,is_delete
     </sql>

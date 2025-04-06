@@ -6,7 +6,6 @@ import lombok.EqualsAndHashCode;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -56,7 +55,12 @@ public class RegistrationFormQueryRequest extends PageRequest implements Seriali
 	/**
 	 * 主要学生干部经历
 	 */
-	private List<String> studentLeader;
+	private List<String> studentLeaders;
+	
+	/**
+	 * 干部经历描述
+	 */
+	private String leaderExperience;
 	
 	/**
 	 * 获奖情况

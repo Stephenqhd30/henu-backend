@@ -107,7 +107,14 @@ public class RegistrationFormExcelVO implements Serializable {
 	 */
 	@ColumnWidth(40)
 	@ExcelProperty("主要学生干部经历")
-	private String studentLeader;
+	private String studentLeaders;
+	
+	/**
+	 * 干部经历描述
+	 */
+	@ColumnWidth(40)
+	@ExcelProperty("干部经历描述")
+	private String leaderExperience;
 	
 	/**
 	 * 主要获奖情况

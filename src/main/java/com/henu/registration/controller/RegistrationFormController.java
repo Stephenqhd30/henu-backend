@@ -63,9 +63,9 @@ public class RegistrationFormController {
 		// todo 在此处将实体类和 DTO 进行转换
 		RegistrationForm registrationForm = new RegistrationForm();
 		BeanUtils.copyProperties(registrationFormAddRequest, registrationForm);
-		List<String> studentLeaderList = registrationFormAddRequest.getStudentLeader();
+		List<String> studentLeaderList = registrationFormAddRequest.getStudentLeaders();
 		if (CollUtil.isNotEmpty(studentLeaderList)) {
-			registrationForm.setStudentLeader(JSONUtil.toJsonStr(studentLeaderList));
+			registrationForm.setStudentLeaders(JSONUtil.toJsonStr(studentLeaderList));
 		}
 		// 数据校验
 		registrationFormService.validRegistrationForm(registrationForm, true);
@@ -124,9 +124,9 @@ public class RegistrationFormController {
 		// todo 在此处将实体类和 DTO 进行转换
 		RegistrationForm registrationForm = new RegistrationForm();
 		BeanUtils.copyProperties(registrationFormUpdateRequest, registrationForm);
-		List<String> studentLeaderList = registrationFormUpdateRequest.getStudentLeader();
+		List<String> studentLeaderList = registrationFormUpdateRequest.getStudentLeaders();
 		if (CollUtil.isNotEmpty(studentLeaderList)) {
-			registrationForm.setStudentLeader(JSONUtil.toJsonStr(studentLeaderList));
+			registrationForm.setStudentLeaders(JSONUtil.toJsonStr(studentLeaderList));
 		}
 		// 数据校验
 		registrationFormService.validRegistrationForm(registrationForm, false);
@@ -262,9 +262,9 @@ public class RegistrationFormController {
 		// todo 在此处将实体类和 DTO 进行转换
 		RegistrationForm registrationForm = new RegistrationForm();
 		BeanUtils.copyProperties(registrationFormEditRequest, registrationForm);
-		List<String> studentLeaderList = registrationFormEditRequest.getStudentLeader();
+		List<String> studentLeaderList = registrationFormEditRequest.getStudentLeaders();
 		if (CollUtil.isNotEmpty(studentLeaderList)) {
-			registrationForm.setStudentLeader(JSONUtil.toJsonStr(studentLeaderList));
+			registrationForm.setStudentLeaders(JSONUtil.toJsonStr(studentLeaderList));
 		}
 		// 数据校验
 		registrationFormService.validRegistrationForm(registrationForm, false);

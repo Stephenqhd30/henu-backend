@@ -104,7 +104,12 @@ public class RegistrationFormVO implements Serializable {
 	/**
 	 * 主要学生干部经历
 	 */
-	private List<String> studentLeader;
+	private List<String> studentLeaders;
+	
+	/**
+	 * 干部经历描述
+	 */
+	private String leaderExperience;
 	
 	/**
 	 * 获奖情况
@@ -188,9 +193,9 @@ public class RegistrationFormVO implements Serializable {
 		}
 		RegistrationForm registrationForm = new RegistrationForm();
 		BeanUtils.copyProperties(registrationFormVO, registrationForm);
-		List<String> studentLeader = registrationFormVO.getStudentLeader();
-		if (CollUtil.isNotEmpty(studentLeader)) {
-			registrationForm.setStudentLeader(JSONUtil.toJsonStr(studentLeader));
+		List<String> studentLeaders = registrationFormVO.getStudentLeaders();
+		if (CollUtil.isNotEmpty(studentLeaders)) {
+			registrationForm.setStudentLeaders(JSONUtil.toJsonStr(studentLeaders));
 		}
 		return registrationForm;
 	}
@@ -207,9 +212,9 @@ public class RegistrationFormVO implements Serializable {
 		}
 		RegistrationFormVO registrationFormVO = new RegistrationFormVO();
 		BeanUtils.copyProperties(registrationForm, registrationFormVO);
-		String studentLeader = registrationForm.getStudentLeader();
+		String studentLeader = registrationForm.getStudentLeaders();
 		if (StrUtil.isNotEmpty(studentLeader)) {
-			registrationFormVO.setStudentLeader(JSONUtil.toList(studentLeader, String.class));
+			registrationFormVO.setStudentLeaders(JSONUtil.toList(studentLeader, String.class));
 		}
 		return registrationFormVO;
 	}
