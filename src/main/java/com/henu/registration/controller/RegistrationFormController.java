@@ -110,13 +110,12 @@ public class RegistrationFormController {
 	}
 	
 	/**
-	 * 更新报名登记（仅管理员可用）
+	 * 更新报名登记
 	 *
 	 * @param registrationFormUpdateRequest registrationFormUpdateRequest
 	 * @return {@link BaseResponse<Boolean>}
 	 */
 	@PostMapping("/update")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Boolean> updateRegistrationForm(@RequestBody RegistrationFormUpdateRequest registrationFormUpdateRequest) {
 		if (registrationFormUpdateRequest == null || registrationFormUpdateRequest.getId() <= 0) {
 			throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -168,7 +167,6 @@ public class RegistrationFormController {
 	 * @return {@link BaseResponse<Page<RegistrationForm>>}
 	 */
 	@PostMapping("/list/page")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Page<RegistrationForm>> listRegistrationFormByPage(@RequestBody RegistrationFormQueryRequest registrationFormQueryRequest) {
 		long current = registrationFormQueryRequest.getCurrent();
 		long size = registrationFormQueryRequest.getPageSize();

@@ -1,10 +1,8 @@
 package com.henu.registration.controller;
 
-import cn.dev33.satoken.annotation.SaCheckRole;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.henu.registration.common.*;
 import com.henu.registration.common.exception.BusinessException;
-import com.henu.registration.constants.AdminConstant;
 import com.henu.registration.model.dto.messageNotice.MessageNoticeAddRequest;
 import com.henu.registration.model.dto.messageNotice.MessageNoticeQueryRequest;
 import com.henu.registration.model.dto.messageNotice.MessageNoticeUpdateRequest;
@@ -53,7 +51,6 @@ public class MessageNoticeController {
 	 * @return {@link BaseResponse<Long>}
 	 */
 	@PostMapping("/add")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Long> addMessageNotice(@RequestBody MessageNoticeAddRequest messageNoticeAddRequest, HttpServletRequest request) {
 		ThrowUtils.throwIf(messageNoticeAddRequest == null, ErrorCode.PARAMS_ERROR);
 		// todo 在此处将实体类和 DTO 进行转换
@@ -85,7 +82,6 @@ public class MessageNoticeController {
 	 * @return {@link BaseResponse<Boolean>}
 	 */
 	@PostMapping("/delete")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Boolean> deleteMessageNotice(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
 		if (deleteRequest == null || deleteRequest.getId() <= 0) {
 			throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -112,7 +108,6 @@ public class MessageNoticeController {
 	 * @return {@link BaseResponse<Boolean>}
 	 */
 	@PostMapping("/update")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Boolean> updateMessageNotice(@RequestBody MessageNoticeUpdateRequest messageNoticeUpdateRequest) {
 		if (messageNoticeUpdateRequest == null || messageNoticeUpdateRequest.getId() <= 0) {
 			throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -157,7 +152,6 @@ public class MessageNoticeController {
 	 * @return {@link BaseResponse<Page<MessageNotice>>}
 	 */
 	@PostMapping("/list/page")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Page<MessageNotice>> listMessageNoticeByPage(@RequestBody MessageNoticeQueryRequest messageNoticeQueryRequest) {
 		long current = messageNoticeQueryRequest.getCurrent();
 		long size = messageNoticeQueryRequest.getPageSize();

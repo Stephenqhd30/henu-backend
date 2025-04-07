@@ -145,7 +145,6 @@ public class FileLogController {
 	 * @return {@link BaseResponse<Page<FileLog>>}
 	 */
 	@PostMapping("/list/page")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Page<FileLog>> listFileLogByPage(@RequestBody FileLogQueryRequest fileLogQueryRequest) {
 		long current = fileLogQueryRequest.getCurrent();
 		long size = fileLogQueryRequest.getPageSize();

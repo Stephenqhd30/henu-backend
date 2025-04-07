@@ -1,10 +1,8 @@
 package com.henu.registration.controller;
 
-import cn.dev33.satoken.annotation.SaCheckRole;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.henu.registration.common.*;
 import com.henu.registration.common.exception.BusinessException;
-import com.henu.registration.constants.AdminConstant;
 import com.henu.registration.model.dto.schoolType.SchoolTypeAddRequest;
 import com.henu.registration.model.dto.schoolType.SchoolTypeQueryRequest;
 import com.henu.registration.model.dto.schoolType.SchoolTypeUpdateRequest;
@@ -46,7 +44,6 @@ public class SchoolTypeController {
 	 * @return {@link BaseResponse<Long>}
 	 */
 	@PostMapping("/add")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Long> addSchoolType(@RequestBody SchoolTypeAddRequest schoolTypeAddRequest, HttpServletRequest request) {
 		ThrowUtils.throwIf(schoolTypeAddRequest == null, ErrorCode.PARAMS_ERROR);
 		// todo 在此处将实体类和 DTO 进行转换
@@ -74,7 +71,6 @@ public class SchoolTypeController {
 	 * @return {@link BaseResponse<Boolean>}
 	 */
 	@PostMapping("/delete")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Boolean> deleteSchoolType(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
 		if (deleteRequest == null || deleteRequest.getId() <= 0) {
 			throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -97,7 +93,6 @@ public class SchoolTypeController {
 	 * @return {@link BaseResponse<Boolean>}
 	 */
 	@PostMapping("/update")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Boolean> updateSchoolType(@RequestBody SchoolTypeUpdateRequest schoolTypeUpdateRequest) {
 		if (schoolTypeUpdateRequest == null || schoolTypeUpdateRequest.getId() <= 0) {
 			throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -140,7 +135,6 @@ public class SchoolTypeController {
 	 * @return {@link BaseResponse<Page<SchoolType>>}
 	 */
 	@PostMapping("/list/page")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Page<SchoolType>> listSchoolTypeByPage(@RequestBody SchoolTypeQueryRequest schoolTypeQueryRequest) {
 		long current = schoolTypeQueryRequest.getCurrent();
 		long size = schoolTypeQueryRequest.getPageSize();

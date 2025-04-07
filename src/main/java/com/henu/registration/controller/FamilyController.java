@@ -1,12 +1,10 @@
 package com.henu.registration.controller;
 
-import cn.dev33.satoken.annotation.SaCheckRole;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.henu.registration.common.*;
 import com.henu.registration.common.exception.BusinessException;
-import com.henu.registration.constants.AdminConstant;
 import com.henu.registration.model.dto.family.FamilyAddRequest;
 import com.henu.registration.model.dto.family.FamilyEditRequest;
 import com.henu.registration.model.dto.family.FamilyQueryRequest;
@@ -110,7 +108,6 @@ public class FamilyController {
 	 * @return {@link BaseResponse<Boolean>}
 	 */
 	@PostMapping("/update")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Boolean> updateFamily(@RequestBody FamilyUpdateRequest familyUpdateRequest) {
 		if (familyUpdateRequest == null || familyUpdateRequest.getId() <= 0) {
 			throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -154,7 +151,6 @@ public class FamilyController {
 	 * @return {@link BaseResponse<Page<Family>>}
 	 */
 	@PostMapping("/list/page")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Page<Family>> listFamilyByPage(@RequestBody FamilyQueryRequest familyQueryRequest) {
 		long current = familyQueryRequest.getCurrent();
 		long size = familyQueryRequest.getPageSize();

@@ -1,10 +1,8 @@
 package com.henu.registration.controller;
 
-import cn.dev33.satoken.annotation.SaCheckRole;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.henu.registration.common.*;
 import com.henu.registration.common.exception.BusinessException;
-import com.henu.registration.constants.AdminConstant;
 import com.henu.registration.model.dto.deadline.DeadlineAddRequest;
 import com.henu.registration.model.dto.deadline.DeadlineQueryRequest;
 import com.henu.registration.model.dto.deadline.DeadlineUpdateRequest;
@@ -46,7 +44,6 @@ public class DeadlineController {
 	 * @return {@link BaseResponse<Long>}
 	 */
 	@PostMapping("/add")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Long> addDeadline(@RequestBody DeadlineAddRequest deadlineAddRequest, HttpServletRequest request) {
 		ThrowUtils.throwIf(deadlineAddRequest == null, ErrorCode.PARAMS_ERROR);
 		// todo 在此处将实体类和 DTO 进行转换
@@ -73,12 +70,10 @@ public class DeadlineController {
 	 * @return {@link BaseResponse<Boolean>}
 	 */
 	@PostMapping("/delete")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Boolean> deleteDeadline(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
 		if (deleteRequest == null || deleteRequest.getId() <= 0) {
 			throw new BusinessException(ErrorCode.PARAMS_ERROR);
 		}
-		Admin admin = adminService.getLoginAdmin(request);
 		long id = deleteRequest.getId();
 		// 判断是否存在
 		Deadline oldDeadline = deadlineService.getById(id);
@@ -96,7 +91,6 @@ public class DeadlineController {
 	 * @return {@link BaseResponse<Boolean>}
 	 */
 	@PostMapping("/update")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Boolean> updateDeadline(@RequestBody DeadlineUpdateRequest deadlineUpdateRequest) {
 		if (deadlineUpdateRequest == null || deadlineUpdateRequest.getId() <= 0) {
 			throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -140,7 +134,6 @@ public class DeadlineController {
 	 * @return {@link BaseResponse<Page<Deadline>>}
 	 */
 	@PostMapping("/list/page")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Page<Deadline>> listDeadlineByPage(@RequestBody DeadlineQueryRequest deadlineQueryRequest) {
 		long current = deadlineQueryRequest.getCurrent();
 		long size = deadlineQueryRequest.getPageSize();

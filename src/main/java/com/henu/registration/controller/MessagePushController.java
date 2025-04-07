@@ -1,12 +1,10 @@
 package com.henu.registration.controller;
 
-import cn.dev33.satoken.annotation.SaCheckRole;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.henu.registration.common.*;
 import com.henu.registration.common.exception.BusinessException;
-import com.henu.registration.constants.AdminConstant;
 import com.henu.registration.model.dto.messagePush.MessagePushAddRequest;
 import com.henu.registration.model.dto.messagePush.MessagePushQueryRequest;
 import com.henu.registration.model.entity.MessageNotice;
@@ -63,7 +61,6 @@ public class MessagePushController {
 	 * @return {@link BaseResponse<Long>}
 	 */
 	@PostMapping("/add")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	@Transactional
 	public BaseResponse<Long> addMessagePush(@RequestBody MessagePushAddRequest messagePushAddRequest, HttpServletRequest request) {
 		ThrowUtils.throwIf(messagePushAddRequest == null, ErrorCode.PARAMS_ERROR);
@@ -118,7 +115,6 @@ public class MessagePushController {
 	 * @return {@link BaseResponse<Boolean>}
 	 */
 	@PostMapping("/delete")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Boolean> deleteMessagePush(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
 		if (deleteRequest == null || deleteRequest.getId() <= 0) {
 			throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -156,7 +152,6 @@ public class MessagePushController {
 	 * @return {@link BaseResponse<Page<MessagePush>>}
 	 */
 	@PostMapping("/list/page")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Page<MessagePush>> listMessagePushByPage(@RequestBody MessagePushQueryRequest messagePushQueryRequest) {
 		long current = messagePushQueryRequest.getCurrent();
 		long size = messagePushQueryRequest.getPageSize();

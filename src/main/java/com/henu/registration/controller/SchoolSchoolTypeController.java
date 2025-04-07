@@ -56,7 +56,6 @@ public class SchoolSchoolTypeController {
 	 * @return {@link BaseResponse<Long>}
 	 */
 	@PostMapping("/add")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Long> addSchoolSchoolType(@RequestBody SchoolSchoolTypeAddRequest schoolSchoolTypeAddRequest, HttpServletRequest request) {
 		ThrowUtils.throwIf(schoolSchoolTypeAddRequest == null, ErrorCode.PARAMS_ERROR);
 		// 数据校验
@@ -97,7 +96,6 @@ public class SchoolSchoolTypeController {
 	 * @return {@link BaseResponse<Boolean>}
 	 */
 	@PostMapping("/delete")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Boolean> deleteSchoolSchoolType(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
 		if (deleteRequest == null || deleteRequest.getId() <= 0) {
 			throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -120,7 +118,6 @@ public class SchoolSchoolTypeController {
 	 * @return {@link BaseResponse<Boolean>}
 	 */
 	@PostMapping("/update")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Boolean> updateSchoolSchoolType(@RequestBody SchoolSchoolTypeUpdateRequest schoolSchoolTypeUpdateRequest) {
 		if (schoolSchoolTypeUpdateRequest == null || schoolSchoolTypeUpdateRequest.getId() <= 0) {
 			throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -173,7 +170,6 @@ public class SchoolSchoolTypeController {
 	 * @return {@link BaseResponse<Page<SchoolSchoolType>>}
 	 */
 	@PostMapping("/list/page")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Page<SchoolSchoolType>> listSchoolSchoolTypeByPage(@RequestBody SchoolSchoolTypeQueryRequest schoolSchoolTypeQueryRequest) {
 		long current = schoolSchoolTypeQueryRequest.getCurrent();
 		long size = schoolSchoolTypeQueryRequest.getPageSize();

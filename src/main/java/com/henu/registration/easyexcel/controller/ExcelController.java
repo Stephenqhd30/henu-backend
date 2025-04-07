@@ -38,7 +38,6 @@ public class ExcelController {
 	 * @return BaseResponse<String>
 	 */
 	@PostMapping("/import/admin")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<String> importAdminExcel(@RequestParam("file") MultipartFile file) {
 		ThrowUtils.throwIf(file.isEmpty(), ErrorCode.EXCEL_ERROR, "文件为空");
 		try {
@@ -56,7 +55,6 @@ public class ExcelController {
 	 * 导出用户信息到 Excel
 	 */
 	@GetMapping("/export/admin")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public void exportAdmin(HttpServletResponse response) throws IOException {
 		excelService.exportAdmin(response);
 	}
@@ -65,7 +63,6 @@ public class ExcelController {
 	 * 导出导入用户信息模版
 	 */
 	@GetMapping("/export/template/admin")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public void exportAdminTemplate(HttpServletResponse response) {
 		ExcelUtils.exportTemplateHttpServletResponse(ExcelConstant.ADMIN, response);
 	}
@@ -74,7 +71,6 @@ public class ExcelController {
 	 * 导出操作日志信息到 Excel
 	 */
 	@GetMapping("/export/operation/log")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public void exportOperationLog(HttpServletResponse response) throws IOException {
 		excelService.exportOperationLog(response);
 	}
@@ -83,7 +79,6 @@ public class ExcelController {
 	 * 导出用户信息到 Excel
 	 */
 	@GetMapping("/export/user")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public void exportUser(HttpServletResponse response) throws IOException {
 		excelService.exportUser(response);
 	}
@@ -92,7 +87,6 @@ public class ExcelController {
 	 * 导出干部类型到 Excel
 	 */
 	@GetMapping("/export/cadre/type")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public void exportCadreType(HttpServletResponse response) throws IOException {
 		excelService.exportCadreType(response);
 	}
@@ -101,7 +95,6 @@ public class ExcelController {
 	 * 导出截止时间到 Excel
 	 */
 	@GetMapping("/export/deadline")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public void exportDeadline(HttpServletResponse response) throws IOException {
 		excelService.exportDeadline(response);
 	}
@@ -110,7 +103,6 @@ public class ExcelController {
 	 * 导出教育经历表到 Excel
 	 */
 	@GetMapping("/export/education")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public void exportEducation(HttpServletResponse response) throws IOException {
 		excelService.exportEducation(response);
 	}
@@ -119,7 +111,6 @@ public class ExcelController {
 	 * 导出家庭关系信息到 Excel
 	 */
 	@GetMapping("/export/family")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public void exportFamily(HttpServletResponse response) throws IOException {
 		excelService.exportFamily(response);
 	}
@@ -128,7 +119,6 @@ public class ExcelController {
 	 * 导出文件上传日志信息到 Excel
 	 */
 	@GetMapping("/export/file/log")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public void exportFileLog(HttpServletResponse response) throws IOException {
 		excelService.exportFileLog(response);
 	}
@@ -137,7 +127,6 @@ public class ExcelController {
 	 * 导出文件类型信息到 Excel
 	 */
 	@GetMapping("/export/file/type")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public void exportFileType(HttpServletResponse response) throws IOException {
 		excelService.exportFileType(response);
 	}
@@ -146,7 +135,6 @@ public class ExcelController {
 	 * 导出文件类型信息到 Excel
 	 */
 	@GetMapping("/export/job")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public void exportJob(HttpServletResponse response) throws IOException {
 		excelService.exportJob(response);
 	}
@@ -155,7 +143,6 @@ public class ExcelController {
 	 * 导出报名登记表信息到 Excel
 	 */
 	@GetMapping("/export/registration/form")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public void exportRegistrationForm(HttpServletResponse response) throws IOException {
 		excelService.exportRegistrationForm(response);
 	}
@@ -164,7 +151,6 @@ public class ExcelController {
 	 * 导出审核日志信息到 Excel
 	 */
 	@GetMapping("/export/review/log")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public void exportReviewLog(HttpServletResponse response) throws IOException {
 		excelService.exportReviewLog(response);
 	}
@@ -176,7 +162,6 @@ public class ExcelController {
 	 * @return BaseResponse<String>
 	 */
 	@PostMapping("/import/school")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<String> importSchoolExcel(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
 		ThrowUtils.throwIf(file.isEmpty(), ErrorCode.EXCEL_ERROR, "文件为空");
 		try {
@@ -194,7 +179,6 @@ public class ExcelController {
 	 * 导出学校信息到 Excel
 	 */
 	@GetMapping("/export/school")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public void exportSchool(HttpServletResponse response) throws IOException {
 		excelService.exportSchool(response);
 	}
@@ -203,7 +187,6 @@ public class ExcelController {
 	 * 导出学校信息信息模版
 	 */
 	@GetMapping("/export/template/school")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public void exportSchoolTemplate(HttpServletResponse response) {
 		ExcelUtils.exportTemplateHttpServletResponse(ExcelConstant.SCHOOL, response);
 	}
@@ -215,7 +198,6 @@ public class ExcelController {
 	 * @return BaseResponse<String>
 	 */
 	@PostMapping("/import/school/school/type")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<String> importSchoolSchoolTypeExcel(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
 		ThrowUtils.throwIf(file.isEmpty(), ErrorCode.EXCEL_ERROR, "文件为空");
 		try {
@@ -233,7 +215,6 @@ public class ExcelController {
 	 * 导出高校与高校类型关联信息到 Excel
 	 */
 	@GetMapping("/export/school/school/type")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public void exportSchoolSchoolType(HttpServletResponse response) throws IOException {
 		excelService.exportSchoolSchoolType(response);
 	}
@@ -242,7 +223,6 @@ public class ExcelController {
 	 * 导出高校与高校类型关联信息模版
 	 */
 	@GetMapping("/export/template/school/school/type")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public void exportSchoolSchoolTypeTemplate(HttpServletResponse response) {
 		ExcelUtils.exportTemplateHttpServletResponse(ExcelConstant.SCHOOL_SCHOOL_TYPE, response);
 	}
@@ -255,7 +235,6 @@ public class ExcelController {
 	 * @return BaseResponse<String>
 	 */
 	@PostMapping("/import/school/type")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<String> importSchoolTypeExcel(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
 		ThrowUtils.throwIf(file.isEmpty(), ErrorCode.EXCEL_ERROR, "文件为空");
 		try {
@@ -273,7 +252,6 @@ public class ExcelController {
 	 * 导出高校类型信息到 Excel
 	 */
 	@GetMapping("/export/school/type")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public void exportSchoolType(HttpServletResponse response) throws IOException {
 		excelService.exportSchoolType(response);
 	}
@@ -282,7 +260,6 @@ public class ExcelController {
 	 * 导出高校类型信息模版
 	 */
 	@GetMapping("/export/template/school/type")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public void exportSchoolTypeTemplate(HttpServletResponse response) {
 		ExcelUtils.exportTemplateHttpServletResponse(ExcelConstant.SCHOOL_TYPE, response);
 	}
@@ -291,7 +268,6 @@ public class ExcelController {
 	 * 导出面试消息通知到 Excel
 	 */
 	@GetMapping("/export/message/notice")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public void exportMessageNotice(HttpServletResponse response) throws IOException {
 		excelService.exportMessageNotice(response);
 	}
@@ -300,7 +276,6 @@ public class ExcelController {
 	 * 导出消息推送信息到 Excel
 	 */
 	@GetMapping("/export/message/push")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public void exportMessagePush(HttpServletResponse response) throws IOException {
 		excelService.exportMessagePush(response);
 		
@@ -310,7 +285,6 @@ public class ExcelController {
 	 * 导出系统消息信息到 Excel
 	 */
 	@GetMapping("/export/system/message")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public void exportSystemMessages(HttpServletResponse response) throws IOException {
 		excelService.exportSystemMessages(response);
 		

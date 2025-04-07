@@ -106,13 +106,12 @@ public class EducationController {
 	}
 	
 	/**
-	 * 更新教育经历表（仅系统管理员可用）
+	 * 更新教育经历表
 	 *
 	 * @param educationUpdateRequest educationUpdateRequest
 	 * @return {@link BaseResponse<Boolean>}
 	 */
 	@PostMapping("/update")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Boolean> updateEducation(@RequestBody EducationUpdateRequest educationUpdateRequest) {
 		if (educationUpdateRequest == null || educationUpdateRequest.getId() <= 0) {
 			throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -149,13 +148,12 @@ public class EducationController {
 	}
 	
 	/**
-	 * 分页获取教育经历表列表（仅系统管理员可用）
+	 * 分页获取教育经历表列表
 	 *
 	 * @param educationQueryRequest educationQueryRequest
 	 * @return {@link BaseResponse<Page<Education>>}
 	 */
 	@PostMapping("/list/page")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Page<Education>> listEducationByPage(@RequestBody EducationQueryRequest educationQueryRequest) {
 		long current = educationQueryRequest.getCurrent();
 		long size = educationQueryRequest.getPageSize();

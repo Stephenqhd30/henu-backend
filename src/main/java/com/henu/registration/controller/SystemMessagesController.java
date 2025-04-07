@@ -1,10 +1,8 @@
 package com.henu.registration.controller;
 
-import cn.dev33.satoken.annotation.SaCheckRole;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.henu.registration.common.*;
 import com.henu.registration.common.exception.BusinessException;
-import com.henu.registration.constants.AdminConstant;
 import com.henu.registration.model.dto.systemMessages.SystemMessagesAddRequest;
 import com.henu.registration.model.dto.systemMessages.SystemMessagesQueryRequest;
 import com.henu.registration.model.dto.systemMessages.SystemMessagesUpdateRequest;
@@ -39,7 +37,6 @@ public class SystemMessagesController {
 	 * @return {@link BaseResponse<Long>}
 	 */
 	@PostMapping("/add")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Long> addSystemMessages(@RequestBody SystemMessagesAddRequest systemMessagesAddRequest, HttpServletRequest request) {
 		ThrowUtils.throwIf(systemMessagesAddRequest == null, ErrorCode.PARAMS_ERROR);
 		// todo 在此处将实体类和 DTO 进行转换
@@ -63,7 +60,6 @@ public class SystemMessagesController {
 	 * @return {@link BaseResponse<Boolean>}
 	 */
 	@PostMapping("/delete")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Boolean> deleteSystemMessages(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
 		if (deleteRequest == null || deleteRequest.getId() <= 0) {
 			throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -85,7 +81,6 @@ public class SystemMessagesController {
 	 * @return {@link BaseResponse<Boolean>}
 	 */
 	@PostMapping("/update")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Boolean> updateSystemMessages(@RequestBody SystemMessagesUpdateRequest systemMessagesUpdateRequest) {
 		if (systemMessagesUpdateRequest == null || systemMessagesUpdateRequest.getId() <= 0) {
 			throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -128,7 +123,6 @@ public class SystemMessagesController {
 	 * @return {@link BaseResponse<Page<SystemMessages>>}
 	 */
 	@PostMapping("/list/page")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Page<SystemMessages>> listSystemMessagesByPage(@RequestBody SystemMessagesQueryRequest systemMessagesQueryRequest) {
 		long current = systemMessagesQueryRequest.getCurrent();
 		long size = systemMessagesQueryRequest.getPageSize();
@@ -158,6 +152,5 @@ public class SystemMessagesController {
 		// 获取封装类
 		return ResultUtils.success(systemMessagesService.getSystemMessagesVOPage(systemMessagesPage, request));
 	}
-	
 	// endregion
 }

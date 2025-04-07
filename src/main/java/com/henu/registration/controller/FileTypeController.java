@@ -49,7 +49,6 @@ public class FileTypeController {
 	 * @return {@link BaseResponse<Long>}
 	 */
 	@PostMapping("/add")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Long> addFileType(@RequestBody FileTypeAddRequest fileTypeAddRequest, HttpServletRequest request) {
 		ThrowUtils.throwIf(fileTypeAddRequest == null, ErrorCode.PARAMS_ERROR);
 		// todo 在此处将实体类和 DTO 进行转换

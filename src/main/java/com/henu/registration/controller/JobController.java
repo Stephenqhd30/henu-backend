@@ -46,7 +46,6 @@ public class JobController {
      * @return {@link BaseResponse<Long>}
      */
     @PostMapping("/add")
-    @SaCheckRole(AdminConstant.SYSTEM_ADMIN)
     public BaseResponse<Long> addJob(@RequestBody JobAddRequest jobAddRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(jobAddRequest == null, ErrorCode.PARAMS_ERROR);
         // todo 在此处将实体类和 DTO 进行转换
@@ -94,13 +93,12 @@ public class JobController {
     }
 
     /**
-     * 更新岗位信息表（仅系统管理员可用）
+     * 更新岗位信息表
      *
      * @param jobUpdateRequest jobUpdateRequest
      * @return {@link BaseResponse<Boolean>}
      */
     @PostMapping("/update")
-    @SaCheckRole(AdminConstant.SYSTEM_ADMIN)
     public BaseResponse<Boolean> updateJob(@RequestBody JobUpdateRequest jobUpdateRequest) {
         if (jobUpdateRequest == null || jobUpdateRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -110,7 +108,6 @@ public class JobController {
         BeanUtils.copyProperties(jobUpdateRequest, job);
         // 数据校验
         jobService.validJob(job, false);
-
         // 判断是否存在
         long id = jobUpdateRequest.getId();
         Job oldJob = jobService.getById(id);
@@ -144,7 +141,6 @@ public class JobController {
      * @return {@link BaseResponse<Page<Job>>}
      */
     @PostMapping("/list/page")
-    @SaCheckRole(AdminConstant.SYSTEM_ADMIN)
     public BaseResponse<Page<Job>> listJobByPage(@RequestBody JobQueryRequest jobQueryRequest) {
         long current = jobQueryRequest.getCurrent();
         long size = jobQueryRequest.getPageSize();

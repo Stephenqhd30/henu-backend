@@ -1,10 +1,8 @@
 package com.henu.registration.controller;
 
-import cn.dev33.satoken.annotation.SaCheckRole;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.henu.registration.common.*;
 import com.henu.registration.common.exception.BusinessException;
-import com.henu.registration.constants.AdminConstant;
 import com.henu.registration.model.dto.cadreType.CadreTypeAddRequest;
 import com.henu.registration.model.dto.cadreType.CadreTypeQueryRequest;
 import com.henu.registration.model.dto.cadreType.CadreTypeUpdateRequest;
@@ -46,7 +44,6 @@ public class CadreTypeController {
 	 * @return {@link BaseResponse<Long>}
 	 */
 	@PostMapping("/add")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Long> addCadreType(@RequestBody CadreTypeAddRequest cadreTypeAddRequest, HttpServletRequest request) {
 		ThrowUtils.throwIf(cadreTypeAddRequest == null, ErrorCode.PARAMS_ERROR);
 		// todo 在此处将实体类和 DTO 进行转换
@@ -73,7 +70,6 @@ public class CadreTypeController {
 	 * @return {@link BaseResponse<Boolean>}
 	 */
 	@PostMapping("/delete")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Boolean> deleteCadreType(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
 		if (deleteRequest == null || deleteRequest.getId() <= 0) {
 			throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -95,7 +91,6 @@ public class CadreTypeController {
 	 * @return {@link BaseResponse<Boolean>}
 	 */
 	@PostMapping("/update")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Boolean> updateCadreType(@RequestBody CadreTypeUpdateRequest cadreTypeUpdateRequest) {
 		if (cadreTypeUpdateRequest == null || cadreTypeUpdateRequest.getId() <= 0) {
 			throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -132,13 +127,12 @@ public class CadreTypeController {
 	}
 	
 	/**
-	 * 分页获取干部类型列表（仅系统管理员可用）
+	 * 分页获取干部类型列表
 	 *
 	 * @param cadreTypeQueryRequest cadreTypeQueryRequest
 	 * @return {@link BaseResponse<Page<CadreType>>}
 	 */
 	@PostMapping("/list/page")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Page<CadreType>> listCadreTypeByPage(@RequestBody CadreTypeQueryRequest cadreTypeQueryRequest) {
 		long current = cadreTypeQueryRequest.getCurrent();
 		long size = cadreTypeQueryRequest.getPageSize();
@@ -193,6 +187,5 @@ public class CadreTypeController {
 		// 获取封装类
 		return ResultUtils.success(cadreTypeService.getCadreTypeVOPage(cadreTypePage, request));
 	}
-	
 	// endregion
 }

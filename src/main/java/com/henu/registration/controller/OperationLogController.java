@@ -1,24 +1,15 @@
 package com.henu.registration.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import cn.dev33.satoken.annotation.SaCheckRole;
 import com.henu.registration.common.BaseResponse;
-import com.henu.registration.common.DeleteRequest;
 import com.henu.registration.common.ErrorCode;
 import com.henu.registration.common.ResultUtils;
-import com.henu.registration.constants.AdminConstant;
-import com.henu.registration.constants.UserConstant;
-import com.henu.registration.common.exception.BusinessException;
 import com.henu.registration.common.ThrowUtils;
 import com.henu.registration.model.dto.operationLog.OperationLogQueryRequest;
 import com.henu.registration.model.entity.OperationLog;
-import com.henu.registration.model.entity.User;
-
 import com.henu.registration.model.vo.operationLog.OperationLogVO;
 import com.henu.registration.service.OperationLogService;
-import com.henu.registration.service.UserService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -46,7 +37,6 @@ public class OperationLogController {
 	 * @return {@link BaseResponse<OperationLogVO>}
 	 */
 	@GetMapping("/get/vo")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<OperationLogVO> getOperationLogVOById(long id, HttpServletRequest request) {
 		ThrowUtils.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
 		// 查询数据库
@@ -63,7 +53,6 @@ public class OperationLogController {
 	 * @return {@link BaseResponse<Page<OperationLog>>}
 	 */
 	@PostMapping("/list/page")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Page<OperationLog>> listOperationLogByPage(@RequestBody OperationLogQueryRequest operationLogQueryRequest) {
 		long current = operationLogQueryRequest.getCurrent();
 		long size = operationLogQueryRequest.getPageSize();
@@ -81,7 +70,6 @@ public class OperationLogController {
 	 * @return {@link BaseResponse<Page<OperationLogVO>>}
 	 */
 	@PostMapping("/list/page/vo")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Page<OperationLogVO>> listOperationLogVOByPage(@RequestBody OperationLogQueryRequest operationLogQueryRequest,
 	                                                                   HttpServletRequest request) {
 		long current = operationLogQueryRequest.getCurrent();
