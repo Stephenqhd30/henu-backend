@@ -1,14 +1,16 @@
 package com.henu.registration.utils.oss;
 
+import cn.hutool.core.io.resource.InputStreamResource;
 import com.henu.registration.common.ErrorCode;
 import com.henu.registration.common.exception.BusinessException;
 import com.henu.registration.config.bean.SpringContextHolder;
 import com.henu.registration.manager.oss.MinioManager;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Stack;
+import java.io.InputStream;
 
 /**
  * MinIO工具类
@@ -46,5 +48,20 @@ public class MinioUtils {
 	public static void deleteInMinioByUrl(String url) {
 		MINIO_MANAGER.deleteInMinioByUrl(url);
 	}
+	
+	/**
+	 * 下载文件从 MinIO
+	 *
+	 * @param url url
+	 * @return ResponseEntity<InputStreamResource>
+	 */
+	public static ResponseEntity<InputStreamResource> downloadFromMinio(String url) {
+		return MINIO_MANAGER.downloadFromMinio(url);
+	}
+	
+	public static InputStream getFileStream(String url) {
+		return MINIO_MANAGER.getFileStream(url);
+	}
+	
 	
 }

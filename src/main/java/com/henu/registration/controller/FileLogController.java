@@ -1,12 +1,11 @@
 package com.henu.registration.controller;
 
-import cn.dev33.satoken.annotation.SaCheckRole;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.henu.registration.common.*;
 import com.henu.registration.common.exception.BusinessException;
-import com.henu.registration.constants.AdminConstant;
+import com.henu.registration.model.dto.fileLog.DownloadFileRequest;
 import com.henu.registration.model.dto.fileLog.FileLogQueryRequest;
 import com.henu.registration.model.dto.fileLog.UploadFileRequest;
 import com.henu.registration.model.entity.FileLog;
@@ -20,11 +19,21 @@ import com.henu.registration.service.UserService;
 import com.henu.registration.utils.encrypt.MD5Utils;
 import com.henu.registration.utils.oss.MinioUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 /**
  * 文件接口
@@ -92,6 +101,66 @@ public class FileLogController {
 		// 返回可访问地址
 		return ResultUtils.success(fileUrl);
 		
+	}
+	
+	/**
+	 * 文件下载（将用户所有上传文件打包为 ZIP，通过 MinIO 获取）
+	 *
+	 * @param downloadFileRequest 请求体，包含 userId
+	 * @param response            HttpServletResponse
+	 */
+	@PostMapping("/download")
+	public void downloadFile(@RequestBody DownloadFileRequest downloadFileRequest, HttpServletResponse response) {
+		// 1. 参数校验
+		if (downloadFileRequest == null || downloadFileRequest.getUserId() == null || downloadFileRequest.getUserId() <= 0) {
+			throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数错误");
+		}
+		Long userId = downloadFileRequest.getUserId();
+		// 2. 获取用户信息
+		User user = userService.getById(userId);
+		ThrowUtils.throwIf(user == null, ErrorCode.NOT_FOUND_ERROR, "用户不存在");
+		
+		// 3. 获取用户的文件上传记录
+		List<FileLog> fileLogList = fileLogService.list(Wrappers.lambdaQuery(FileLog.class)
+				.eq(FileLog::getUserId, userId));
+		ThrowUtils.throwIf(fileLogList == null || fileLogList.isEmpty(), ErrorCode.NOT_FOUND_ERROR);
+		// 4. 设置响应头（ZIP 文件下载）
+		response.setContentType("application/zip");
+		String zipFileName = URLEncoder.encode(user.getUserName() + ".zip", StandardCharsets.UTF_8).replaceAll("\\+", "%20");
+		response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + zipFileName);
+		// 5. 创建 Zip 输出流并写入文件
+		try (OutputStream outputStream = response.getOutputStream();
+		     ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream)) {
+			for (FileLog fileLog : fileLogList) {
+				Long fileTypeId = fileLog.getFileTypeId();
+				FileType fileType = fileTypeService.getById(fileTypeId);
+				String fileName = user.getUserName() + "-" + fileType.getTypeName();
+				fileName += fileLog.getFileName().substring(fileLog.getFileName().lastIndexOf("."));
+				String filePath = fileLog.getFilePath();
+				// 从 MinIO 获取文件流
+				try (InputStream fileInputStream = MinioUtils.getFileStream(filePath)) {
+					if (fileInputStream == null) {
+						continue;
+					}
+					// 创建 ZIP 条目并写入文件内容
+					zipOutputStream.putNextEntry(new ZipEntry(fileName));
+					byte[] buffer = new byte[4096];
+					int length;
+					while ((length = fileInputStream.read(buffer)) > 0) {
+						zipOutputStream.write(buffer, 0, length);
+					}
+					zipOutputStream.closeEntry();
+				} catch (IOException e) {
+					// 单个文件下载失败，不中断整体流程
+					log.warn("下载文件失败: {}", filePath, e);
+				}
+			}
+			zipOutputStream.finish();
+			outputStream.flush();
+		} catch (IOException e) {
+			log.error("压缩文件输出失败", e);
+			throw new BusinessException(ErrorCode.OPERATION_ERROR, "文件下载失败");
+		}
 	}
 	
 	/**
