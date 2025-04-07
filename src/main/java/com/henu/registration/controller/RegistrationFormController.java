@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.henu.registration.common.*;
 import com.henu.registration.common.exception.BusinessException;
@@ -21,6 +22,7 @@ import com.henu.registration.service.SchoolSchoolTypeService;
 import com.henu.registration.service.UserService;
 import com.henu.registration.utils.caffeine.LocalCacheUtils;
 import com.henu.registration.utils.redisson.cache.CacheUtils;
+import com.henu.registration.utils.redisson.lock.LockUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -77,14 +79,25 @@ public class RegistrationFormController {
 		// todo 填充默认值
 		User loginUser = userService.getLoginUser(request);
 		registrationForm.setUserId(loginUser.getId());
-		// 对身份证号进行加密
-		registrationForm.setUserIdCard(userService.getEncryptIdCard(registrationForm.getUserIdCard()));
-		// 写入数据库
-		boolean result = registrationFormService.save(registrationForm);
-		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
-		// 返回新写入的数据 id
-		long newRegistrationFormId = registrationForm.getId();
-		return ResultUtils.success(newRegistrationFormId);
+		return LockUtils.lockEvent(loginUser.getId().toString(), () -> {
+			// 判断该用户是否已经创建过相关信息
+			RegistrationForm oldRegistrationForm = registrationFormService.getOne(Wrappers.lambdaQuery(RegistrationForm.class)
+					.eq(RegistrationForm::getUserId, loginUser.getId())
+					.eq(RegistrationForm::getJobId, registrationFormAddRequest.getJobId()));
+			if (oldRegistrationForm != null) {
+				registrationForm.setId(oldRegistrationForm.getId());
+			}
+			// 对身份证号进行加密
+			registrationForm.setUserIdCard(userService.getEncryptIdCard(registrationForm.getUserIdCard()));
+			// 写入数据库
+			boolean result = registrationFormService.saveOrUpdate(registrationForm);
+			ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+			// 返回新写入的数据 id
+			long newRegistrationFormId = registrationForm.getId();
+			return ResultUtils.success(newRegistrationFormId);
+		}, () -> {
+			throw new BusinessException(ErrorCode.OPERATION_ERROR, "请勿重复提交");
+		});
 	}
 	
 	/**

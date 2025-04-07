@@ -5,6 +5,7 @@ import com.henu.registration.common.ErrorCode;
 import com.henu.registration.common.ThrowUtils;
 import com.henu.registration.model.entity.MessageNotice;
 import com.henu.registration.model.entity.MessagePush;
+import com.henu.registration.model.entity.RegistrationForm;
 import com.henu.registration.model.entity.User;
 import com.henu.registration.model.enums.PushStatusEnum;
 import com.henu.registration.rabbitmq.consumer.model.RabbitMessage;
@@ -13,6 +14,7 @@ import com.henu.registration.rabbitmq.defaultMq.DefaultRabbitMqWithDelay;
 import com.henu.registration.rabbitmq.defaultMq.DefaultRabbitMqWithDlx;
 import com.henu.registration.service.MessageNoticeService;
 import com.henu.registration.service.MessagePushService;
+import com.henu.registration.service.RegistrationFormService;
 import com.henu.registration.service.UserService;
 import com.henu.registration.utils.sms.SMSUtils;
 import com.rabbitmq.client.Channel;
@@ -47,6 +49,10 @@ public class RabbitMqConsumer {
 	
 	@Resource
 	private MessageNoticeService messageNoticeService;
+	
+	@Resource
+	private RegistrationFormService registrationFormService;
+	
 	
 	/**
 	 * 处理普通队列消息
@@ -127,14 +133,17 @@ public class RabbitMqConsumer {
 			// 生成短信参数
 			String params = smsUtils.getParams(messagePush);
 			// 获取用户信息
-			User user = userService.getById(messagePush.getUserId());
+			MessageNotice messageNotice = messageNoticeService.getById(messagePush.getMessageNoticeId());
+			RegistrationForm registrationForm = registrationFormService.getById(messageNotice.getRegistrationId());
+			Long userId = registrationForm.getUserId();
+			User user = userService.getById(userId);
 			if (user == null) {
-				log.warn("用户不存在，消息进入死信队列: userId={}", messagePush.getUserId());
+				log.warn("用户不存在，消息进入死信队列: userId={}", userId);
 				channel.basicNack(tag, false, false);
 				return;
 			}
 			// 发送短信
-			smsUtils.sendMessage(user.getUserPhone(), params);
+			smsUtils.sendMessage(registrationForm.getUserPhone(), params);
 			// 更新消息推送状态
 			messagePushService.lambdaUpdate()
 					.set(MessagePush::getPushMessage, params)
