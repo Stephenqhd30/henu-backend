@@ -7,8 +7,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import java.util.Objects;
 
 /**
- * 审核状态枚举类
- * 审核状态：0-待审核, 1-通过, 2-拒绝
+ * 教育阶段枚举类
  *
  * @author stephenqiu
  */
@@ -16,11 +15,9 @@ import java.util.Objects;
 @AllArgsConstructor
 public enum EducationalStageEnum {
 	
-	SPECIALTY("专科", "专科"),
 	UNDERGRADUATE_COURSE("本科", "本科"),
 	POSTGRADUATE("硕士", "硕士"),
-	DOCTOR_DEGREE("博士", "博士"),
-	;
+	DOCTOR_DEGREE("博士", "博士");
 	private final String text;
 	
 	private final String value;

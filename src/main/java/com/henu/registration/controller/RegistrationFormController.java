@@ -1,13 +1,12 @@
 package com.henu.registration.controller;
 
-import cn.dev33.satoken.annotation.SaCheckRole;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.ObjUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.henu.registration.common.*;
 import com.henu.registration.common.exception.BusinessException;
-import com.henu.registration.constants.AdminConstant;
 import com.henu.registration.model.dto.registrationForm.RegistrationFormAddRequest;
 import com.henu.registration.model.dto.registrationForm.RegistrationFormEditRequest;
 import com.henu.registration.model.dto.registrationForm.RegistrationFormQueryRequest;
@@ -16,10 +15,16 @@ import com.henu.registration.model.entity.RegistrationForm;
 import com.henu.registration.model.entity.SchoolSchoolType;
 import com.henu.registration.model.entity.User;
 import com.henu.registration.model.vo.registrationForm.RegistrationFormVO;
-import com.henu.registration.service.*;
+import com.henu.registration.service.AdminService;
+import com.henu.registration.service.RegistrationFormService;
+import com.henu.registration.service.SchoolSchoolTypeService;
+import com.henu.registration.service.UserService;
+import com.henu.registration.utils.caffeine.LocalCacheUtils;
+import com.henu.registration.utils.redisson.cache.CacheUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -197,14 +202,41 @@ public class RegistrationFormController {
 		List<Long> schoolIdList = null;
 		// 获取符合条件的学校 ID 列表
 		if (CollUtil.isNotEmpty(schoolTypes)) {
-			QueryWrapper<SchoolSchoolType> queryWrapper = new QueryWrapper<>();
-			for (String schoolTypeName : schoolTypes) {
-				queryWrapper.like("school_types", "\"" + schoolTypeName + "\"");
+			// 使用多级缓存优化查询
+			// 构建缓存 key（基于查询条件的 MD5 哈希值）
+			String queryCondition = JSONUtil.toJsonStr(schoolTypes);
+			String hashKey = DigestUtils.md5DigestAsHex(queryCondition.getBytes());
+			String cacheKey = "schoolTypes:" + hashKey;
+			boolean cacheHit = false;
+			// 本地缓存
+			String cachedValue = (String) LocalCacheUtils.get(cacheKey);
+			if (ObjUtil.isNotEmpty(cachedValue)) {
+				schoolIdList = JSONUtil.toList(JSONUtil.parseArray(cachedValue), Long.class);
+				cacheHit = true;
 			}
-			// 获取符合条件的学校 ID 列表
-			schoolIdList = schoolSchoolTypeService.list(queryWrapper).stream()
-					.map(SchoolSchoolType::getSchoolId)
-					.toList();
+			// Redis缓存
+			if (!cacheHit) {
+				cachedValue = CacheUtils.getString(cacheKey);
+				if (ObjUtil.isNotEmpty(cachedValue)) {
+					LocalCacheUtils.put(cacheKey, cachedValue);
+					schoolIdList = JSONUtil.toList(JSONUtil.parseArray(cachedValue), Long.class);
+					cacheHit = true;
+				}
+			}
+			// 数据库
+			if (!cacheHit) {
+				QueryWrapper<SchoolSchoolType> queryWrapper = new QueryWrapper<>();
+				for (String schoolTypeName : schoolTypes) {
+					queryWrapper.like("school_types", "\"" + schoolTypeName + "\"");
+				}
+				schoolIdList = schoolSchoolTypeService.list(queryWrapper).stream()
+						.map(SchoolSchoolType::getSchoolId)
+						.toList();
+				// 放入缓存
+				String toCache = JSONUtil.toJsonStr(schoolIdList);
+				LocalCacheUtils.put(cacheKey, toCache);
+				CacheUtils.putString(cacheKey, toCache, 3600);
+			}
 		}
 		// 查询数据库
 		Page<RegistrationForm> registrationFormPage = registrationFormService.page(new Page<>(current, size),

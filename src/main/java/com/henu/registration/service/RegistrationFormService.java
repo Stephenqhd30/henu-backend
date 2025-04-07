@@ -36,7 +36,13 @@ public interface RegistrationFormService extends IService<RegistrationForm> {
 	 */
 	QueryWrapper<RegistrationForm> getQueryWrapper(RegistrationFormQueryRequest registrationFormQueryRequest);
 	
-	
+	/**
+	 * 获取查询条件
+	 *
+	 * @param registrationFormQueryRequest registrationFormQueryRequest
+	 * @param schoolSchoolTypes            schoolSchoolTypes
+	 * @return {@link QueryWrapper<RegistrationForm>}
+	 */
 	QueryWrapper<RegistrationForm> getQueryWrapper(RegistrationFormQueryRequest registrationFormQueryRequest, List<Long> schoolSchoolTypes);
 	
 	/**

@@ -181,7 +181,9 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		String reviewer = registrationFormQueryRequest.getReviewer();
 		String workExperience = registrationFormQueryRequest.getWorkExperience();
 		List<String> studentLeaders = registrationFormQueryRequest.getStudentLeaders();
+		List<String> educationStages = registrationFormQueryRequest.getEducationStages();
 		String studentAwards = registrationFormQueryRequest.getStudentAwards();
+		Long jobId = registrationFormQueryRequest.getJobId();
 		String sortField = registrationFormQueryRequest.getSortField();
 		String sortOrder = registrationFormQueryRequest.getSortOrder();
 		
@@ -202,15 +204,21 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		queryWrapper.eq(ObjectUtils.isNotEmpty(userGender), "user_gender", userGender);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(marryStatus), "marry_status", marryStatus);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(reviewStatus), "review_status", reviewStatus);
+		queryWrapper.eq(ObjectUtils.isNotEmpty(jobId), "job_id", jobId);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(reviewer), "reviewer", reviewer);
 		// 过滤符合 schoolIdList 的用户
-		if (CollUtil.isNotEmpty(schoolIdList)) {
+		if (CollUtil.isNotEmpty(schoolIdList) || CollUtil.isNotEmpty(educationStages)) {
+			// 构建 Education 查询条件
+			LambdaQueryWrapper<Education> educationWrapper = Wrappers.lambdaQuery(Education.class)
+					.select(Education::getUserId);
+			if (CollUtil.isNotEmpty(schoolIdList)) {
+				educationWrapper.in(Education::getSchoolId, schoolIdList);
+			}
+			if (CollUtil.isNotEmpty(educationStages)) {
+				educationWrapper.in(Education::getEducationalStage, educationStages);
+			}
 			// 查询符合 schoolIdList 的用户 ID，并去重
-			List<Long> userIdList = educationService.list(
-							Wrappers.lambdaQuery(Education.class)
-									.select(Education::getUserId)
-									.in(Education::getSchoolId, schoolIdList)
-					).stream()
+			List<Long> userIdList = educationService.list(educationWrapper).stream()
 					.map(Education::getUserId)
 					.distinct()
 					.collect(Collectors.toList());

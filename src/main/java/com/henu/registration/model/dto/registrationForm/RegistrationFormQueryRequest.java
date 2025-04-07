@@ -88,9 +88,14 @@ public class RegistrationFormQueryRequest extends PageRequest implements Seriali
 	private String reviewer;
 	
 	/**
-	 * 高校类别列表(JSON存储)
+	 * 高校类别列表
 	 */
 	private List<String> schoolTypes;
+	
+	/**
+	 * 教育阶段列表
+	 */
+	private List<String> educationStages;
 	
 	@Serial
 	private static final long serialVersionUID = 1L;
