@@ -35,9 +35,9 @@ public class SystemMessagesUpdateRequest implements Serializable {
 	private Date pushTime;
 	
 	/**
-	 * 消息类型
+	 * 推送状态(0-未推送,1-成功,2-失败,3-重试中)
 	 */
-	private String type;
+	private Integer pushStatus;
 	
 	@Serial
 	private static final long serialVersionUID = 1L;

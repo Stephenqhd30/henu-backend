@@ -1,5 +1,7 @@
 package com.henu.registration.controller;
 
+import cn.hutool.core.collection.CollUtil;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.henu.registration.common.*;
 import com.henu.registration.common.exception.BusinessException;
@@ -20,6 +22,9 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 消息通知接口
@@ -58,6 +63,10 @@ public class MessageNoticeController {
 		BeanUtils.copyProperties(messageNoticeAddRequest, messageNotice);
 		// 数据校验
 		messageNoticeService.validMessageNotice(messageNotice, true);
+		// 检查消息通知是够已经被创建
+		long count = messageNoticeService.count(Wrappers.lambdaQuery(MessageNotice.class)
+				.eq(MessageNotice::getRegistrationId, messageNotice.getRegistrationId()));
+		ThrowUtils.throwIf(count > 0, ErrorCode.PARAMS_ERROR, "消息通知已存在");
 		// todo 填充默认值
 		Admin loginAdmin = adminService.getLoginAdmin(request);
 		messageNotice.setAdminId(loginAdmin.getId());
@@ -65,13 +74,50 @@ public class MessageNoticeController {
 		RegistrationForm registrationForm = registrationFormService.getById(registrationId);
 		messageNotice.setUserName(registrationForm.getUserName());
 		messageNotice.setPushStatus(PushStatusEnum.NOT_PUSHED.getValue());
-		
 		// 写入数据库
 		boolean result = messageNoticeService.save(messageNotice);
 		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
 		// 返回新写入的数据 id
 		long newMessageNoticeId = messageNotice.getId();
 		return ResultUtils.success(newMessageNoticeId);
+	}
+	
+	/**
+	 * 批量创建消息通知
+	 *
+	 * @param messageNoticeAddRequest messageNoticeAddRequest
+	 * @param request                 request
+	 * @return {@link BaseResponse<List<Long>>}
+	 */
+	@PostMapping("/add/batch")
+	public BaseResponse<List<Long>> addMessageNoticeByBatch(@RequestBody MessageNoticeAddRequest messageNoticeAddRequest, HttpServletRequest request) {
+		ThrowUtils.throwIf(messageNoticeAddRequest == null, ErrorCode.PARAMS_ERROR);
+		List<MessageNotice> messageNotices = new ArrayList<>();
+		
+		Admin loginAdmin = adminService.getLoginAdmin(request);
+		for (Long registrationId : messageNoticeAddRequest.getRegistrationIds()) {
+			RegistrationForm registrationForm = registrationFormService.getById(registrationId);
+			ThrowUtils.throwIf(registrationForm == null, ErrorCode.NOT_FOUND_ERROR, "报名登记表不存在");
+			long count = messageNoticeService.count(Wrappers.lambdaQuery(MessageNotice.class)
+					.eq(MessageNotice::getRegistrationId, registrationId));
+			ThrowUtils.throwIf(count > 0, ErrorCode.PARAMS_ERROR, "消息通知已存在");
+			// todo 填充默认值
+			MessageNotice messageNotice = new MessageNotice();
+			BeanUtils.copyProperties(messageNoticeAddRequest, messageNotice);
+			messageNotice.setRegistrationId(registrationId);
+			messageNotice.setAdminId(loginAdmin.getId());
+			messageNotice.setUserName(registrationForm.getUserName());
+			messageNotice.setPushStatus(PushStatusEnum.NOT_PUSHED.getValue());
+			messageNoticeService.validMessageNotice(messageNotice, true);
+			messageNotices.add(messageNotice);
+		}
+		// 写入数据库
+		boolean result = messageNoticeService.saveBatch(messageNotices);
+		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+		List<Long> savedIds = messageNotices.stream()
+				.map(MessageNotice::getId)
+				.collect(Collectors.toList());
+		return ResultUtils.success(savedIds);
 	}
 	
 	/**

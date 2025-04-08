@@ -276,9 +276,7 @@ CREATE TABLE message_push
     retry_count       INT        DEFAULT 0                 NOT NULL COMMENT '失败重试次数',
     error_message     VARCHAR(500)                         NULL COMMENT '失败原因',
     create_time       DATETIME   DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT '创建时间',
-    update_time       DATETIME   DEFAULT CURRENT_TIMESTAMP NOT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    CONSTRAINT fk_message_push_user FOREIGN KEY (user_id) REFERENCES user (id),
-    CONSTRAINT fk_message_push_notice FOREIGN KEY (message_notice_id) REFERENCES message_notice (id)
+    update_time       DATETIME   DEFAULT CURRENT_TIMESTAMP NOT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'
 )
     COMMENT '消息推送表';
 

@@ -7,6 +7,7 @@ import com.henu.registration.model.dto.systemMessages.SystemMessagesAddRequest;
 import com.henu.registration.model.dto.systemMessages.SystemMessagesQueryRequest;
 import com.henu.registration.model.dto.systemMessages.SystemMessagesUpdateRequest;
 import com.henu.registration.model.entity.SystemMessages;
+import com.henu.registration.model.enums.PushStatusEnum;
 import com.henu.registration.model.vo.systemMessages.SystemMessagesVO;
 import com.henu.registration.service.SystemMessagesService;
 import lombok.extern.slf4j.Slf4j;
@@ -94,6 +95,8 @@ public class SystemMessagesController {
 		long id = systemMessagesUpdateRequest.getId();
 		SystemMessages oldSystemMessages = systemMessagesService.getById(id);
 		ThrowUtils.throwIf(oldSystemMessages == null, ErrorCode.NOT_FOUND_ERROR);
+		// todo 更新推送状态
+		systemMessages.setPushStatus(PushStatusEnum.NOT_PUSHED.getValue());
 		// 操作数据库
 		boolean result = systemMessagesService.updateById(systemMessages);
 		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);

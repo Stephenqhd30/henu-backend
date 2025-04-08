@@ -28,6 +28,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.io.IOException;
+import java.util.Optional;
 
 /**
  * 消息队列 RabbitMQ 消费者
@@ -159,6 +160,44 @@ public class RabbitMqConsumer {
 			channel.basicAck(tag, false);
 		} catch (Exception e) {
 			log.error("处理{}消息时发生异常: {}", queueType, e.getMessage(), e);
+			try {
+				// 获取当前消息推送记录
+				RabbitMessage rabbitMessage = JSONUtil.toBean(new String(message.getBody()), RabbitMessage.class);
+				MessagePush messagePush = JSONUtil.toBean(rabbitMessage.getMsgText(), MessagePush.class);
+				if (messagePush != null && messagePush.getId() != null) {
+					MessagePush oldMessagePush = messagePushService.getById(messagePush.getId());
+					int currentCount = Optional.ofNullable(oldMessagePush.getRetryCount()).orElse(0);
+					int maxRetry = 3;
+					if (currentCount + 1 >= maxRetry) {
+						// 超过最大重试次数，标记为失败
+						messagePushService.lambdaUpdate()
+								.set(MessagePush::getRetryCount, currentCount + 1)
+								.set(MessagePush::getPushStatus, PushStatusEnum.FAILED.getValue())
+								.set(MessagePush::getPushMessage, e.getMessage())
+								.eq(MessagePush::getId, messagePush.getId())
+								.update();
+						messageNoticeService.lambdaUpdate()
+								.set(MessageNotice::getPushStatus, PushStatusEnum.FAILED.getValue())
+								.eq(MessageNotice::getId, messagePush.getMessageNoticeId())
+								.update();
+						log.warn("推送失败次数已达上限，标记为失败: msgPushId={}", messagePush.getId());
+						channel.basicAck(tag, false);
+					} else {
+						// 增加失败次数，重新入队或打回队列
+						messagePushService.lambdaUpdate()
+								.set(MessagePush::getRetryCount, currentCount + 1)
+								.eq(MessagePush::getId, messagePush.getId())
+								.update();
+						log.info("推送失败，第 {} 次尝试", currentCount + 1);
+						channel.basicNack(tag, false, true);
+					}
+				} else {
+					channel.basicNack(tag, false, false);
+				}
+			} catch (Exception ex) {
+				log.error("处理异常消息失败: {}", ex.getMessage(), ex);
+				channel.basicNack(tag, false, false);
+			}
 			channel.basicNack(tag, false, false);
 		}
 	}

@@ -21,6 +21,11 @@ public class MessageNoticeAddRequest implements Serializable {
 	private Long registrationId;
 	
 	/**
+	 * 报名登记表id列表
+	 */
+	private List<Long> registrationIds;
+	
+	/**
 	 * 面试时间
 	 */
 	private Date interviewTime;
