@@ -118,9 +118,6 @@ public class ExcelServiceImpl implements ExcelService {
 	@Resource
 	private SystemMessagesService systemMessagesService;
 	
-	@Resource
-	private ThreadPoolExecutor threadPoolExecutor;
-	
 	/**
 	 * 验证 Excel 文件
 	 *
@@ -182,7 +179,7 @@ public class ExcelServiceImpl implements ExcelService {
 			// 假设需要对某些字段进行解密或转换
 			adminExcelVO.setAdminType(Objects.requireNonNull(AdminTyprEnum.getEnumByValue(admin.getAdminType())).getText());
 			return adminExcelVO;
-		}, threadPoolExecutor)).toList();
+		})).toList();
 		// 等待所有 CompletableFuture 执行完毕，并收集结果
 		List<AdminExcelVO> adminExcelVOList = futures.stream().map(CompletableFuture::join).collect(Collectors.toList());
 		// 写入 Excel 文件
@@ -207,7 +204,7 @@ public class ExcelServiceImpl implements ExcelService {
 			OperationLogExcelVO operationLogExcelVO = new OperationLogExcelVO();
 			BeanUtils.copyProperties(operationLog, operationLogExcelVO);
 			return operationLogExcelVO;
-		}, threadPoolExecutor)).toList();
+		})).toList();
 		// 等待所有 CompletableFuture 执行完毕，并收集结果
 		List<OperationLogExcelVO> operationLogExcelVOList = futures.stream().map(CompletableFuture::join).collect(Collectors.toList());
 		// 写入 Excel 文件
@@ -234,7 +231,7 @@ public class ExcelServiceImpl implements ExcelService {
 			userExcelVO.setUserIdCard(userService.getDecryptIdCard(user.getUserIdCard()));
 			userExcelVO.setUserGender(Objects.requireNonNull(UserGenderEnum.getEnumByValue(user.getUserGender())).getText());
 			return userExcelVO;
-		}, threadPoolExecutor)).toList();
+		})).toList();
 		// 等待所有 CompletableFuture 执行完毕，并收集结果
 		List<UserExcelVO> userExcelVOList = futures.stream().map(CompletableFuture::join).collect(Collectors.toList());
 		// 写入 Excel 文件
@@ -259,7 +256,7 @@ public class ExcelServiceImpl implements ExcelService {
 			CadreTypeExcelVO cadreTypeExcelVO = new CadreTypeExcelVO();
 			BeanUtils.copyProperties(cadreType, cadreTypeExcelVO);
 			return cadreTypeExcelVO;
-		}, threadPoolExecutor)).toList();
+		})).toList();
 		// 等待所有 CompletableFuture 执行完毕，并收集结果
 		List<CadreTypeExcelVO> cadreTypeExcelVOList = futures.stream().map(CompletableFuture::join).collect(Collectors.toList());
 		// 写入 Excel 文件
@@ -286,7 +283,7 @@ public class ExcelServiceImpl implements ExcelService {
 			Job job = jobService.getById(deadline.getJobId());
 			deadlineExcelVO.setJobName(job.getJobName());
 			return deadlineExcelVO;
-		}, threadPoolExecutor)).toList();
+		})).toList();
 		// 等待所有 CompletableFuture 执行完毕，并收集结果
 		List<DeadlineExcelVO> deadlineExcelVOList = futures.stream().map(CompletableFuture::join).collect(Collectors.toList());
 		// 写入 Excel 文件
@@ -316,7 +313,7 @@ public class ExcelServiceImpl implements ExcelService {
 			User user = userService.getById(education.getUserId());
 			educationExcelVO.setUserName(user.getUserName());
 			return educationExcelVO;
-		}, threadPoolExecutor)).toList();
+		})).toList();
 		// 等待所有 CompletableFuture 执行完毕，并收集结果
 		List<EducationExcelVO> deadlineExcelVOList = futures.stream().map(CompletableFuture::join).collect(Collectors.toList());
 		// 写入 Excel 文件
@@ -343,7 +340,7 @@ public class ExcelServiceImpl implements ExcelService {
 			User user = userService.getById(family.getUserId());
 			educationExcelVO.setUserName(user.getUserName());
 			return educationExcelVO;
-		}, threadPoolExecutor)).toList();
+		})).toList();
 		// 等待所有 CompletableFuture 执行完毕，并收集结果
 		List<FamilyExcelVO> familyExcelVOList = futures.stream().map(CompletableFuture::join).collect(Collectors.toList());
 		// 写入 Excel 文件
@@ -372,7 +369,7 @@ public class ExcelServiceImpl implements ExcelService {
 			User user = userService.getById(fileLog.getUserId());
 			fileLogExcelVO.setUserName(user.getUserName());
 			return fileLogExcelVO;
-		}, threadPoolExecutor)).toList();
+		})).toList();
 		// 等待所有 CompletableFuture 执行完毕，并收集结果
 		List<FileLogExcelVO> fileLogExcelVOList = futures.stream().map(CompletableFuture::join).collect(Collectors.toList());
 		// 写入 Excel 文件
@@ -397,7 +394,7 @@ public class ExcelServiceImpl implements ExcelService {
 			FileTypeExcelVO fileTypeExcelVO = new FileTypeExcelVO();
 			BeanUtils.copyProperties(fileType, fileTypeExcelVO);
 			return fileTypeExcelVO;
-		}, threadPoolExecutor)).toList();
+		})).toList();
 		// 等待所有 CompletableFuture 执行完毕，并收集结果
 		List<FileTypeExcelVO> fileTypeExcelVOList = futures.stream().map(CompletableFuture::join).collect(Collectors.toList());
 		// 写入 Excel 文件
@@ -422,7 +419,7 @@ public class ExcelServiceImpl implements ExcelService {
 			JobExcelVO jobExcelVO = new JobExcelVO();
 			BeanUtils.copyProperties(job, jobExcelVO);
 			return jobExcelVO;
-		}, threadPoolExecutor)).toList();
+		})).toList();
 		// 等待所有 CompletableFuture 执行完毕，并收集结果
 		List<JobExcelVO> jobExcelVOList = futures.stream().map(CompletableFuture::join).collect(Collectors.toList());
 		// 写入 Excel 文件
@@ -454,7 +451,7 @@ public class ExcelServiceImpl implements ExcelService {
 			Job job = jobService.getById(registrationForm.getJobId());
 			registrationFormExcelVO.setJobName(job.getJobName());
 			return registrationFormExcelVO;
-		}, threadPoolExecutor)).toList();
+		})).toList();
 		// 等待所有 CompletableFuture 执行完毕，并收集结果
 		List<RegistrationFormExcelVO> jobExcelVOList = futures.stream().map(CompletableFuture::join).collect(Collectors.toList());
 		// 写入 Excel 文件
@@ -480,7 +477,7 @@ public class ExcelServiceImpl implements ExcelService {
 			BeanUtils.copyProperties(reviewLog, reviewLogExcelVO);
 			reviewLogExcelVO.setReviewStatus(Objects.requireNonNull(ReviewStatusEnum.getEnumByValue(reviewLog.getReviewStatus())).getText());
 			return reviewLogExcelVO;
-		}, threadPoolExecutor)).toList();
+		})).toList();
 		// 等待所有 CompletableFuture 执行完毕，并收集结果
 		List<ReviewLogExcelVO> reviewLogExcelVOList = futures.stream().map(CompletableFuture::join).collect(Collectors.toList());
 		// 写入 Excel 文件
@@ -536,7 +533,7 @@ public class ExcelServiceImpl implements ExcelService {
 			SchoolExcelVO schoolExcelVO = new SchoolExcelVO();
 			BeanUtils.copyProperties(school, schoolExcelVO);
 			return schoolExcelVO;
-		}, threadPoolExecutor)).toList();
+		})).toList();
 		// 等待所有 CompletableFuture 执行完毕，并收集结果
 		List<SchoolExcelVO> schoolExcelVOList = futures.stream().map(CompletableFuture::join).collect(Collectors.toList());
 		// 写入 Excel 文件
@@ -609,7 +606,7 @@ public class ExcelServiceImpl implements ExcelService {
 			School school = schoolService.getById(schoolSchoolType.getSchoolId());
 			schoolSchoolTypeExcelVO.setSchoolName(school.getSchoolName());
 			return schoolSchoolTypeExcelVO;
-		}, threadPoolExecutor)).toList();
+		})).toList();
 		// 等待所有 CompletableFuture 执行完毕，并收集结果
 		List<SchoolSchoolTypeExcelVO> schoolSchoolTypeExcelVOList = futures.stream().map(CompletableFuture::join).collect(Collectors.toList());
 		// 写入 Excel 文件
@@ -665,7 +662,7 @@ public class ExcelServiceImpl implements ExcelService {
 			SchoolTypeExcelVO schoolTypeExcelVO = new SchoolTypeExcelVO();
 			BeanUtils.copyProperties(schoolType, schoolTypeExcelVO);
 			return schoolTypeExcelVO;
-		}, threadPoolExecutor)).toList();
+		})).toList();
 		// 等待所有 CompletableFuture 执行完毕，并收集结果
 		List<SchoolTypeExcelVO> schoolSchoolTypeExcelVOList = futures.stream().map(CompletableFuture::join).collect(Collectors.toList());
 		// 写入 Excel 文件
@@ -743,7 +740,7 @@ public class ExcelServiceImpl implements ExcelService {
 			messageNoticeExcelVO.setUserPhone(registrationForm.getUserPhone());
 			messageNoticeExcelVO.setPushStatus(Objects.requireNonNull(PushStatusEnum.getEnumByValue(messageNotice.getPushStatus())).getText());
 			return messageNoticeExcelVO;
-		}, threadPoolExecutor)).toList();
+		})).toList();
 		// 等待所有 CompletableFuture 执行完毕，并收集结果
 		List<MessageNoticeExcelVO> schoolSchoolTypeExcelVOList = futures.stream().map(CompletableFuture::join).collect(Collectors.toList());
 		// 写入 Excel 文件
@@ -774,7 +771,7 @@ public class ExcelServiceImpl implements ExcelService {
 			messagePushExcelVO.setPushType(Objects.requireNonNull(PushTyprEnum.getEnumByValue(pushType)).getText());
 			messagePushExcelVO.setPushStatus(Objects.requireNonNull(PushStatusEnum.getEnumByValue(pushStatus)).getText());
 			return messagePushExcelVO;
-		}, threadPoolExecutor)).toList();
+		})).toList();
 		// 等待所有 CompletableFuture 执行完毕，并收集结果
 		List<MessagePushExcelVO> schoolSchoolTypeExcelVOList = futures.stream().map(CompletableFuture::join).collect(Collectors.toList());
 		// 写入 Excel 文件
@@ -802,7 +799,7 @@ public class ExcelServiceImpl implements ExcelService {
 			systemMessagesExcelVO.setType(Objects.requireNonNull(SystemMessageTypeEnum.getEnumByValue(type)).getText());
 			systemMessagesExcelVO.setPushStatus(Objects.requireNonNull(PushStatusEnum.getEnumByValue(pushStatus)).getText());
 			return systemMessagesExcelVO;
-		}, threadPoolExecutor)).toList();
+		})).toList();
 		// 等待所有 CompletableFuture 执行完毕，并收集结果
 		List<SystemMessagesExcelVO> schoolSchoolTypeExcelVOList = futures.stream().map(CompletableFuture::join).collect(Collectors.toList());
 		// 写入 Excel 文件
