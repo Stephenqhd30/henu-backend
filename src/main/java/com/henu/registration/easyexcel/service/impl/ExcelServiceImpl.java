@@ -1,16 +1,15 @@
 package com.henu.registration.easyexcel.service.impl;
 
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.henu.registration.common.ErrorCode;
 import com.henu.registration.common.ThrowUtils;
 import com.henu.registration.common.exception.BusinessException;
 import com.henu.registration.config.easyexcel.core.ExcelResult;
 import com.henu.registration.constants.AdminConstant;
 import com.henu.registration.easyexcel.constants.ExcelConstant;
-import com.henu.registration.easyexcel.listener.AdminExcelListener;
-import com.henu.registration.easyexcel.listener.SchoolExcelListener;
-import com.henu.registration.easyexcel.listener.SchoolSchoolTypeExcelListener;
-import com.henu.registration.easyexcel.listener.SchoolTypeExcelListener;
+import com.henu.registration.easyexcel.listener.*;
 import com.henu.registration.easyexcel.modal.admin.AdminExcelDTO;
 import com.henu.registration.easyexcel.modal.admin.AdminExcelVO;
 import com.henu.registration.easyexcel.modal.cadreType.CadreTypeExcelVO;
@@ -20,6 +19,7 @@ import com.henu.registration.easyexcel.modal.family.FamilyExcelVO;
 import com.henu.registration.easyexcel.modal.fileLog.FileLogExcelVO;
 import com.henu.registration.easyexcel.modal.fileType.FileTypeExcelVO;
 import com.henu.registration.easyexcel.modal.job.JobExcelVO;
+import com.henu.registration.easyexcel.modal.messageNotice.MessageNoticeExcelDTO;
 import com.henu.registration.easyexcel.modal.messageNotice.MessageNoticeExcelVO;
 import com.henu.registration.easyexcel.modal.messagePush.MessagePushExcelVO;
 import com.henu.registration.easyexcel.modal.operationLog.OperationLogExcelVO;
@@ -675,6 +675,55 @@ public class ExcelServiceImpl implements ExcelService {
 		} catch (Exception e) {
 			log.error("高校类型信息导出失败: {}", e.getMessage());
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "高校类型信息导出失败");
+		}
+	}
+	
+	/**
+	 * 导入面试消息通知信息
+	 *
+	 * @param file file
+	 * @return String
+	 */
+	@Override
+	public String importMessageNotice(MultipartFile file, HttpServletRequest request) {
+		// 获取当前登录的admin
+		Admin admin = adminService.getLoginAdmin(request);
+		try (InputStream inputStream = file.getInputStream()) {
+			MessageNoticeExcelListener listener = new MessageNoticeExcelListener(registrationFormService);
+			ExcelResult<MessageNoticeExcelDTO> excelResult = ExcelUtils.importStreamAndCloseWithListener(inputStream, MessageNoticeExcelDTO.class, listener);
+			// 将 DTO 转换为实体对象
+			List<MessageNotice> messageNoticeList = excelResult.getList().stream()
+					.map(messageNoticeExcelDTO -> {
+						MessageNotice messageNotice = new MessageNotice();
+						BeanUtils.copyProperties(messageNoticeExcelDTO, messageNotice);
+						LambdaQueryWrapper<RegistrationForm> eq = Wrappers.lambdaQuery(RegistrationForm.class)
+								.eq(RegistrationForm::getUserName, messageNotice.getUserName())
+								.eq(RegistrationForm::getUserPhone, messageNoticeExcelDTO.getUserPhone());
+						RegistrationForm registrationForm = registrationFormService.getOne(eq);
+						if (registrationForm == null) {
+							log.error("导入面试消息通知信息异常，用户不存在，用户名：{}，手机号：{}", messageNotice.getUserName(), messageNoticeExcelDTO.getUserPhone());
+							throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "报名登记表信息不存在");
+						}
+						messageNotice.setRegistrationId(registrationForm.getId());
+						messageNotice.setAdminId(admin.getId());
+						// 校验信息是否已经存在
+						LambdaQueryWrapper<MessageNotice> messageNoticeLambdaQueryWrapper = Wrappers.lambdaQuery(MessageNotice.class)
+								.eq(MessageNotice::getUserName, messageNotice.getUserName())
+								.eq(MessageNotice::getRegistrationId, registrationForm.getId());
+						MessageNotice oldMessageNotice = messageNoticeService.getOne(messageNoticeLambdaQueryWrapper);
+						if (oldMessageNotice != null) {
+							// 如果消息已经存在则更新消息
+							messageNotice.setId(oldMessageNotice.getId());
+						}
+						return messageNotice;
+					})
+					.toList();
+			// 存入数据库
+			messageNoticeService.saveOrUpdateBatch(messageNoticeList);
+			return "面试消息通知信息导入成功，导入数量：" + messageNoticeList.size();
+		} catch (IOException e) {
+			log.error("导入面试消息通知信息异常", e);
+			throw new BusinessException(ErrorCode.EXCEL_ERROR, "导入面试消息通知信息异常");
 		}
 	}
 	

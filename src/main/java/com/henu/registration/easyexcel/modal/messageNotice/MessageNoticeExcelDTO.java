@@ -2,34 +2,34 @@ package com.henu.registration.easyexcel.modal.messageNotice;
 
 import com.alibaba.excel.annotation.ExcelProperty;
 import com.alibaba.excel.annotation.write.style.ColumnWidth;
+import com.henu.registration.model.entity.Admin;
 import lombok.Data;
+import org.springframework.beans.BeanUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 
 /**
- * 消息通知Excel视图
+ * 管理员 Excel 封装类
  *
  * @author stephen
  */
 @Data
-public class MessageNoticeExcelVO implements Serializable {
+public class MessageNoticeExcelDTO implements Serializable {
 	
 	@Serial
-	private static final long serialVersionUID = -2054040827014586206L;
+	private static final long serialVersionUID = -475210145722229525L;
 	
 	/**
 	 * 用户姓名
 	 */
-	@ColumnWidth(40)
 	@ExcelProperty("用户姓名")
 	private String userName;
 	
 	/**
 	 * 联系电话
 	 */
-	@ColumnWidth(40)
 	@ExcelProperty("联系电话")
 	private String userPhone;
 	
@@ -48,17 +48,20 @@ public class MessageNoticeExcelVO implements Serializable {
 	private String interviewLocation;
 	
 	/**
-	 * 报名登记表id
+	 * 封装类转对象
+	 *
+	 * @param adminExcelDTO adminExcelDTO
+	 * @return {@link Admin}
 	 */
-	@ColumnWidth(40)
-	@ExcelProperty("报名登记表id")
-	private Long registrationId;
+	public static Admin dtoToObj(MessageNoticeExcelDTO adminExcelDTO) {
+		if (adminExcelDTO == null) {
+			return null;
+		}
+		Admin admin = new Admin();
+		BeanUtils.copyProperties(adminExcelDTO, admin);
+		return admin;
+	}
 	
-	/**
-	 * 推送状态(0-未推送,1-成功,2-失败,3-重试中)
-	 */
-	@ColumnWidth(40)
-	@ExcelProperty("推送状态")
-	private String pushStatus;
-
+	
+	
 }

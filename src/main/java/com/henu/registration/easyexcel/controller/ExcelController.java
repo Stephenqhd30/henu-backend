@@ -265,6 +265,26 @@ public class ExcelController {
 	}
 	
 	/**
+	 * 从 Excel 中导入面试消息通知信息
+	 *
+	 * @param file file
+	 * @return BaseResponse<String>
+	 */
+	@PostMapping("/import/message/notice")
+	public BaseResponse<String> importMessageNotice(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
+		ThrowUtils.throwIf(file.isEmpty(), ErrorCode.EXCEL_ERROR, "文件为空");
+		try {
+			// 校验 Excel 文件格式
+			excelService.validExcel(file);
+			// 导入高校信息
+			String result = excelService.importMessageNotice(file, request);
+			return ResultUtils.success(result);
+		} catch (Exception e) {
+			throw new BusinessException(ErrorCode.EXCEL_ERROR, "导入失败：" + e.getMessage());
+		}
+	}
+	
+	/**
 	 * 导出面试消息通知到 Excel
 	 */
 	@GetMapping("/export/message/notice")

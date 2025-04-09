@@ -151,6 +151,15 @@ public interface ExcelService {
 	void exportSchoolType(HttpServletResponse response) throws IOException;
 	
 	/**
+	 * 导入面试消息通知信息
+	 *
+	 * @param file    file
+	 * @param request request
+	 * @return String
+	 */
+	String importMessageNotice(MultipartFile file, HttpServletRequest request);
+	
+	/**
 	 * 导出面试消息通知到 Excel
 	 *
 	 * @param response HttpServletResponse
