@@ -19,6 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -78,6 +79,7 @@ public class JobServiceImpl extends ServiceImpl<JobMapper, Job> implements JobSe
 		String searchText = jobQueryRequest.getSearchText();
 		String jobName = jobQueryRequest.getJobName();
 		String jobExplanation = jobQueryRequest.getJobExplanation();
+		Date deadlineTime = jobQueryRequest.getDeadlineTime();
 		Long adminId = jobQueryRequest.getAdminId();
 		String sortField = jobQueryRequest.getSortField();
 		String sortOrder = jobQueryRequest.getSortOrder();
@@ -91,6 +93,7 @@ public class JobServiceImpl extends ServiceImpl<JobMapper, Job> implements JobSe
 		// 模糊查询
 		queryWrapper.like(StringUtils.isNotBlank(jobName), "job_name", jobName);
 		queryWrapper.like(StringUtils.isNotBlank(jobExplanation), "job_explanation", jobExplanation);
+		queryWrapper.eq(ObjectUtils.isNotEmpty(deadlineTime), "deadline_time", deadlineTime);
 		// 精确查询
 		queryWrapper.ne(ObjectUtils.isNotEmpty(notId), "id", notId);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(id), "id", id);

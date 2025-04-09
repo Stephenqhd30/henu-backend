@@ -38,6 +38,11 @@ public class Job implements Serializable {
 	private String jobExplanation;
 	
 	/**
+	 * 截止日期
+	 */
+	private Date deadlineTime;
+	
+	/**
 	 * 管理员id
 	 */
 	private Long adminId;

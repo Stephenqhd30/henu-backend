@@ -8,14 +8,16 @@
             <id property="id" column="id" />
             <result property="jobName" column="job_name" />
             <result property="jobExplanation" column="job_explanation" />
-            <result property="adminId" column="admin_id" />
+            <result property="deadlineTime" column="deadline_time"/>
+            <result property="adminId" column="admin_id"/>
             <result property="createTime" column="create_time" />
             <result property="updateTime" column="update_time" />
             <result property="isDelete" column="is_delete" />
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,job_name,job_explanation,admin_id,create_time,update_time,
+	    id
+	    ,job_name,job_explanation,admin_id,deadline_time,create_time,update_time,
         is_delete
     </sql>
 </mapper>

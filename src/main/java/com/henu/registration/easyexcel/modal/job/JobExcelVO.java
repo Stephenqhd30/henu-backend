@@ -34,4 +34,11 @@ public class JobExcelVO implements Serializable {
 	@ColumnWidth(40)
 	@ExcelProperty("岗位说明")
 	private String jobExplanation;
+	
+	/**
+	 * 截止日期
+	 */
+	@ColumnWidth(40)
+	@ExcelProperty("截止日期")
+	private String deadlineTime;
 }

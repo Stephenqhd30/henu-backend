@@ -2,6 +2,7 @@ package com.henu.registration.model.dto.job;
 
 import lombok.Data;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -27,5 +28,6 @@ public class JobUpdateRequest implements Serializable {
 	 */
 	private String jobExplanation;
 	
+	@Serial
 	private static final long serialVersionUID = 1L;
 }

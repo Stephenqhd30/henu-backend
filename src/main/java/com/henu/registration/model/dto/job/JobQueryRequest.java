@@ -4,7 +4,9 @@ import com.henu.registration.common.PageRequest;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.io.Serial;
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * 查询岗位信息表请求
@@ -41,9 +43,15 @@ public class JobQueryRequest extends PageRequest implements Serializable {
 	private String jobExplanation;
 	
 	/**
+	 * 截止日期
+	 */
+	private Date deadlineTime;
+	
+	/**
 	 * 创建用户 id
 	 */
 	private Long adminId;
 	
+	@Serial
 	private static final long serialVersionUID = 1L;
 }

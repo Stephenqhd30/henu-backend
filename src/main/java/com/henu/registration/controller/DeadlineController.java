@@ -1,5 +1,6 @@
 package com.henu.registration.controller;
 
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.henu.registration.common.*;
 import com.henu.registration.common.exception.BusinessException;
@@ -8,9 +9,11 @@ import com.henu.registration.model.dto.deadline.DeadlineQueryRequest;
 import com.henu.registration.model.dto.deadline.DeadlineUpdateRequest;
 import com.henu.registration.model.entity.Admin;
 import com.henu.registration.model.entity.Deadline;
+import com.henu.registration.model.entity.Job;
 import com.henu.registration.model.vo.deadline.DeadlineVO;
 import com.henu.registration.service.AdminService;
 import com.henu.registration.service.DeadlineService;
+import com.henu.registration.service.JobService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
@@ -33,6 +36,9 @@ public class DeadlineController {
 	
 	@Resource
 	private AdminService adminService;
+	
+	@Resource
+	private JobService jobService;
 	
 	// region 增删改查
 	
@@ -57,6 +63,13 @@ public class DeadlineController {
 		// 写入数据库
 		boolean result = deadlineService.save(deadline);
 		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+		// 同步修改岗位截止时间信息
+		boolean updateResult = jobService.update(
+				Wrappers.lambdaUpdate(Job.class)
+						.set(Job::getDeadlineTime, deadline.getDeadlineTime())
+						.eq(Job::getId, deadline.getJobId())
+		);
+		ThrowUtils.throwIf(!updateResult, ErrorCode.OPERATION_ERROR, "同步岗位截止时间失败");
 		// 返回新写入的数据 id
 		long newDeadlineId = deadline.getId();
 		return ResultUtils.success(newDeadlineId);
@@ -81,6 +94,13 @@ public class DeadlineController {
 		// 操作数据库
 		boolean result = deadlineService.removeById(id);
 		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+		// 同步修改岗位截止时间信息
+		boolean updateResult = jobService.update(
+				Wrappers.lambdaUpdate(Job.class)
+						.set(Job::getDeadlineTime, null)
+						.eq(Job::getId, oldDeadline.getJobId())
+		);
+		ThrowUtils.throwIf(!updateResult, ErrorCode.OPERATION_ERROR, "同步岗位截止时间失败");
 		return ResultUtils.success(true);
 	}
 	
@@ -108,6 +128,13 @@ public class DeadlineController {
 		// 操作数据库
 		boolean result = deadlineService.updateById(deadline);
 		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+		// 同步修改岗位截止时间信息
+		boolean updateResult = jobService.update(
+				Wrappers.lambdaUpdate(Job.class)
+						.set(Job::getDeadlineTime, deadline.getDeadlineTime())
+						.eq(Job::getId, oldDeadline.getJobId())
+		);
+		ThrowUtils.throwIf(!updateResult, ErrorCode.OPERATION_ERROR, "同步岗位截止时间失败");
 		return ResultUtils.success(true);
 	}
 	
