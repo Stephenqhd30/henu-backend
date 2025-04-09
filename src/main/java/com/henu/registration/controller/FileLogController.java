@@ -26,6 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -160,6 +161,84 @@ public class FileLogController {
 		} catch (IOException e) {
 			log.error("压缩文件输出失败", e);
 			throw new BusinessException(ErrorCode.OPERATION_ERROR, "文件下载失败");
+		}
+	}
+	
+	/**
+	 * 文件下载（将用户所有上传文件打包为 ZIP，通过 MinIO 获取）
+	 *
+	 * @param downloadFileRequest 请求体，包含 userId
+	 * @param response            HttpServletResponse
+	 */
+	@PostMapping("/download/batch")
+	public void downloadFileByBatch(@RequestBody DownloadFileRequest downloadFileRequest, HttpServletResponse response) {
+		List<Long> userIds = downloadFileRequest.getUserIds();
+		if (userIds == null || userIds.isEmpty()) {
+			throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户 ID 列表不能为空");
+		}
+		// 设置总 ZIP 响应头
+		response.setContentType("application/zip");
+		String zipFileName = "全部用户文件.zip";
+		try {
+			zipFileName = URLEncoder.encode(zipFileName, StandardCharsets.UTF_8).replaceAll("\\+", "%20");
+		} catch (Exception e) {
+			log.warn("ZIP 文件名编码失败", e);
+		}
+		response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + zipFileName);
+		try (OutputStream outputStream = response.getOutputStream();
+		     ZipOutputStream mainZipOutput = new ZipOutputStream(outputStream)) {
+			for (Long userId : userIds) {
+				// 获取用户信息
+				User user = userService.getById(userId);
+				if (user == null) {
+					log.warn("用户不存在：{}", userId);
+					continue;
+				}
+				// 获取用户的文件上传记录
+				List<FileLog> fileLogs = fileLogService.list(Wrappers.lambdaQuery(FileLog.class)
+						.eq(FileLog::getUserId, userId));
+				if (fileLogs == null || fileLogs.isEmpty()) {
+					log.info("用户 {} 没有上传文件", user.getUserName());
+					continue;
+				}
+				// 创建该用户的 zip 文件流
+				ByteArrayOutputStream userZipByteArray = new ByteArrayOutputStream();
+				try (ZipOutputStream userZip = new ZipOutputStream(userZipByteArray)) {
+					for (FileLog fileLog : fileLogs) {
+						FileType fileType = fileTypeService.getById(fileLog.getFileTypeId());
+						// 构造文件名：用户名-类型名.后缀
+						String fileName = user.getUserName() + "-" + fileType.getTypeName();
+						fileName += fileLog.getFileName().substring(fileLog.getFileName().lastIndexOf("."));
+						String filePath = fileLog.getFilePath();
+						// 获取文件流并写入 zip
+						try (InputStream fileInputStream = MinioUtils.getFileStream(filePath)) {
+							if (fileInputStream == null) continue;
+							
+							userZip.putNextEntry(new ZipEntry(fileName));
+							byte[] buffer = new byte[8192];
+							int len;
+							while ((len = fileInputStream.read(buffer)) != -1) {
+								userZip.write(buffer, 0, len);
+							}
+							userZip.closeEntry();
+						} catch (IOException e) {
+							log.warn("读取文件失败: {}", filePath, e);
+						}
+					}
+					userZip.finish();
+					userZip.flush();
+				}
+				// 将该用户的 zip 文件作为主 ZIP 的一个条目
+				String userZipName = user.getUserName() + ".zip";
+				mainZipOutput.putNextEntry(new ZipEntry(userZipName));
+				mainZipOutput.write(userZipByteArray.toByteArray());
+				mainZipOutput.closeEntry();
+			}
+			mainZipOutput.finish();
+			outputStream.flush();
+		} catch (IOException e) {
+			log.error("批量压缩失败", e);
+			throw new BusinessException(ErrorCode.OPERATION_ERROR, "批量文件下载失败");
 		}
 	}
 	

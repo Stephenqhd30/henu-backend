@@ -4,6 +4,7 @@ import lombok.Data;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * 文件上传请求
@@ -20,4 +21,9 @@ public class DownloadFileRequest implements Serializable {
 	 * 用户id
 	 */
 	private Long userId;
+	
+	/**
+	 * 用户id列表
+	 */
+	private List<Long> userIds;
 }
