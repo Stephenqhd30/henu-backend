@@ -63,9 +63,11 @@ public class MessageNoticeController {
 		// 数据校验
 		messageNoticeService.validMessageNotice(messageNotice, true);
 		// 检查消息通知是够已经被创建
-		long count = messageNoticeService.count(Wrappers.lambdaQuery(MessageNotice.class)
+		MessageNotice oldMessageNotice = messageNoticeService.getOne(Wrappers.lambdaQuery(MessageNotice.class)
 				.eq(MessageNotice::getRegistrationId, messageNotice.getRegistrationId()));
-		ThrowUtils.throwIf(count > 0, ErrorCode.PARAMS_ERROR, "消息通知已存在");
+		if (oldMessageNotice != null) {
+			messageNotice.setId(oldMessageNotice.getId());
+		}
 		// todo 填充默认值
 		Admin loginAdmin = adminService.getLoginAdmin(request);
 		messageNotice.setAdminId(loginAdmin.getId());
@@ -74,7 +76,7 @@ public class MessageNoticeController {
 		messageNotice.setUserName(registrationForm.getUserName());
 		messageNotice.setPushStatus(PushStatusEnum.NOT_PUSHED.getValue());
 		// 写入数据库
-		boolean result = messageNoticeService.save(messageNotice);
+		boolean result = messageNoticeService.saveOrUpdate(messageNotice);
 		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
 		// 返回新写入的数据 id
 		long newMessageNoticeId = messageNotice.getId();
@@ -97,9 +99,6 @@ public class MessageNoticeController {
 		for (Long registrationId : messageNoticeAddRequest.getRegistrationIds()) {
 			RegistrationForm registrationForm = registrationFormService.getById(registrationId);
 			ThrowUtils.throwIf(registrationForm == null, ErrorCode.NOT_FOUND_ERROR, "报名登记表不存在");
-			long count = messageNoticeService.count(Wrappers.lambdaQuery(MessageNotice.class)
-					.eq(MessageNotice::getRegistrationId, registrationId));
-			ThrowUtils.throwIf(count > 0, ErrorCode.PARAMS_ERROR, "消息通知已存在");
 			// todo 填充默认值
 			MessageNotice messageNotice = new MessageNotice();
 			BeanUtils.copyProperties(messageNoticeAddRequest, messageNotice);
@@ -108,10 +107,16 @@ public class MessageNoticeController {
 			messageNotice.setUserName(registrationForm.getUserName());
 			messageNotice.setPushStatus(PushStatusEnum.NOT_PUSHED.getValue());
 			messageNoticeService.validMessageNotice(messageNotice, true);
+			MessageNotice oldMessageNotice = messageNoticeService.getOne(Wrappers.lambdaQuery(MessageNotice.class)
+					.eq(MessageNotice::getRegistrationId, registrationId));
+			// 检查消息通知是够已经被创建
+			if (oldMessageNotice != null) {
+				messageNotice.setId(oldMessageNotice.getId());
+			}
 			messageNotices.add(messageNotice);
 		}
 		// 写入数据库
-		boolean result = messageNoticeService.saveBatch(messageNotices);
+		boolean result = messageNoticeService.saveOrUpdateBatch(messageNotices);
 		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
 		List<Long> savedIds = messageNotices.stream()
 				.map(MessageNotice::getId)
