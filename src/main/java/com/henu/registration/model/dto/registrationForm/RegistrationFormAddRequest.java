@@ -110,6 +110,11 @@ public class RegistrationFormAddRequest implements Serializable {
 	 */
 	private Long jobId;
 	
+	/**
+	 * 报名状态(0-待报名,1-已报名,2-待发送面试通知,3-已发送面试通知)
+	 */
+	private Integer registrationStatus;
+	
 	@Serial
 	private static final long serialVersionUID = 1L;
 }

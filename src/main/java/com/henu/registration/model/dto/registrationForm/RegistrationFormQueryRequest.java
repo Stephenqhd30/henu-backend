@@ -88,6 +88,11 @@ public class RegistrationFormQueryRequest extends PageRequest implements Seriali
 	private String reviewer;
 	
 	/**
+	 * 报名状态(0-待报名,1-已报名,2-待发送面试通知,3-已发送面试通知)
+	 */
+	private Integer registrationStatus;
+	
+	/**
 	 * 高校类别列表
 	 */
 	private List<String> schoolTypes;

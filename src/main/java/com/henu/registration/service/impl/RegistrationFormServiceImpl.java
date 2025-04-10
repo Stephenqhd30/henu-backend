@@ -1,6 +1,7 @@
 package com.henu.registration.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.ObjUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -82,6 +83,11 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 			ThrowUtils.throwIf(ObjectUtils.isEmpty(userGender), ErrorCode.PARAMS_ERROR, "性别不能为空");
 			ThrowUtils.throwIf(ObjectUtils.isEmpty(marryStatus), ErrorCode.PARAMS_ERROR, "婚姻状况不能为空");
 			ThrowUtils.throwIf(ObjectUtils.isEmpty(jobId), ErrorCode.PARAMS_ERROR, "岗位信息不能为空");
+			RegistrationForm isRegistered = this.getOne(Wrappers.lambdaQuery(RegistrationForm.class)
+					.eq(RegistrationForm::getUserPhone, userPhone)
+					.eq(RegistrationForm::getUserName, userName)
+					.eq(RegistrationForm::getJobId, jobId));
+			ThrowUtils.throwIf(isRegistered != null, ErrorCode.PARAMS_ERROR, "该用户已报名");
 		}
 		// 修改数据时，有参数则校验
 		// todo 补充校验规则
@@ -123,6 +129,7 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		Integer marryStatus = registrationFormQueryRequest.getMarryStatus();
 		Integer reviewStatus = registrationFormQueryRequest.getReviewStatus();
 		String reviewer = registrationFormQueryRequest.getReviewer();
+		Integer registrationStatus = registrationFormQueryRequest.getRegistrationStatus();
 		String workExperience = registrationFormQueryRequest.getWorkExperience();
 		List<String> studentLeaders = registrationFormQueryRequest.getStudentLeaders();
 		String studentAwards = registrationFormQueryRequest.getStudentAwards();
@@ -151,6 +158,7 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		queryWrapper.eq(ObjectUtils.isNotEmpty(jobId), "job_id", jobId);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(reviewStatus), "review_status", reviewStatus);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(reviewer), "reviewer", reviewer);
+		queryWrapper.eq(ObjectUtils.isNotEmpty(registrationStatus), "registration_status", registrationStatus);
 		// 排序规则
 		queryWrapper.orderBy(SqlUtils.validSortField(sortField),
 				sortOrder.equals(CommonConstant.SORT_ORDER_ASC),
@@ -180,6 +188,7 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		Integer reviewStatus = registrationFormQueryRequest.getReviewStatus();
 		String reviewer = registrationFormQueryRequest.getReviewer();
 		String workExperience = registrationFormQueryRequest.getWorkExperience();
+		Integer registrationStatus = registrationFormQueryRequest.getRegistrationStatus();
 		List<String> studentLeaders = registrationFormQueryRequest.getStudentLeaders();
 		List<String> educationStages = registrationFormQueryRequest.getEducationStages();
 		String studentAwards = registrationFormQueryRequest.getStudentAwards();
@@ -206,6 +215,7 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		queryWrapper.eq(ObjectUtils.isNotEmpty(reviewStatus), "review_status", reviewStatus);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(jobId), "job_id", jobId);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(reviewer), "reviewer", reviewer);
+		queryWrapper.eq(ObjectUtils.isNotEmpty(registrationStatus), "registration_status", registrationStatus);
 		// 过滤符合 schoolIdList 的用户
 		if (CollUtil.isNotEmpty(schoolIdList) || CollUtil.isNotEmpty(educationStages)) {
 			// 构建 Education 查询条件

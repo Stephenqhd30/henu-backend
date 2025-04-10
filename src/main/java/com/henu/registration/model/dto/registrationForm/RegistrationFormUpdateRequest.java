@@ -110,6 +110,11 @@ public class RegistrationFormUpdateRequest implements Serializable {
 	private String studentAwards;
 	
 	/**
+	 * 报名状态(0-待报名,1-已报名,2-待发送面试通知,3-已发送面试通知)
+	 */
+	private Integer registrationStatus;
+	
+	/**
 	 * 岗位信息id
 	 */
 	private Long jobId;

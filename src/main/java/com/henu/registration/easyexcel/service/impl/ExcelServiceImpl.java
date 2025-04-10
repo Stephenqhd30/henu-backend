@@ -52,11 +52,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 /**
- * 验证码服务实现类（基于 Redis 缓存）
+ * Excel服务实现类
  *
  * @author stephenqiu
  */
@@ -450,6 +449,7 @@ public class ExcelServiceImpl implements ExcelService {
 			registrationFormExcelVO.setSubmitter(user.getUserName());
 			Job job = jobService.getById(registrationForm.getJobId());
 			registrationFormExcelVO.setJobName(job.getJobName());
+			registrationFormExcelVO.setRegistrationStatus(Objects.requireNonNull(RegistrationStatueEnum.getEnumByValue(registrationForm.getRegistrationStatus())).getText());
 			return registrationFormExcelVO;
 		})).toList();
 		// 等待所有 CompletableFuture 执行完毕，并收集结果

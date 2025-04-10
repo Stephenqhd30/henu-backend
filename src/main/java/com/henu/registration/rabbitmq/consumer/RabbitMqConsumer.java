@@ -8,6 +8,7 @@ import com.henu.registration.model.entity.MessagePush;
 import com.henu.registration.model.entity.RegistrationForm;
 import com.henu.registration.model.entity.User;
 import com.henu.registration.model.enums.PushStatusEnum;
+import com.henu.registration.model.enums.RegistrationStatueEnum;
 import com.henu.registration.rabbitmq.consumer.model.RabbitMessage;
 import com.henu.registration.rabbitmq.defaultMq.DefaultRabbitMq;
 import com.henu.registration.rabbitmq.defaultMq.DefaultRabbitMqWithDelay;
@@ -155,6 +156,11 @@ public class RabbitMqConsumer {
 			messageNoticeService.lambdaUpdate()
 					.set(MessageNotice::getPushStatus, PushStatusEnum.SUCCEED.getValue())
 					.eq(MessageNotice::getId, messagePush.getMessageNoticeId())
+					.update();
+			// 同步更新报名表
+			registrationFormService.lambdaUpdate()
+					.set(RegistrationForm::getRegistrationStatus, RegistrationStatueEnum.ADMIT.getValue())
+					.eq(RegistrationForm::getId, messageNotice.getRegistrationId())
 					.update();
 			// 确认消息处理成功
 			channel.basicAck(tag, false);

@@ -102,6 +102,11 @@ public class RegistrationFormVO implements Serializable {
 	private String workExperience;
 	
 	/**
+	 * 报名状态(0-待报名,1-已报名,2-待面试,3-已发送面试通知)
+	 */
+	private Integer registrationStatus;
+	
+	/**
 	 * 主要学生干部经历
 	 */
 	private List<String> studentLeaders;

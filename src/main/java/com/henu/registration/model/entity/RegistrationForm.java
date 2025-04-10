@@ -149,6 +149,11 @@ public class RegistrationForm implements Serializable {
 	private String reviewComments;
 	
 	/**
+	 * 报名状态(0-待报名,1-已报名,2-待面试,3-拟录取)
+	 */
+	private Integer registrationStatus;
+	
+	/**
 	 * 创建时间
 	 */
 	private Date createTime;

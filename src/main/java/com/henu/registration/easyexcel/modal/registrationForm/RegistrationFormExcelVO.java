@@ -136,4 +136,11 @@ public class RegistrationFormExcelVO implements Serializable {
 	@ColumnWidth(20)
 	@ExcelProperty("岗位名")
 	private String jobName;
+	
+	/**
+	 * 报名状态(0-待报名,1-已报名,2-待面试,3-已发送面试通知)
+	 */
+	@ColumnWidth(20)
+	@ExcelProperty("报名状态")
+	private String registrationStatus;
 }

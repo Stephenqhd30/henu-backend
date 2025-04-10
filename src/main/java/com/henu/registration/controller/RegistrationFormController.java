@@ -128,7 +128,7 @@ public class RegistrationFormController {
 	}
 	
 	/**
-	 * 更新报名登记
+	 * 更新报名登记信息
 	 *
 	 * @param registrationFormUpdateRequest registrationFormUpdateRequest
 	 * @return {@link BaseResponse<Boolean>}
@@ -145,12 +145,12 @@ public class RegistrationFormController {
 		if (CollUtil.isNotEmpty(studentLeaderList)) {
 			registrationForm.setStudentLeaders(JSONUtil.toJsonStr(studentLeaderList));
 		}
-		// 数据校验
-		registrationFormService.validRegistrationForm(registrationForm, false);
 		// 判断是否存在
 		long id = registrationFormUpdateRequest.getId();
 		RegistrationForm oldRegistrationForm = registrationFormService.getById(id);
 		ThrowUtils.throwIf(oldRegistrationForm == null, ErrorCode.NOT_FOUND_ERROR);
+		// 数据校验
+		registrationFormService.validRegistrationForm(registrationForm, false);
 		// 对身份证号进行加密
 		String userIdCard = registrationForm.getUserIdCard();
 		if (StringUtils.isNotBlank(userIdCard)) {
@@ -283,9 +283,7 @@ public class RegistrationFormController {
 		Page<RegistrationForm> registrationFormPage = registrationFormService.page(new Page<>(current, size),
 				registrationFormService.getQueryWrapper(registrationFormQueryRequest));
 		// 获取封装类
-		registrationFormPage.getRecords().forEach(registrationForm -> {
-			registrationForm.setUserIdCard(userService.getDecryptIdCard(registrationForm.getUserIdCard()));
-		});
+		registrationFormPage.getRecords().forEach(registrationForm -> registrationForm.setUserIdCard(userService.getDecryptIdCard(registrationForm.getUserIdCard())));
 		// 获取封装类
 		return ResultUtils.success(registrationFormService.getRegistrationFormVOPage(registrationFormPage, request));
 	}

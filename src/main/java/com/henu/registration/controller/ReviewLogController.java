@@ -10,6 +10,7 @@ import com.henu.registration.model.dto.reviewLog.ReviewLogQueryRequest;
 import com.henu.registration.model.entity.Admin;
 import com.henu.registration.model.entity.RegistrationForm;
 import com.henu.registration.model.entity.ReviewLog;
+import com.henu.registration.model.enums.RegistrationStatueEnum;
 import com.henu.registration.model.vo.reviewLog.ReviewLogVO;
 import com.henu.registration.service.AdminService;
 import com.henu.registration.service.RegistrationFormService;
@@ -75,6 +76,7 @@ public class ReviewLogController {
 		registrationForm.setReviewStatus(reviewLog.getReviewStatus());
 		registrationForm.setReviewTime(new Date());
 		registrationForm.setReviewComments(reviewLog.getReviewComments());
+		registrationForm.setRegistrationStatus(RegistrationStatueEnum.INTERVIEW.getValue());
 		boolean b = registrationFormService.updateById(registrationForm);
 		ThrowUtils.throwIf(!b, ErrorCode.OPERATION_ERROR);
 		// 返回新写入的数据 id
