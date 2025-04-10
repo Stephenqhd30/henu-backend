@@ -46,20 +46,14 @@ public class MessageNoticeExcelListener extends DefaultExcelListener<MessageNoti
 	public void invoke(MessageNoticeExcelDTO data, AnalysisContext context) {
 		String userName = data.getUserName();
 		String userPhone = data.getUserPhone();
-		Date interviewTime = data.getInterviewTime();
-		String interviewLocation = data.getInterviewLocation();
+		String content = data.getContent();
 		
 		ThrowUtils.throwIf(StringUtils.isBlank(userName), ErrorCode.PARAMS_ERROR, "用户姓名不能为空");
 		ThrowUtils.throwIf(StringUtils.isBlank(userPhone), ErrorCode.PARAMS_ERROR, "用户手机号不能为空");
 		if (StringUtils.isNotBlank(userPhone)) {
 			ThrowUtils.throwIf(!RegexUtils.checkPhone(userPhone), ErrorCode.PARAMS_ERROR, "用户手机号格式不正确");
 		}
-		ThrowUtils.throwIf(interviewTime == null, ErrorCode.PARAMS_ERROR, "面试时间不能为空");
-		ThrowUtils.throwIf(StringUtils.isBlank(interviewLocation), ErrorCode.PARAMS_ERROR, "面试地点不能为空");
-		if (interviewTime.before(new Date())) {
-			throw new BusinessException(ErrorCode.PARAMS_ERROR, "面试时间不能早于当前时间");
-		}
-		
+		ThrowUtils.throwIf(StringUtils.isBlank(content), ErrorCode.PARAMS_ERROR, "面试内容不能为空");
 		RegistrationForm registrationForm = registrationFormService.getOne(Wrappers.lambdaQuery(RegistrationForm.class)
 				.eq(RegistrationForm::getUserName, userName)
 				.eq(RegistrationForm::getUserPhone, userPhone));

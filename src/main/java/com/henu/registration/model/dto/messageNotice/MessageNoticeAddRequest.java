@@ -26,14 +26,9 @@ public class MessageNoticeAddRequest implements Serializable {
 	private List<Long> registrationIds;
 	
 	/**
-	 * 面试时间
+	 * 面试内容
 	 */
-	private Date interviewTime;
-	
-	/**
-	 * 面试地点
-	 */
-	private String interviewLocation;
+	private String content;
 	
 	@Serial
 	private static final long serialVersionUID = 1L;

@@ -34,18 +34,11 @@ public class MessageNoticeExcelVO implements Serializable {
 	private String userPhone;
 	
 	/**
-	 * 面试时间
+	 * 面试内容
 	 */
-	@ColumnWidth(40)
-	@ExcelProperty("面试时间")
-	private Date interviewTime;
-	
-	/**
-	 * 面试地点
-	 */
-	@ColumnWidth(40)
-	@ExcelProperty("面试地点")
-	private String interviewLocation;
+	@ColumnWidth(60)
+	@ExcelProperty("面试内容")
+	private String content;
 	
 	/**
 	 * 报名登记表id

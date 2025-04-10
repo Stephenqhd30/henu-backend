@@ -30,14 +30,9 @@ public class MessageNoticeVO implements Serializable {
 	private String userName;
 	
 	/**
-	 * 面试时间
+	 * 面试内容
 	 */
-	private Date interviewTime;
-	
-	/**
-	 * 面试地点
-	 */
-	private String interviewLocation;
+	private String content;
 	
 	/**
 	 * 管理员id

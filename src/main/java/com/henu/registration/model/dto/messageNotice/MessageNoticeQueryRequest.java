@@ -34,14 +34,9 @@ public class MessageNoticeQueryRequest extends PageRequest implements Serializab
 	private String userName;
 	
 	/**
-	 * 面试时间
+	 * 面试内容
 	 */
-	private Date interviewTime;
-	
-	/**
-	 * 面试地点
-	 */
-	private String interviewLocation;
+	private String content;
 	
 	/**
 	 * 推送状态(0-未推送,1-成功,2-失败,3-重试中)

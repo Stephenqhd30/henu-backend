@@ -8,7 +8,6 @@ import com.henu.registration.common.ErrorCode;
 import com.henu.registration.common.ThrowUtils;
 import com.henu.registration.common.exception.BusinessException;
 import com.henu.registration.constants.CommonConstant;
-import com.henu.registration.controller.MessageNoticeController;
 import com.henu.registration.mapper.MessageNoticeMapper;
 import com.henu.registration.model.dto.messageNotice.MessageNoticeQueryRequest;
 import com.henu.registration.model.entity.MessageNotice;
@@ -21,12 +20,10 @@ import com.henu.registration.utils.sql.SqlUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -60,24 +57,19 @@ public class MessageNoticeServiceImpl extends ServiceImpl<MessageNoticeMapper, M
 		ThrowUtils.throwIf(messageNotice == null, ErrorCode.PARAMS_ERROR);
 		// todo 从对象中取值
 		Long registrationId = messageNotice.getRegistrationId();
-		Date interviewTime = messageNotice.getInterviewTime();
-		String interviewLocation = messageNotice.getInterviewLocation();
+		String content = messageNotice.getContent();
 		
 		// 创建数据时，参数不能为空
 		if (add) {
 			// todo 补充校验规则
 			ThrowUtils.throwIf(ObjectUtils.isEmpty(registrationId), ErrorCode.PARAMS_ERROR, "报名登记表id不能为空");
-			ThrowUtils.throwIf(ObjectUtils.isEmpty(interviewTime), ErrorCode.PARAMS_ERROR, "面试时间不能为空");
-			ThrowUtils.throwIf(StringUtils.isBlank(interviewLocation), ErrorCode.PARAMS_ERROR, "面试地点不能为空");
+			ThrowUtils.throwIf(ObjectUtils.isEmpty(content), ErrorCode.PARAMS_ERROR, "面试内容不能为空");
 		}
 		// 修改数据时，有参数则校验
 		// todo 补充校验规则
 		if (ObjectUtils.isNotEmpty(registrationId)) {
 			RegistrationForm registrationForm = registrationFormService.getById(registrationId);
 			ThrowUtils.throwIf(registrationForm == null, ErrorCode.PARAMS_ERROR, "报名登记表不存在");
-		}
-		if (ObjectUtils.isNotEmpty(interviewTime)) {
-			ThrowUtils.throwIf(interviewTime.before(new Date()), ErrorCode.PARAMS_ERROR, "面试时间不能早于当前时间");
 		}
 	}
 	
@@ -97,8 +89,7 @@ public class MessageNoticeServiceImpl extends ServiceImpl<MessageNoticeMapper, M
 		Long id = messageNoticeQueryRequest.getId();
 		Long notId = messageNoticeQueryRequest.getNotId();
 		Long adminId = messageNoticeQueryRequest.getAdminId();
-		Date interviewTime = messageNoticeQueryRequest.getInterviewTime();
-		String interviewLocation = messageNoticeQueryRequest.getInterviewLocation();
+		String content = messageNoticeQueryRequest.getContent();
 		Integer pushStatus = messageNoticeQueryRequest.getPushStatus();
 		Long registrationId = messageNoticeQueryRequest.getRegistrationId();
 		String sortField = messageNoticeQueryRequest.getSortField();
@@ -106,8 +97,7 @@ public class MessageNoticeServiceImpl extends ServiceImpl<MessageNoticeMapper, M
 		
 		// todo 补充需要的查询条件
 		// 模糊查询
-		queryWrapper.like(StringUtils.isNotBlank(interviewLocation), "interview_location", interviewLocation);
-		queryWrapper.like(ObjectUtils.isNotEmpty(interviewTime), "interview_time", interviewTime);
+		queryWrapper.like(StringUtils.isNotBlank(content), "content", content);
 		// 精确查询
 		queryWrapper.ne(ObjectUtils.isNotEmpty(notId), "push_status", notId);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(id), "id", id);

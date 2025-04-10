@@ -6,6 +6,7 @@ import com.aliyuncs.dysmsapi.model.v20170525.SendSmsRequest;
 import com.aliyuncs.dysmsapi.model.v20170525.SendSmsResponse;
 import com.aliyuncs.exceptions.ClientException;
 import com.henu.registration.common.ErrorCode;
+import com.henu.registration.common.ThrowUtils;
 import com.henu.registration.common.exception.BusinessException;
 import com.henu.registration.constants.SmsConstant;
 import com.henu.registration.manager.redis.RedisLimiterManager;
@@ -21,9 +22,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -50,12 +48,6 @@ public class SMSUtils {
 	@Resource
 	private MessageNoticeService messageNoticeService;
 	
-	// 最大重试次数
-	private static final int MAX_RETRY_COUNT = 3;
-	private static final DateTimeFormatter YEAR_FORMAT = DateTimeFormatter.ofPattern("yyyy");
-	private static final DateTimeFormatter MONTH_FORMAT = DateTimeFormatter.ofPattern("MM");
-	private static final DateTimeFormatter DAY_FORMAT = DateTimeFormatter.ofPattern("dd");
-	private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
 	/**
 	 * 发送验证码短信用于密码重置
 	 *
@@ -150,20 +142,11 @@ public class SMSUtils {
 		MessageNotice messageNotice = messageNoticeService.getById(messageNoticeId);
 		Long registrationId = messageNotice.getRegistrationId();
 		RegistrationForm registrationForm = registrationFormService.getById(registrationId);
-		// 转换面试时间为 LocalDateTime
-		LocalDateTime interviewTime = messageNotice.getInterviewTime().toInstant()
-				.atZone(ZoneId.systemDefault())
-				.toLocalDateTime();
-		
+		ThrowUtils.throwIf(registrationForm == null, ErrorCode.OPERATION_ERROR, "报名信息不存在");
 		// 直接格式化时间
 		Map<String, String> paramMap = new HashMap<>();
 		paramMap.put("userName", registrationForm.getUserName());
-		paramMap.put("year", YEAR_FORMAT.format(interviewTime));
-		paramMap.put("mouth", MONTH_FORMAT.format(interviewTime));
-		paramMap.put("day", DAY_FORMAT.format(interviewTime));
-		paramMap.put("time", TIME_FORMAT.format(interviewTime));
-		paramMap.put("location", messageNotice.getInterviewLocation());
-		
+		paramMap.put("content", messageNotice.getContent());
 		return JSONUtil.toJsonStr(paramMap);
 	}
 	
