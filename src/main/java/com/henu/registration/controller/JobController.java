@@ -1,5 +1,6 @@
 package com.henu.registration.controller;
 
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.henu.registration.common.*;
 import com.henu.registration.common.exception.BusinessException;
@@ -7,9 +8,11 @@ import com.henu.registration.model.dto.job.JobAddRequest;
 import com.henu.registration.model.dto.job.JobQueryRequest;
 import com.henu.registration.model.dto.job.JobUpdateRequest;
 import com.henu.registration.model.entity.Admin;
+import com.henu.registration.model.entity.Deadline;
 import com.henu.registration.model.entity.Job;
 import com.henu.registration.model.vo.job.JobVO;
 import com.henu.registration.service.AdminService;
+import com.henu.registration.service.DeadlineService;
 import com.henu.registration.service.JobService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -33,6 +36,9 @@ public class JobController {
 
     @Resource
     private AdminService adminService;
+    
+    @Resource
+    private DeadlineService deadlineService;
 
     // region 增删改查
 
@@ -87,6 +93,10 @@ public class JobController {
         // 操作数据库
         boolean result = jobService.removeById(id);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+        // 同步删除截止时间信息
+        boolean remove = deadlineService.remove(Wrappers.lambdaQuery(Deadline.class)
+                .eq(Deadline::getJobId, id));
+        ThrowUtils.throwIf(!remove, ErrorCode.OPERATION_ERROR);
         return ResultUtils.success(true);
     }
 
