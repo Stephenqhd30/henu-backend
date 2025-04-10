@@ -1,13 +1,11 @@
 package com.henu.registration.controller;
 
-import cn.dev33.satoken.annotation.SaCheckRole;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.henu.registration.common.*;
 import com.henu.registration.common.exception.BusinessException;
-import com.henu.registration.constants.AdminConstant;
 import com.henu.registration.model.dto.school.SchoolAddRequest;
 import com.henu.registration.model.dto.school.SchoolQueryRequest;
 import com.henu.registration.model.dto.school.SchoolUpdateRequest;
@@ -147,7 +145,6 @@ public class SchoolController {
 	 * @return {@link BaseResponse<Page<School>>}
 	 */
 	@PostMapping("/list/page")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Page<School>> listSchoolByPage(@RequestBody SchoolQueryRequest schoolQueryRequest) {
 		long current = schoolQueryRequest.getCurrent();
 		long size = schoolQueryRequest.getPageSize();

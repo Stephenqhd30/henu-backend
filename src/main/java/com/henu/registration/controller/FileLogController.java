@@ -260,7 +260,7 @@ public class FileLogController {
 		FileLog oldFileLog = fileLogService.getById(id);
 		ThrowUtils.throwIf(oldFileLog == null, ErrorCode.NOT_FOUND_ERROR);
 		// 仅本人或管理员可删除
-		if (!oldFileLog.getUserId().equals(user.getId()) && !adminService.isAdmin(request)) {
+		if (user != null && !oldFileLog.getUserId().equals(user.getId()) && !adminService.isAdmin(request)) {
 			throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
 		}
 		// 操作数据库

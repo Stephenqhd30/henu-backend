@@ -27,7 +27,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
-import java.util.concurrent.locks.Lock;
 
 
 /**
@@ -214,7 +213,6 @@ public class UserController {
 	 * @return BaseResponse<User>
 	 */
 	@GetMapping("/get")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<User> getUserById(long id, HttpServletRequest request) {
 		ThrowUtils.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
 		User user = userService.getById(id);
@@ -249,7 +247,6 @@ public class UserController {
 	 * @return BaseResponse<Page < User>>
 	 */
 	@PostMapping("/list/page")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Page<User>> listUserByPage(@RequestBody UserQueryRequest userQueryRequest,
 	                                               HttpServletRequest request) {
 		ThrowUtils.throwIf(userQueryRequest == null, ErrorCode.PARAMS_ERROR);
@@ -312,7 +309,7 @@ public class UserController {
 		} catch (Exception e) {
 			return ResultUtils.error(ErrorCode.PARAMS_ERROR, e.getMessage());
 		}
-		// 如果用户需要修改密码
+		// 如果用户需要修改身份证号
 		if (StringUtils.isNotBlank(userEditRequest.getUserIdCard())) {
 			// todo 身份证加密
 			String encryptIdCard = userService.getEncryptIdCard(userEditRequest.getUserIdCard());

@@ -1,6 +1,5 @@
 package com.henu.registration.controller;
 
-import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.henu.registration.common.*;
@@ -192,7 +191,7 @@ public class MessageNoticeController {
 	}
 	
 	/**
-	 * 分页获取消息通知列表（仅管理员可用）
+	 * 分页获取消息通知列表
 	 *
 	 * @param messageNoticeQueryRequest messageNoticeQueryRequest
 	 * @return {@link BaseResponse<Page<MessageNotice>>}

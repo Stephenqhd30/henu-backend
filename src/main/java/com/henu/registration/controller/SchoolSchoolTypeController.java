@@ -1,13 +1,11 @@
 package com.henu.registration.controller;
 
-import cn.dev33.satoken.annotation.SaCheckRole;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.henu.registration.common.*;
 import com.henu.registration.common.exception.BusinessException;
-import com.henu.registration.constants.AdminConstant;
 import com.henu.registration.model.dto.schoolSchoolType.SchoolSchoolTypeAddRequest;
 import com.henu.registration.model.dto.schoolSchoolType.SchoolSchoolTypeQueryRequest;
 import com.henu.registration.model.dto.schoolSchoolType.SchoolSchoolTypeUpdateRequest;

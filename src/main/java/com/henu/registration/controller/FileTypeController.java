@@ -1,13 +1,11 @@
 package com.henu.registration.controller;
 
-import cn.dev33.satoken.annotation.SaCheckRole;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.henu.registration.common.*;
 import com.henu.registration.common.exception.BusinessException;
-import com.henu.registration.constants.AdminConstant;
 import com.henu.registration.model.dto.fileType.FileTypeAddRequest;
 import com.henu.registration.model.dto.fileType.FileTypeQueryRequest;
 import com.henu.registration.model.dto.fileType.FileTypeUpdateRequest;
@@ -106,7 +104,6 @@ public class FileTypeController {
 	 * @return {@link BaseResponse<Boolean>}
 	 */
 	@PostMapping("/update")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Boolean> updateFileType(@RequestBody FileTypeUpdateRequest fileTypeUpdateRequest) {
 		if (fileTypeUpdateRequest == null || fileTypeUpdateRequest.getId() <= 0) {
 			throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -145,13 +142,12 @@ public class FileTypeController {
 	}
 	
 	/**
-	 * 分页获取文件上传类型列表（仅管理员可用）
+	 * 分页获取文件上传类型列表
 	 *
 	 * @param fileTypeQueryRequest fileTypeQueryRequest
 	 * @return {@link BaseResponse<Page<FileType>>}
 	 */
 	@PostMapping("/list/page")
-	@SaCheckRole(AdminConstant.SYSTEM_ADMIN)
 	public BaseResponse<Page<FileType>> listFileTypeByPage(@RequestBody FileTypeQueryRequest fileTypeQueryRequest) {
 		long current = fileTypeQueryRequest.getCurrent();
 		long size = fileTypeQueryRequest.getPageSize();
