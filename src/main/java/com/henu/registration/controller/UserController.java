@@ -304,11 +304,7 @@ public class UserController {
 		User user = new User();
 		BeanUtils.copyProperties(userEditRequest, user);
 		// 对用户数据进行校验
-		try {
-			userService.validUser(user, false);
-		} catch (Exception e) {
-			return ResultUtils.error(ErrorCode.PARAMS_ERROR, e.getMessage());
-		}
+		userService.validUser(user, false);
 		// 如果用户需要修改身份证号
 		if (StringUtils.isNotBlank(userEditRequest.getUserIdCard())) {
 			// todo 身份证加密

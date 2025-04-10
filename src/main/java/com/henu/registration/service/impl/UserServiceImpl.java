@@ -72,6 +72,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 			ThrowUtils.throwIf(StringUtils.isBlank(userPassword), ErrorCode.PARAMS_ERROR, "密码不能为空");
 			ThrowUtils.throwIf(StringUtils.isBlank(userName), ErrorCode.PARAMS_ERROR, "姓名不能为空");
 			ThrowUtils.throwIf(StringUtils.isBlank(userIdCard), ErrorCode.PARAMS_ERROR, "身份证号不能为空");
+			ThrowUtils.throwIf(StringUtils.isBlank(userPhone), ErrorCode.PARAMS_ERROR, "手机号码不能为空");
 		}
 		// 修改数据时，有参数则校验
 		// todo 补充校验规则
@@ -96,6 +97,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 		}
 		if (StringUtils.isNotBlank(userPhone)) {
 			ThrowUtils.throwIf(!RegexUtils.checkMobile(userPhone), ErrorCode.PARAMS_ERROR, "用户手机号码有误");
+			User isRegistered = this.getOne(Wrappers.lambdaQuery(User.class)
+					.eq(User::getUserPhone, userPhone));
+			ThrowUtils.throwIf(isRegistered != null, ErrorCode.PARAMS_ERROR, "手机号码已注册");
 		}
 	}
 	
@@ -157,8 +161,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 		return LockUtils.lockEvent(userAccount.intern(), () -> {
 			// 账户不能重复
 			LambdaQueryWrapper<User> eq = Wrappers.lambdaQuery(User.class)
-					.eq(User::getUserAccount, userAccount)
-					.eq(User::getIsDelete, false);;
+					.eq(User::getUserAccount, userAccount);
 			long count = this.count(eq);
 			if (count > 0) {
 				throw new BusinessException(ErrorCode.PARAMS_ERROR, "账号重复");
@@ -333,7 +336,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 		// 填充信息
 		List<UserVO> userVOList = userList.stream().map(UserVO::objToVo).collect(Collectors.toList());
 		userVOPage.setRecords(userVOList);
-		
 		return userVOPage;
 	}
 	
