@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.Optional;
 
 /**
  * 系统消息接口
@@ -96,7 +97,7 @@ public class SystemMessagesController {
 		SystemMessages oldSystemMessages = systemMessagesService.getById(id);
 		ThrowUtils.throwIf(oldSystemMessages == null, ErrorCode.NOT_FOUND_ERROR);
 		// todo 更新推送状态
-		systemMessages.setPushStatus(PushStatusEnum.NOT_PUSHED.getValue());
+		systemMessages.setPushStatus(Optional.ofNullable(systemMessages.getPushStatus()).orElse(PushStatusEnum.NOT_PUSHED.getValue()));
 		// 操作数据库
 		boolean result = systemMessagesService.updateById(systemMessages);
 		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
