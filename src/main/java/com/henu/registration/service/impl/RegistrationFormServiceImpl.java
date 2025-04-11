@@ -1,7 +1,6 @@
 package com.henu.registration.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.ObjUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -13,6 +12,7 @@ import com.henu.registration.constants.CommonConstant;
 import com.henu.registration.mapper.RegistrationFormMapper;
 import com.henu.registration.model.dto.registrationForm.RegistrationFormQueryRequest;
 import com.henu.registration.model.entity.*;
+import com.henu.registration.model.enums.PoliticalStatusEnum;
 import com.henu.registration.model.vo.education.EducationVO;
 import com.henu.registration.model.vo.family.FamilyVO;
 import com.henu.registration.model.vo.fileLog.FileLogVO;
@@ -72,6 +72,7 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		String userPhone = registrationForm.getUserPhone();
 		Integer userGender = registrationForm.getUserGender();
 		Integer marryStatus = registrationForm.getMarryStatus();
+		String politicalStatus = registrationForm.getPoliticalStatus();
 		String emergencyPhone = registrationForm.getEmergencyPhone();
 		Long jobId = registrationForm.getJobId();
 		
@@ -79,7 +80,8 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		if (add) {
 			// todo 补充校验规则
 			ThrowUtils.throwIf(StringUtils.isBlank(userName), ErrorCode.PARAMS_ERROR, "姓名不能为空");
-			ThrowUtils.throwIf(StringUtils.isBlank(userEmail), ErrorCode.PARAMS_ERROR, "邮箱不能为空");
+			ThrowUtils.throwIf(StringUtils.isBlank(userIdCard), ErrorCode.PARAMS_ERROR, "身份证号不能为空");
+			ThrowUtils.throwIf(StringUtils.isBlank(politicalStatus), ErrorCode.PARAMS_ERROR, "政治面貌不能为空");
 			ThrowUtils.throwIf(ObjectUtils.isEmpty(userGender), ErrorCode.PARAMS_ERROR, "性别不能为空");
 			ThrowUtils.throwIf(ObjectUtils.isEmpty(marryStatus), ErrorCode.PARAMS_ERROR, "婚姻状况不能为空");
 			ThrowUtils.throwIf(ObjectUtils.isEmpty(jobId), ErrorCode.PARAMS_ERROR, "岗位信息不能为空");
@@ -93,6 +95,9 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		// todo 补充校验规则
 		if (StringUtils.isNotBlank(userIdCard)) {
 			ThrowUtils.throwIf(!RegexUtils.checkIdCard(userIdCard), ErrorCode.PARAMS_ERROR, "身份证号输入有误");
+		}
+		if (StringUtils.isNotBlank(politicalStatus)) {
+			ThrowUtils.throwIf(PoliticalStatusEnum.getEnumByValue(politicalStatus) == null, ErrorCode.PARAMS_ERROR, "政治面貌输入有误");
 		}
 		if (StringUtils.isNotBlank(userEmail)) {
 			ThrowUtils.throwIf(!RegexUtils.checkEmail(userEmail), ErrorCode.PARAMS_ERROR, "邮箱输入有误");
@@ -130,6 +135,7 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		Integer reviewStatus = registrationFormQueryRequest.getReviewStatus();
 		String reviewer = registrationFormQueryRequest.getReviewer();
 		Integer registrationStatus = registrationFormQueryRequest.getRegistrationStatus();
+		String politicalStatus = registrationFormQueryRequest.getPoliticalStatus();
 		String workExperience = registrationFormQueryRequest.getWorkExperience();
 		List<String> studentLeaders = registrationFormQueryRequest.getStudentLeaders();
 		String studentAwards = registrationFormQueryRequest.getStudentAwards();
@@ -159,6 +165,7 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		queryWrapper.eq(ObjectUtils.isNotEmpty(reviewStatus), "review_status", reviewStatus);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(reviewer), "reviewer", reviewer);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(registrationStatus), "registration_status", registrationStatus);
+		queryWrapper.eq(ObjectUtils.isNotEmpty(politicalStatus), "political_status", politicalStatus);
 		// 排序规则
 		queryWrapper.orderBy(SqlUtils.validSortField(sortField),
 				sortOrder.equals(CommonConstant.SORT_ORDER_ASC),
@@ -186,6 +193,7 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		Integer userGender = registrationFormQueryRequest.getUserGender();
 		Integer marryStatus = registrationFormQueryRequest.getMarryStatus();
 		Integer reviewStatus = registrationFormQueryRequest.getReviewStatus();
+		String politicalStatus = registrationFormQueryRequest.getPoliticalStatus();
 		String reviewer = registrationFormQueryRequest.getReviewer();
 		String workExperience = registrationFormQueryRequest.getWorkExperience();
 		Integer registrationStatus = registrationFormQueryRequest.getRegistrationStatus();
@@ -216,6 +224,7 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		queryWrapper.eq(ObjectUtils.isNotEmpty(jobId), "job_id", jobId);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(reviewer), "reviewer", reviewer);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(registrationStatus), "registration_status", registrationStatus);
+		queryWrapper.eq(ObjectUtils.isNotEmpty(politicalStatus), "political_status", politicalStatus);
 		// 过滤符合 schoolIdList 的用户
 		if (CollUtil.isNotEmpty(schoolIdList) || CollUtil.isNotEmpty(educationStages)) {
 			// 构建 Education 查询条件

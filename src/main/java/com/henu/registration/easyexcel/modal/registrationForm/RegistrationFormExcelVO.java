@@ -68,6 +68,13 @@ public class RegistrationFormExcelVO implements Serializable {
 	private String ethnic;
 	
 	/**
+	 * 政治面貌
+	 */
+	@ColumnWidth(20)
+	@ExcelProperty("政治面貌")
+	private String politicalStatus;
+	
+	/**
 	 * 入党时间
 	 */
 	@ColumnWidth(20)

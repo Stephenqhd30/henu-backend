@@ -450,6 +450,7 @@ public class ExcelServiceImpl implements ExcelService {
 			Job job = jobService.getById(registrationForm.getJobId());
 			registrationFormExcelVO.setJobName(job.getJobName());
 			registrationFormExcelVO.setRegistrationStatus(Objects.requireNonNull(RegistrationStatueEnum.getEnumByValue(registrationForm.getRegistrationStatus())).getText());
+			registrationFormExcelVO.setPoliticalStatus(Objects.requireNonNull(PoliticalStatusEnum.getEnumByValue(registrationForm.getPoliticalStatus())).getText());
 			return registrationFormExcelVO;
 		})).toList();
 		// 等待所有 CompletableFuture 执行完毕，并收集结果

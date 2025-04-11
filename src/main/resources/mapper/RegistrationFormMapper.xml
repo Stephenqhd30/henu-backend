@@ -15,6 +15,7 @@
             <result property="userLifePhoto" column="user_life_photo"/>
             <result property="registrationForm" column="registration_form" />
             <result property="ethnic" column="ethnic"/>
+            <result property="politicalStatus" column="political_status"/>
             <result property="partyTime" column="party_time" />
             <result property="birthDate" column="birth_date" />
             <result property="marryStatus" column="marry_status" />
@@ -37,8 +38,9 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,user_id_card,user_name,user_email,user_phone,user_gender,
-        user_avatar,user_lift_photo,registration_form,ethnic,party_time,birth_date,marry_status,
+	    id
+	    ,user_id_card,user_name,user_email,user_phone,user_gender,
+        user_avatar,user_lift_photo,registration_form,ethnic,political_status,party_time,birth_date,marry_status,
         emergency_phone,address,work_experience,student_leaders,leader_experience,student_awards,review_status,
         review_time,reviewer,review_comments,registration_status,job_id,user_id,create_time,
         update_time,is_delete

@@ -77,6 +77,11 @@ public class RegistrationFormVO implements Serializable {
 	private String ethnic;
 	
 	/**
+	 * 政治面貌
+	 */
+	private String politicalStatus;
+	
+	/**
 	 * 入党时间
 	 */
 	private String partyTime;

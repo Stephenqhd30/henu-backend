@@ -48,6 +48,11 @@ public class RegistrationFormQueryRequest extends PageRequest implements Seriali
 	private Integer marryStatus;
 	
 	/**
+	 * 政治面貌
+	 */
+	private String politicalStatus;
+	
+	/**
 	 * 工作经历
 	 */
 	private String workExperience;

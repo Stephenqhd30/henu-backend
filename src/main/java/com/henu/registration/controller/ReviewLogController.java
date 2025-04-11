@@ -11,6 +11,7 @@ import com.henu.registration.model.entity.Admin;
 import com.henu.registration.model.entity.RegistrationForm;
 import com.henu.registration.model.entity.ReviewLog;
 import com.henu.registration.model.enums.RegistrationStatueEnum;
+import com.henu.registration.model.enums.ReviewStatusEnum;
 import com.henu.registration.model.vo.reviewLog.ReviewLogVO;
 import com.henu.registration.service.AdminService;
 import com.henu.registration.service.RegistrationFormService;
@@ -70,15 +71,17 @@ public class ReviewLogController {
 		boolean result = reviewLogService.save(reviewLog);
 		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
 		// 同步修改登记表的审核状态信息
-		RegistrationForm registrationForm = new RegistrationForm();
-		registrationForm.setId(reviewLog.getRegistrationId());
-		registrationForm.setReviewer(loginAdmin.getAdminName());
-		registrationForm.setReviewStatus(reviewLog.getReviewStatus());
-		registrationForm.setReviewTime(new Date());
-		registrationForm.setReviewComments(reviewLog.getReviewComments());
-		registrationForm.setRegistrationStatus(RegistrationStatueEnum.INTERVIEW.getValue());
-		boolean b = registrationFormService.updateById(registrationForm);
-		ThrowUtils.throwIf(!b, ErrorCode.OPERATION_ERROR);
+		boolean update = registrationFormService.lambdaUpdate()
+				.eq(RegistrationForm::getId, reviewLog.getRegistrationId())
+				// 如果审核状态为通过，设置为“面试阶段”
+				.set(ReviewStatusEnum.PASS.getValue().equals(reviewLog.getReviewStatus()),
+						RegistrationForm::getRegistrationStatus, RegistrationStatueEnum.INTERVIEW.getValue())
+				.set(RegistrationForm::getReviewer, loginAdmin.getAdminName())
+				.set(RegistrationForm::getReviewStatus, reviewLog.getReviewStatus())
+				.set(RegistrationForm::getReviewTime, new Date())
+				.set(RegistrationForm::getReviewComments, reviewLog.getReviewComments())
+				.update();
+		ThrowUtils.throwIf(!update, ErrorCode.OPERATION_ERROR);
 		// 返回新写入的数据 id
 		long newReviewLogId = reviewLog.getId();
 		return ResultUtils.success(newReviewLogId);
@@ -114,14 +117,17 @@ public class ReviewLogController {
 			boolean result = reviewLogService.save(reviewLog);
 			ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
 			// 同步修改登记表的审核状态信息
-			RegistrationForm registrationForm = new RegistrationForm();
-			registrationForm.setId(registrationId);
-			registrationForm.setReviewer(loginAdmin.getAdminName());
-			registrationForm.setReviewStatus(reviewLog.getReviewStatus());
-			registrationForm.setReviewTime(new Date());
-			registrationForm.setReviewComments(reviewLog.getReviewComments());
-			boolean b = registrationFormService.updateById(registrationForm);
-			ThrowUtils.throwIf(!b, ErrorCode.OPERATION_ERROR);
+			boolean update = registrationFormService.lambdaUpdate()
+					.eq(RegistrationForm::getId, reviewLog.getRegistrationId())
+					// 如果审核状态为通过，设置为“面试阶段”
+					.set(ReviewStatusEnum.PASS.getValue().equals(reviewLog.getReviewStatus()),
+							RegistrationForm::getRegistrationStatus, RegistrationStatueEnum.INTERVIEW.getValue())
+					.set(RegistrationForm::getReviewer, loginAdmin.getAdminName())
+					.set(RegistrationForm::getReviewStatus, reviewLog.getReviewStatus())
+					.set(RegistrationForm::getReviewTime, new Date())
+					.set(RegistrationForm::getReviewComments, reviewLog.getReviewComments())
+					.update();
+			ThrowUtils.throwIf(!update, ErrorCode.OPERATION_ERROR);
 		}
 		
 		// 返回批量审核完成的成功消息
@@ -181,6 +187,5 @@ public class ReviewLogController {
 		// 获取封装类
 		return ResultUtils.success(reviewLogService.getReviewLogVOPage(reviewLogPage, request));
 	}
-	
 	// endregion
 }
