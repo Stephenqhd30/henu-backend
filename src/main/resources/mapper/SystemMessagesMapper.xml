@@ -8,7 +8,6 @@
             <id property="id" column="id" />
             <result property="title" column="title" />
             <result property="content" column="content" />
-            <result property="pushTime" column="push_time" />
             <result property="pushStatus" column="push_status" />
             <result property="type" column="type" />
             <result property="createTime" column="create_time" />
@@ -17,7 +16,7 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,title,content,push_time,push_status,type,
+        id,title,content,push_status,type,
         create_time,update_time,is_delete
     </sql>
 </mapper>

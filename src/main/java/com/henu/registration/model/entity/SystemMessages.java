@@ -38,11 +38,6 @@ public class SystemMessages implements Serializable {
 	private String content;
 	
 	/**
-	 * 推送时间
-	 */
-	private Date pushTime;
-	
-	/**
 	 * 推送状态(0-未推送,1-成功,2-失败,3-重试中)
 	 */
 	private Integer pushStatus;

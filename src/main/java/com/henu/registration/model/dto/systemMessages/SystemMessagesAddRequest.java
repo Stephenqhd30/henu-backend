@@ -25,11 +25,6 @@ public class SystemMessagesAddRequest implements Serializable {
 	private String content;
 	
 	/**
-	 * 推送时间
-	 */
-	private Date pushTime;
-	
-	/**
 	 * 消息类型
 	 */
 	private String type;

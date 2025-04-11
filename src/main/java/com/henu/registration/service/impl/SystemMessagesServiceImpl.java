@@ -10,7 +10,6 @@ import com.henu.registration.constants.CommonConstant;
 import com.henu.registration.mapper.SystemMessagesMapper;
 import com.henu.registration.model.dto.systemMessages.SystemMessagesQueryRequest;
 import com.henu.registration.model.entity.SystemMessages;
-import com.henu.registration.model.enums.MessageTypeEnum;
 import com.henu.registration.model.enums.SystemMessageTypeEnum;
 import com.henu.registration.model.vo.systemMessages.SystemMessagesVO;
 import com.henu.registration.service.SystemMessagesService;
@@ -21,7 +20,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -85,7 +83,6 @@ public class SystemMessagesServiceImpl extends ServiceImpl<SystemMessagesMapper,
 		Long notId = systemMessagesQueryRequest.getNotId();
 		String title = systemMessagesQueryRequest.getTitle();
 		String content = systemMessagesQueryRequest.getContent();
-		Date pushTime = systemMessagesQueryRequest.getPushTime();
 		Integer pushStatus = systemMessagesQueryRequest.getPushStatus();
 		String type = systemMessagesQueryRequest.getType();
 		String sortField = systemMessagesQueryRequest.getSortField();
@@ -98,7 +95,6 @@ public class SystemMessagesServiceImpl extends ServiceImpl<SystemMessagesMapper,
 		// 精确查询
 		queryWrapper.ne(ObjectUtils.isNotEmpty(notId), "id", notId);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(id), "id", id);
-		queryWrapper.eq(ObjectUtils.isNotEmpty(pushTime), "push_time", pushTime);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(pushStatus), "push_status", pushStatus);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(type), "type", type);
 		// 排序规则
