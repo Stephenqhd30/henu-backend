@@ -5,6 +5,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.List;
 
 /**
  * 验证码服务接口
@@ -105,6 +106,13 @@ public interface ExcelService {
 	 * @param response HttpServletResponse
 	 */
 	void exportRegistrationForm(HttpServletResponse response) throws IOException;
+	
+	/**
+	 * 根据用户 ID 导出报名登记表信息到 Excel
+	 * @param userIds userIds
+	 * @param response response
+	 */
+	void exportRegistrationFormByUserId(List<Long> userIds, HttpServletResponse response) throws IOException;
 	
 	/**
 	 * 导出审核日志信息到 Excel

@@ -467,6 +467,49 @@ public class ExcelServiceImpl implements ExcelService {
 	}
 	
 	/**
+	 * 导出报名登记表信息到 Excel
+	 *
+	 * @param response HttpServletResponse
+	 */
+	/**
+	 * 导出报名登记表信息到 Excel
+	 *
+	 * @param userIds  userIds
+	 * @param response response
+	 */
+	@Override
+	public void exportRegistrationFormByUserId(List<Long> userIds, HttpServletResponse response) throws IOException {
+		List<CompletableFuture<RegistrationFormExcelVO>> futures = registrationFormService
+				.list(Wrappers.lambdaQuery(RegistrationForm.class).in(RegistrationForm::getUserId, userIds))
+				.stream()
+				.map(registrationForm -> CompletableFuture.supplyAsync(() -> {
+					RegistrationFormExcelVO registrationFormExcelVO = new RegistrationFormExcelVO();
+					BeanUtils.copyProperties(registrationForm, registrationFormExcelVO);
+					registrationFormExcelVO.setUserGender(Objects.requireNonNull(UserGenderEnum.getEnumByValue(registrationForm.getUserGender())).getText());
+					registrationFormExcelVO.setMarryStatus(Objects.requireNonNull(MarryStatueEnum.getEnumByValue(registrationForm.getMarryStatus())).getText());
+					User user = userService.getById(registrationForm.getUserId());
+					registrationFormExcelVO.setUserIdCard(userService.getDecryptIdCard(user.getUserIdCard()));
+					registrationFormExcelVO.setSubmitter(user.getUserName());
+					Job job = jobService.getById(registrationForm.getJobId());
+					registrationFormExcelVO.setJobName(job.getJobName());
+					registrationFormExcelVO.setRegistrationStatus(Objects.requireNonNull(RegistrationStatueEnum.getEnumByValue(registrationForm.getRegistrationStatus())).getText());
+					registrationFormExcelVO.setPoliticalStatus(Objects.requireNonNull(PoliticalStatusEnum.getEnumByValue(registrationForm.getPoliticalStatus())).getText());
+					return registrationFormExcelVO;
+				})).toList();
+		// 等待所有 CompletableFuture 执行完毕，并收集结果
+		List<RegistrationFormExcelVO> jobExcelVOList = futures.stream().map(CompletableFuture::join).collect(Collectors.toList());
+		// 写入 Excel 文件
+		try {
+			ExcelUtils.exportHttpServletResponse(jobExcelVOList, ExcelConstant.REGISTRATION_FROM, RegistrationFormExcelVO.class, response);
+			log.info("报名登记表信息导出成功，导出数量：{}", jobExcelVOList.size());
+		} catch (Exception e) {
+			log.error("报名登记表信息导出失败: {}", e.getMessage());
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "报名登记表信息导出失败");
+		}
+		
+	}
+	
+	/**
 	 * 导出审核日志信息到 Excel
 	 *
 	 * @param response HttpServletResponse

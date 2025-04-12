@@ -8,6 +8,7 @@ import com.henu.registration.common.ThrowUtils;
 import com.henu.registration.common.exception.BusinessException;
 import com.henu.registration.constants.AdminConstant;
 import com.henu.registration.easyexcel.constants.ExcelConstant;
+import com.henu.registration.easyexcel.modal.registrationForm.ExportRegistrationFormRequest;
 import com.henu.registration.easyexcel.service.ExcelService;
 import com.henu.registration.utils.excel.ExcelUtils;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +18,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.List;
 
 
 /**
@@ -145,6 +147,19 @@ public class ExcelController {
 	@GetMapping("/export/registration/form")
 	public void exportRegistrationForm(HttpServletResponse response) throws IOException {
 		excelService.exportRegistrationForm(response);
+	}
+	
+	/**
+	 * 导出选中用户信息报名登记表信息到 Excel
+	 */
+	@PostMapping("/export/user/registration/form")
+	public void exportRegistrationFormByUserId(@RequestBody ExportRegistrationFormRequest exportRegistrationFormRequest, HttpServletResponse response) throws IOException {
+		// 判断请求参数是否为空
+		ThrowUtils.throwIf(exportRegistrationFormRequest == null, ErrorCode.EXCEL_ERROR, "请求参数为空");
+		// 获取请求参数中的用户ID列表
+		List<Long> userIds = exportRegistrationFormRequest.getUserIds();
+		ThrowUtils.throwIf(userIds == null || userIds.isEmpty(), ErrorCode.EXCEL_ERROR, "请求参数为空");
+		excelService.exportRegistrationFormByUserId(userIds, response);
 	}
 	
 	/**
