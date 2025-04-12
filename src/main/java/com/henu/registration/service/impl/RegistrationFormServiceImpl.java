@@ -17,6 +17,7 @@ import com.henu.registration.model.vo.education.EducationVO;
 import com.henu.registration.model.vo.family.FamilyVO;
 import com.henu.registration.model.vo.fileLog.FileLogVO;
 import com.henu.registration.model.vo.job.JobVO;
+import com.henu.registration.model.vo.messageNotice.MessageNoticeVO;
 import com.henu.registration.model.vo.registrationForm.RegistrationFormVO;
 import com.henu.registration.service.*;
 import com.henu.registration.utils.regex.RegexUtils;
@@ -24,12 +25,14 @@ import com.henu.registration.utils.sql.SqlUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 
@@ -55,6 +58,13 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 	
 	@Resource
 	private FamilyService familyService;
+	
+	@Resource
+	@Lazy
+	private MessageNoticeService messageNoticeService;
+	
+	@Resource
+	private ThreadPoolExecutor executor;
 	
 	/**
 	 * 校验数据
@@ -296,6 +306,13 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		List<FileLog> fileLogList = fileLogService.list(fileLogLambdaQueryWrapper);
 		List<FileLogVO> fileLogVOList = fileLogList.stream().map(FileLogVO::objToVo).toList();
 		registrationFormVO.setFileLogVOList(fileLogVOList);
+		// 4. 关联查看面试通知信息
+		MessageNotice messageNotice = messageNoticeService.getOne(Wrappers.lambdaQuery(MessageNotice.class).eq(MessageNotice::getRegistrationId, registrationForm.getId()));
+		if (messageNotice != null) {
+			// 获取面试通知封装
+			MessageNoticeVO messageNoticeVO = messageNoticeService.getMessageNoticeVO(messageNotice, request);
+			registrationFormVO.setMessageNoticeVO(messageNoticeVO);
+		}
 		// endregion
 		return registrationFormVO;
 	}
@@ -326,19 +343,19 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		CompletableFuture<Map<Long, List<Job>>> jobFuture = CompletableFuture.supplyAsync(() ->
 				jobService.list(new LambdaQueryWrapper<Job>().in(Job::getId, jobIdSet))
 						.stream().collect(Collectors.groupingBy(Job::getId))
-		);
+				, executor);
 		CompletableFuture<Map<Long, List<Education>>> educationFuture = CompletableFuture.supplyAsync(() ->
 				educationService.list(new LambdaQueryWrapper<Education>().in(Education::getUserId, userIdSet))
 						.stream().collect(Collectors.groupingBy(Education::getUserId))
-		);
+				, executor);
 		CompletableFuture<Map<Long, List<Family>>> familyFuture = CompletableFuture.supplyAsync(() ->
 				familyService.list(new LambdaQueryWrapper<Family>().in(Family::getUserId, userIdSet))
 						.stream().collect(Collectors.groupingBy(Family::getUserId))
-		);
+				, executor);
 		CompletableFuture<Map<Long, List<FileLog>>> fileLogFuture = CompletableFuture.supplyAsync(() ->
 				fileLogService.list(new LambdaQueryWrapper<FileLog>().in(FileLog::getUserId, userIdSet))
 						.stream().collect(Collectors.groupingBy(FileLog::getUserId))
-		);
+				, executor);
 		// 等待所有任务完成
 		CompletableFuture.allOf(jobFuture, educationFuture, familyFuture).join();
 		// 获取结果
@@ -352,6 +369,13 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 			registrationFormVO.setEducationVOList(Optional.ofNullable(userIdEducationListMap.get(registrationFormVO.getUserId())).orElse(Collections.emptyList()).stream().map(education -> educationService.getEducationVO(education, request)).toList());
 			registrationFormVO.setFamilyVOList(Optional.ofNullable(userIdFamilyListMap.get(registrationFormVO.getUserId())).orElse(Collections.emptyList()).stream().map(family -> familyService.getFamilyVO(family, request)).toList());
 			registrationFormVO.setFileLogVOList(Optional.ofNullable(userIdFileLogListMap.get(registrationFormVO.getUserId())).orElse(Collections.emptyList()).stream().map(fileLog -> fileLogService.getFileLogVO(fileLog, request)).toList());
+			MessageNotice messageNotice = messageNoticeService.getOne(
+					Wrappers.lambdaQuery(MessageNotice.class).eq(MessageNotice::getRegistrationId, registrationFormVO.getId()));
+			if (messageNotice != null) {
+				// 获取面试通知封装
+				MessageNoticeVO messageNoticeVO = messageNoticeService.getMessageNoticeVO(messageNotice, request);
+				registrationFormVO.setMessageNoticeVO(messageNoticeVO);
+			}
 		});
 		// endregion
 		registrationFormVOPage.setRecords(registrationFormVOList);

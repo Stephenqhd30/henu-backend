@@ -1,7 +1,6 @@
 package com.henu.registration.model.vo.messageNotice;
 
 import com.henu.registration.model.entity.MessageNotice;
-import com.henu.registration.model.vo.registrationForm.RegistrationFormVO;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
@@ -53,11 +52,6 @@ public class MessageNoticeVO implements Serializable {
 	 * 更新时间
 	 */
 	private Date updateTime;
-	
-	/**
-	 * 报名登记信息
-	 */
-	private RegistrationFormVO registrationFormVO;
 	
 	/**
 	 * 封装类转对象

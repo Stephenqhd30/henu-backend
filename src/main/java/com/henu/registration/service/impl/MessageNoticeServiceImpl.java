@@ -6,14 +6,12 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.henu.registration.common.ErrorCode;
 import com.henu.registration.common.ThrowUtils;
-import com.henu.registration.common.exception.BusinessException;
 import com.henu.registration.constants.CommonConstant;
 import com.henu.registration.mapper.MessageNoticeMapper;
 import com.henu.registration.model.dto.messageNotice.MessageNoticeQueryRequest;
 import com.henu.registration.model.entity.MessageNotice;
 import com.henu.registration.model.entity.RegistrationForm;
 import com.henu.registration.model.vo.messageNotice.MessageNoticeVO;
-import com.henu.registration.model.vo.registrationForm.RegistrationFormVO;
 import com.henu.registration.service.MessageNoticeService;
 import com.henu.registration.service.RegistrationFormService;
 import com.henu.registration.utils.sql.SqlUtils;
@@ -25,10 +23,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 
@@ -121,21 +115,7 @@ public class MessageNoticeServiceImpl extends ServiceImpl<MessageNoticeMapper, M
 	@Override
 	public MessageNoticeVO getMessageNoticeVO(MessageNotice messageNotice, HttpServletRequest request) {
 		// 对象转封装类
-		MessageNoticeVO messageNoticeVO = MessageNoticeVO.objToVo(messageNotice);
-		
-		// todo 可以根据需要为封装对象补充值，不需要的内容可以删除
-		// region 可选
-		// 1. 关联查询报名消息信息
-		Long registrationId = messageNotice.getRegistrationId();
-		RegistrationForm registrationForm = null;
-		if (registrationId != null && registrationId > 0) {
-			registrationForm = registrationFormService.getById(registrationId);
-		}
-		RegistrationFormVO registrationFormVO = registrationFormService.getRegistrationFormVO(registrationForm, request);
-		messageNoticeVO.setRegistrationFormVO(registrationFormVO);
-		
-		// endregion
-		return messageNoticeVO;
+		return MessageNoticeVO.objToVo(messageNotice);
 	}
 	
 	/**
@@ -156,31 +136,6 @@ public class MessageNoticeServiceImpl extends ServiceImpl<MessageNoticeMapper, M
 		List<MessageNoticeVO> messageNoticeVOList = messageNoticeList.stream()
 				.map(MessageNoticeVO::objToVo)
 				.collect(Collectors.toList());
-		// todo 可以根据需要为封装对象补充值，不需要的内容可以删除
-		// region 可选
-		// 1. 关联查询用户信息
-		Set<Long> registerationIdSet = messageNoticeList.stream().map(MessageNotice::getRegistrationId).collect(Collectors.toSet());
-		// 填充信息
-		if (CollUtil.isNotEmpty(registerationIdSet)) {
-			CompletableFuture<Map<Long, List<RegistrationForm>>> mapCompletableFuture = CompletableFuture.supplyAsync(() -> registrationFormService.listByIds(registerationIdSet).stream()
-					.collect(Collectors.groupingBy(RegistrationForm::getId)));
-			try {
-				Map<Long, List<RegistrationForm>> registerationIdRegistratinListMap = mapCompletableFuture.get();
-				// 填充信息
-				messageNoticeVOList.forEach(messageNoticeVO -> {
-					Long registrationId = messageNoticeVO.getRegistrationId();
-					RegistrationForm registrationForm = null;
-					if (registerationIdRegistratinListMap.containsKey(registrationId)) {
-						registrationForm = registerationIdRegistratinListMap.get(registrationId).get(0);
-					}
-					messageNoticeVO.setRegistrationFormVO(registrationFormService.getRegistrationFormVO(registrationForm, request));
-				});
-			} catch (InterruptedException | ExecutionException e) {
-				Thread.currentThread().interrupt();
-				throw new BusinessException(ErrorCode.SYSTEM_ERROR, "获取信息失败" + e.getMessage());
-			}
-		}
-		// endregion
 		messageNoticeVOPage.setRecords(messageNoticeVOList);
 		return messageNoticeVOPage;
 	}

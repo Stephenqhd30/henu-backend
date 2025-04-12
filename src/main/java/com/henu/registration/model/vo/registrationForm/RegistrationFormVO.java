@@ -3,11 +3,13 @@ package com.henu.registration.model.vo.registrationForm;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import com.henu.registration.model.entity.MessageNotice;
 import com.henu.registration.model.entity.RegistrationForm;
 import com.henu.registration.model.vo.education.EducationVO;
 import com.henu.registration.model.vo.family.FamilyVO;
 import com.henu.registration.model.vo.fileLog.FileLogVO;
 import com.henu.registration.model.vo.job.JobVO;
+import com.henu.registration.model.vo.messageNotice.MessageNoticeVO;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
@@ -190,6 +192,11 @@ public class RegistrationFormVO implements Serializable {
 	 * 上传附件信息
 	 */
 	private List<FileLogVO> fileLogVOList;
+	
+	/**
+	 * 面试通知信息
+	 */
+	private MessageNoticeVO messageNoticeVO;
 	
 	/**
 	 * 封装类转对象
