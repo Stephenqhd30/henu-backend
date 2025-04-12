@@ -118,54 +118,66 @@ public class MessagePushController {
 	@PostMapping("/add/batch")
 	@Transactional
 	public BaseResponse<List<Long>> addMessagePushByIds(@RequestBody MessagePushAddRequest messagePushAddRequest, HttpServletRequest request) {
-		ThrowUtils.throwIf(messagePushAddRequest == null || CollUtil.isEmpty(messagePushAddRequest.getMessageNoticeIds()), ErrorCode.PARAMS_ERROR, "通知ID列表不能为空");
-		
+		ThrowUtils.throwIf(messagePushAddRequest == null || CollUtil.isEmpty(messagePushAddRequest.getMessageNoticeIds()),
+				ErrorCode.PARAMS_ERROR, "通知ID列表不能为空");
 		List<Long> noticeIds = messagePushAddRequest.getMessageNoticeIds();
-		List<MessagePush> pushListToSave = new ArrayList<>();
+		List<MessagePush> pushList = new ArrayList<>();
 		List<Long> idList = new ArrayList<>();
 		for (Long noticeId : noticeIds) {
-			// 封装每个推送对象
-			MessageNotice messageNotice = messageNoticeService.getById(noticeId);
-			if (messageNotice == null) {
-				log.warn("通知不存在，跳过，noticeId={}", noticeId);
-				continue;
+			String lockKey = KeyPrefixConstants.RATE_LIMIT_ANNOTATION_PREFIX + noticeId;
+			try {
+				LockUtils.lockEvent(lockKey, () -> {
+					// 获取通知信息
+					MessageNotice messageNotice = messageNoticeService.getById(noticeId);
+					if (messageNotice == null) {
+						log.warn("通知不存在，跳过，noticeId={}", noticeId);
+						return null;
+					}
+					// 获取报名信息
+					RegistrationForm form = registrationFormService.getById(messageNotice.getRegistrationId());
+					if (form == null) {
+						log.warn("报名信息不存在，跳过，registrationId={}", messageNotice.getRegistrationId());
+						return null;
+					}
+					Long userId = form.getUserId();
+					// 已成功推送过的跳过
+					boolean alreadyPushed = messagePushService.count(
+							Wrappers.lambdaQuery(MessagePush.class)
+									.eq(MessagePush::getMessageNoticeId, noticeId)
+									.eq(MessagePush::getPushStatus, PushStatusEnum.SUCCEED.getValue())
+									.eq(MessagePush::getPushType, messagePushAddRequest.getPushType())
+									.eq(MessagePush::getUserId, userId)
+					) > 0;
+					if (alreadyPushed) {
+						log.info("通知 {} 已经成功推送给用户 {}，跳过", noticeId, userId);
+						return null;
+					}
+					MessagePush push = new MessagePush();
+					push.setMessageNoticeId(noticeId);
+					push.setPushType(messagePushAddRequest.getPushType());
+					push.setUserId(userId);
+					push.setUserName(form.getUserName());
+					push.setPushStatus(PushStatusEnum.NOT_PUSHED.getValue());
+					// 校验
+					messagePushService.validMessagePush(push, true);
+					pushList.add(push);
+					return null;
+				}, () -> {
+					log.warn("通知 {} 正在推送处理中，跳过", noticeId);
+					return null;
+				});
+			} catch (Exception e) {
+				log.error("通知 {} 加锁推送失败", noticeId, e);
 			}
-			RegistrationForm form = registrationFormService.getById(messageNotice.getRegistrationId());
-			if (form == null) {
-				log.warn("报名信息不存在，跳过，registrationId={}", messageNotice.getRegistrationId());
-				continue;
-			}
-			Long userId = form.getUserId();
-			// 判断是否已成功推送
-			boolean alreadyPushed = messagePushService.count(
-					Wrappers.lambdaQuery(MessagePush.class)
-							.eq(MessagePush::getMessageNoticeId, noticeId)
-							.eq(MessagePush::getPushStatus, PushStatusEnum.SUCCEED.getValue())
-							.eq(MessagePush::getPushType, messagePushAddRequest.getPushType())
-							.eq(MessagePush::getUserId, userId)
-			) > 0;
-			if (alreadyPushed) {
-				log.info("通知 {} 已经成功推送给用户 {}，跳过", noticeId, userId);
-				continue;
-			}
-			MessagePush push = new MessagePush();
-			push.setMessageNoticeId(noticeId);
-			push.setPushType(messagePushAddRequest.getPushType());
-			push.setUserId(userId);
-			push.setUserName(form.getUserName());
-			push.setPushStatus(PushStatusEnum.NOT_PUSHED.getValue());
-			// 校验基本合法性
-			messagePushService.validMessagePush(push, true);
-			pushListToSave.add(push);
 		}
-		// 保存并异步推送
-		if (CollUtil.isNotEmpty(pushListToSave)) {
-			boolean saved = messagePushService.saveBatch(pushListToSave);
-			ThrowUtils.throwIf(!saved, ErrorCode.OPERATION_ERROR, "保存失败");
-			pushListToSave.forEach(push -> {
+		if (CollUtil.isNotEmpty(pushList)) {
+			boolean saved = messagePushService.saveBatch(pushList);
+			ThrowUtils.throwIf(!saved, ErrorCode.OPERATION_ERROR, "批量保存消息推送失败");
+			// 异步推送
+			pushList.forEach(push -> {
 				idList.add(push.getId());
 				CompletableFuture.runAsync(() -> {
-					log.info("异步发送 MQ 消息: {}", push);
+					log.info("异步推送 MQ 消息: {}", push);
 					RabbitMqUtils.defaultSendMsg(push);
 				});
 			});

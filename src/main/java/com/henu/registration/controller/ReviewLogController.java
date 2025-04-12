@@ -73,9 +73,6 @@ public class ReviewLogController {
 		// 同步修改登记表的审核状态信息
 		boolean update = registrationFormService.lambdaUpdate()
 				.eq(RegistrationForm::getId, reviewLog.getRegistrationId())
-				// 如果审核状态为通过，设置为“面试阶段”
-				.set(ReviewStatusEnum.PASS.getValue().equals(reviewLog.getReviewStatus()),
-						RegistrationForm::getRegistrationStatus, RegistrationStatueEnum.INTERVIEW.getValue())
 				.set(RegistrationForm::getReviewer, loginAdmin.getAdminName())
 				.set(RegistrationForm::getReviewStatus, reviewLog.getReviewStatus())
 				.set(RegistrationForm::getReviewTime, new Date())
@@ -119,9 +116,6 @@ public class ReviewLogController {
 			// 同步修改登记表的审核状态信息
 			boolean update = registrationFormService.lambdaUpdate()
 					.eq(RegistrationForm::getId, reviewLog.getRegistrationId())
-					// 如果审核状态为通过，设置为“面试阶段”
-					.set(ReviewStatusEnum.PASS.getValue().equals(reviewLog.getReviewStatus()),
-							RegistrationForm::getRegistrationStatus, RegistrationStatueEnum.INTERVIEW.getValue())
 					.set(RegistrationForm::getReviewer, loginAdmin.getAdminName())
 					.set(RegistrationForm::getReviewStatus, reviewLog.getReviewStatus())
 					.set(RegistrationForm::getReviewTime, new Date())

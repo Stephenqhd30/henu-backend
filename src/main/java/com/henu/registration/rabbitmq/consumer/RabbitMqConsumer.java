@@ -172,14 +172,17 @@ public class RabbitMqConsumer {
 				MessagePush messagePush = JSONUtil.toBean(rabbitMessage.getMsgText(), MessagePush.class);
 				if (messagePush != null && messagePush.getId() != null) {
 					MessagePush oldMessagePush = messagePushService.getById(messagePush.getId());
+					// 生成短信参数
+					String params = smsUtils.getParams(messagePush);
 					int currentCount = Optional.ofNullable(oldMessagePush.getRetryCount()).orElse(0);
 					int maxRetry = 3;
 					if (currentCount + 1 >= maxRetry) {
 						// 超过最大重试次数，标记为失败
 						messagePushService.lambdaUpdate()
+								.set(MessagePush::getPushMessage, params)
 								.set(MessagePush::getRetryCount, currentCount + 1)
 								.set(MessagePush::getPushStatus, PushStatusEnum.FAILED.getValue())
-								.set(MessagePush::getPushMessage, e.getMessage())
+								.set(MessagePush::getErrorMessage, e.getMessage())
 								.eq(MessagePush::getId, messagePush.getId())
 								.update();
 						messageNoticeService.lambdaUpdate()

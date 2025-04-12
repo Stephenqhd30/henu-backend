@@ -146,7 +146,6 @@ public class SMSUtils {
 		// 直接格式化时间
 		Map<String, String> paramMap = new HashMap<>();
 		paramMap.put("userName", registrationForm.getUserName());
-		paramMap.put("content", messageNotice.getContent());
 		return JSONUtil.toJsonStr(paramMap);
 	}
 	

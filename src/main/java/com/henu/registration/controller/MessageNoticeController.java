@@ -11,6 +11,8 @@ import com.henu.registration.model.entity.Admin;
 import com.henu.registration.model.entity.MessageNotice;
 import com.henu.registration.model.entity.RegistrationForm;
 import com.henu.registration.model.enums.PushStatusEnum;
+import com.henu.registration.model.enums.RegistrationStatueEnum;
+import com.henu.registration.model.enums.ReviewStatusEnum;
 import com.henu.registration.model.vo.messageNotice.MessageNoticeVO;
 import com.henu.registration.service.AdminService;
 import com.henu.registration.service.MessageNoticeService;
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -78,6 +81,13 @@ public class MessageNoticeController {
 		// 写入数据库
 		boolean result = messageNoticeService.saveOrUpdate(messageNotice);
 		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+		// 同步修改登记表的审核状态信息
+		boolean update = registrationFormService.lambdaUpdate()
+				.eq(RegistrationForm::getId, registrationId)
+				// 如果审核状态为通过，设置为“面试阶段”
+				.set(RegistrationForm::getRegistrationStatus, RegistrationStatueEnum.INTERVIEW.getValue())
+				.update();
+		ThrowUtils.throwIf(!update, ErrorCode.OPERATION_ERROR);
 		// 返回新写入的数据 id
 		long newMessageNoticeId = messageNotice.getId();
 		return ResultUtils.success(newMessageNoticeId);
@@ -118,6 +128,12 @@ public class MessageNoticeController {
 		// 写入数据库
 		boolean result = messageNoticeService.saveOrUpdateBatch(messageNotices);
 		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+		// 批量更新报名状态为“面试阶段”
+		boolean update = registrationFormService.lambdaUpdate()
+				.in(RegistrationForm::getId, messageNoticeAddRequest.getRegistrationIds())
+				.set(RegistrationForm::getRegistrationStatus, RegistrationStatueEnum.INTERVIEW.getValue())
+				.update();
+		ThrowUtils.throwIf(!update, ErrorCode.OPERATION_ERROR);
 		List<Long> savedIds = messageNotices.stream()
 				.map(MessageNotice::getId)
 				.collect(Collectors.toList());
