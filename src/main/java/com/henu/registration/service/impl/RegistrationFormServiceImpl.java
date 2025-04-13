@@ -1,6 +1,7 @@
 package com.henu.registration.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.ObjUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -146,6 +147,7 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		String reviewer = registrationFormQueryRequest.getReviewer();
 		Integer registrationStatus = registrationFormQueryRequest.getRegistrationStatus();
 		String politicalStatus = registrationFormQueryRequest.getPoliticalStatus();
+		String birthDate = registrationFormQueryRequest.getBirthDate();
 		String workExperience = registrationFormQueryRequest.getWorkExperience();
 		List<String> studentLeaders = registrationFormQueryRequest.getStudentLeaders();
 		String studentAwards = registrationFormQueryRequest.getStudentAwards();
@@ -165,6 +167,7 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		queryWrapper.like(StringUtils.isNotBlank(userName), "user_name", userName);
 		queryWrapper.like(StringUtils.isNotBlank(workExperience), "work_experience", workExperience);
 		queryWrapper.like(StringUtils.isNotBlank(studentAwards), "student_awards", studentAwards);
+		queryWrapper.gt(ObjUtil.isNotEmpty(birthDate), "birth_date", birthDate);
 		// 精确查询
 		queryWrapper.ne(ObjectUtils.isNotEmpty(notId), "review_status", notId);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(id), "id", id);
@@ -207,6 +210,7 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		String reviewer = registrationFormQueryRequest.getReviewer();
 		String workExperience = registrationFormQueryRequest.getWorkExperience();
 		Integer registrationStatus = registrationFormQueryRequest.getRegistrationStatus();
+		String birthDate = registrationFormQueryRequest.getBirthDate();
 		List<String> studentLeaders = registrationFormQueryRequest.getStudentLeaders();
 		List<String> educationStages = registrationFormQueryRequest.getEducationStages();
 		String studentAwards = registrationFormQueryRequest.getStudentAwards();
@@ -225,6 +229,7 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		queryWrapper.like(StringUtils.isNotBlank(userName), "user_name", userName);
 		queryWrapper.like(StringUtils.isNotBlank(workExperience), "work_experience", workExperience);
 		queryWrapper.like(StringUtils.isNotBlank(studentAwards), "student_awards", studentAwards);
+		queryWrapper.gt(ObjUtil.isNotEmpty(birthDate), "birth_date", birthDate);
 		// 精确查询
 		queryWrapper.ne(ObjectUtils.isNotEmpty(notId), "review_status", notId);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(id), "id", id);

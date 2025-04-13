@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -46,6 +47,11 @@ public class RegistrationFormQueryRequest extends PageRequest implements Seriali
 	 * 婚姻状况(0-未婚，1-已婚)
 	 */
 	private Integer marryStatus;
+	
+	/**
+	 * 出生日期
+	 */
+	private String birthDate;
 	
 	/**
 	 * 政治面貌
