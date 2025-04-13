@@ -6,14 +6,18 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.henu.registration.common.ErrorCode;
 import com.henu.registration.common.ThrowUtils;
+import com.henu.registration.common.exception.BusinessException;
 import com.henu.registration.constants.CommonConstant;
 import com.henu.registration.mapper.MessageNoticeMapper;
 import com.henu.registration.model.dto.messageNotice.MessageNoticeQueryRequest;
 import com.henu.registration.model.entity.MessageNotice;
 import com.henu.registration.model.entity.RegistrationForm;
+import com.henu.registration.model.entity.User;
 import com.henu.registration.model.vo.messageNotice.MessageNoticeVO;
+import com.henu.registration.model.vo.user.UserVO;
 import com.henu.registration.service.MessageNoticeService;
 import com.henu.registration.service.RegistrationFormService;
+import com.henu.registration.service.UserService;
 import com.henu.registration.utils.sql.SqlUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -23,6 +27,10 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 
@@ -39,6 +47,8 @@ public class MessageNoticeServiceImpl extends ServiceImpl<MessageNoticeMapper, M
 	
 	@Resource
 	private RegistrationFormService registrationFormService;
+	@Resource
+	private UserService userService;
 	
 	/**
 	 * 校验数据
@@ -115,7 +125,21 @@ public class MessageNoticeServiceImpl extends ServiceImpl<MessageNoticeMapper, M
 	@Override
 	public MessageNoticeVO getMessageNoticeVO(MessageNotice messageNotice, HttpServletRequest request) {
 		// 对象转封装类
-		return MessageNoticeVO.objToVo(messageNotice);
+		MessageNoticeVO messageNoticeVO = MessageNoticeVO.objToVo(messageNotice);
+		
+		// todo 可以根据需要为封装对象补充值，不需要的内容可以删除
+		// region 可选
+		// 1. 关联查询用户信息
+		Long userId = messageNotice.getUserId();
+		User user = null;
+		if (userId != null && userId > 0) {
+			user = userService.getById(userId);
+		}
+		UserVO userVO = userService.getUserVO(user, request);
+		messageNoticeVO.setUserVO(userVO);
+		
+		// endregion
+		return messageNoticeVO;
 	}
 	
 	/**
@@ -136,6 +160,31 @@ public class MessageNoticeServiceImpl extends ServiceImpl<MessageNoticeMapper, M
 		List<MessageNoticeVO> messageNoticeVOList = messageNoticeList.stream()
 				.map(MessageNoticeVO::objToVo)
 				.collect(Collectors.toList());
+		// todo 可以根据需要为封装对象补充值，不需要的内容可以删除
+		// region 可选
+		// 1. 关联查询用户信息
+		Set<Long> userIdSet = messageNoticeList.stream().map(MessageNotice::getUserId).collect(Collectors.toSet());
+		// 填充信息
+		if (CollUtil.isNotEmpty(userIdSet)) {
+			CompletableFuture<Map<Long, List<User>>> mapCompletableFuture = CompletableFuture.supplyAsync(() -> userService.listByIds(userIdSet).stream()
+					.collect(Collectors.groupingBy(User::getId)));
+			try {
+				Map<Long, List<User>> userIdUserListMap = mapCompletableFuture.get();
+				// 填充信息
+				messageNoticeVOList.forEach(messagePushVO -> {
+					Long userId = messagePushVO.getUserId();
+					User user = null;
+					if (userIdUserListMap.containsKey(userId)) {
+						user = userIdUserListMap.get(userId).get(0);
+					}
+					messagePushVO.setUserVO(userService.getUserVO(user, request));
+				});
+			} catch (InterruptedException | ExecutionException e) {
+				Thread.currentThread().interrupt();
+				throw new BusinessException(ErrorCode.SYSTEM_ERROR, "获取信息失败" + e.getMessage());
+			}
+		}
+		// endregion
 		messageNoticeVOPage.setRecords(messageNoticeVOList);
 		return messageNoticeVOPage;
 	}
