@@ -10,21 +10,23 @@ import com.henu.registration.model.dto.messageNotice.MessageNoticeUpdateRequest;
 import com.henu.registration.model.entity.Admin;
 import com.henu.registration.model.entity.MessageNotice;
 import com.henu.registration.model.entity.RegistrationForm;
+import com.henu.registration.model.entity.User;
 import com.henu.registration.model.enums.PushStatusEnum;
 import com.henu.registration.model.enums.RegistrationStatueEnum;
-import com.henu.registration.model.enums.ReviewStatusEnum;
 import com.henu.registration.model.vo.messageNotice.MessageNoticeVO;
 import com.henu.registration.service.AdminService;
 import com.henu.registration.service.MessageNoticeService;
 import com.henu.registration.service.RegistrationFormService;
+import com.henu.registration.service.UserService;
+import com.henu.registration.service.impl.UserServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -46,6 +48,9 @@ public class MessageNoticeController {
 	
 	@Resource
 	private RegistrationFormService registrationFormService;
+	
+	@Resource
+	private UserService userService;
 	
 	
 	// region 增删改查
@@ -76,7 +81,7 @@ public class MessageNoticeController {
 		messageNotice.setAdminId(loginAdmin.getId());
 		Long registrationId = messageNoticeAddRequest.getRegistrationId();
 		RegistrationForm registrationForm = registrationFormService.getById(registrationId);
-		messageNotice.setUserName(registrationForm.getUserName());
+		messageNotice.setUserId(registrationForm.getUserId());
 		messageNotice.setPushStatus(PushStatusEnum.NOT_PUSHED.getValue());
 		// 写入数据库
 		boolean result = messageNoticeService.saveOrUpdate(messageNotice);
@@ -114,7 +119,7 @@ public class MessageNoticeController {
 			BeanUtils.copyProperties(messageNoticeAddRequest, messageNotice);
 			messageNotice.setRegistrationId(registrationId);
 			messageNotice.setAdminId(loginAdmin.getId());
-			messageNotice.setUserName(registrationForm.getUserName());
+			messageNotice.setUserId(registrationForm.getUserId());
 			messageNotice.setPushStatus(PushStatusEnum.NOT_PUSHED.getValue());
 			messageNoticeService.validMessageNotice(messageNotice, true);
 			MessageNotice oldMessageNotice = messageNoticeService.getOne(Wrappers.lambdaQuery(MessageNotice.class)
@@ -249,7 +254,7 @@ public class MessageNoticeController {
 	}
 	
 	/**
-	 * 分页获取当前登录用户创建的消息通知列表
+	 * 分页获取当前用户的消息通知列表
 	 *
 	 * @param messageNoticeQueryRequest messageNoticeQueryRequest
 	 * @param request                   request
@@ -260,8 +265,10 @@ public class MessageNoticeController {
 	                                                                       HttpServletRequest request) {
 		ThrowUtils.throwIf(messageNoticeQueryRequest == null, ErrorCode.PARAMS_ERROR);
 		// 补充查询条件，只查询当前登录用户的数据
-		Admin loginAdmin = adminService.getLoginAdmin(request);
-		messageNoticeQueryRequest.setAdminId(loginAdmin.getId());
+		User loginUser = userService.getLoginUser(request);
+		messageNoticeQueryRequest.setUserId(loginUser.getId());
+		// 设置推送状态为成功
+		messageNoticeQueryRequest.setPushStatus(PushStatusEnum.SUCCEED.getValue());
 		long current = messageNoticeQueryRequest.getCurrent();
 		long size = messageNoticeQueryRequest.getPageSize();
 		// 限制爬虫

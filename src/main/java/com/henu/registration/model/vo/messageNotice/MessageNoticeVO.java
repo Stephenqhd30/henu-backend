@@ -1,6 +1,7 @@
 package com.henu.registration.model.vo.messageNotice;
 
 import com.henu.registration.model.entity.MessageNotice;
+import com.henu.registration.model.vo.user.UserVO;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
@@ -24,14 +25,19 @@ public class MessageNoticeVO implements Serializable {
 	private Long id;
 	
 	/**
-	 * 通知用户名
-	 */
-	private String userName;
-	
-	/**
 	 * 面试内容
 	 */
 	private String content;
+	
+	/**
+	 * 推送状态(0-未推送,1-成功,2-失败,3-重试中)
+	 */
+	private Integer pushStatus;
+	
+	/**
+	 * 通知用户id
+	 */
+	private Long userId;
 	
 	/**
 	 * 管理员id
@@ -52,6 +58,11 @@ public class MessageNoticeVO implements Serializable {
 	 * 更新时间
 	 */
 	private Date updateTime;
+	
+	/**
+	 * 用户信息
+	 */
+	private UserVO userVO;
 	
 	/**
 	 * 封装类转对象

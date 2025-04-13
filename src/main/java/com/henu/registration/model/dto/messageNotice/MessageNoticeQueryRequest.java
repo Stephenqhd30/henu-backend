@@ -44,6 +44,11 @@ public class MessageNoticeQueryRequest extends PageRequest implements Serializab
 	private Integer pushStatus;
 	
 	/**
+	 * 通知用户id
+	 */
+	private Long userId;
+	
+	/**
 	 * 管理员id
 	 */
 	private Long adminId;

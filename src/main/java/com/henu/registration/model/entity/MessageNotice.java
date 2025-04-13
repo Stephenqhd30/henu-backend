@@ -30,11 +30,6 @@ public class MessageNotice implements Serializable {
 	private Long id;
 	
 	/**
-	 * 通知用户名
-	 */
-	private String userName;
-	
-	/**
 	 * 面试内容
 	 */
 	private String content;
@@ -43,6 +38,11 @@ public class MessageNotice implements Serializable {
 	 * 推送状态(0-未推送,1-成功,2-失败,3-重试中)
 	 */
 	private Integer pushStatus;
+	
+	/**
+	 * 通知用户id
+	 */
+	private Long userId;
 	
 	/**
 	 * 管理员id

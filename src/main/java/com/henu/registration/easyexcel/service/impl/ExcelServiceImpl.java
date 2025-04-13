@@ -737,19 +737,26 @@ public class ExcelServiceImpl implements ExcelService {
 					.map(messageNoticeExcelDTO -> {
 						MessageNotice messageNotice = new MessageNotice();
 						BeanUtils.copyProperties(messageNoticeExcelDTO, messageNotice);
+						User user = userService.getOne(userService.lambdaQuery()
+								.eq(User::getUserName, messageNoticeExcelDTO.getUserName())
+								.eq(User::getUserPhone, messageNoticeExcelDTO.getUserPhone()));
+						if (user == null) {
+							log.error("导入面试消息通知信息异常，用户不存在，用户名：{}，手机号：{}", messageNotice.getUserId(), messageNoticeExcelDTO.getUserPhone());
+							throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "用户不存在");
+						}
 						LambdaQueryWrapper<RegistrationForm> eq = Wrappers.lambdaQuery(RegistrationForm.class)
-								.eq(RegistrationForm::getUserName, messageNotice.getUserName())
+								.eq(RegistrationForm::getUserId, user.getId())
 								.eq(RegistrationForm::getUserPhone, messageNoticeExcelDTO.getUserPhone());
 						RegistrationForm registrationForm = registrationFormService.getOne(eq);
 						if (registrationForm == null) {
-							log.error("导入面试消息通知信息异常，用户不存在，用户名：{}，手机号：{}", messageNotice.getUserName(), messageNoticeExcelDTO.getUserPhone());
+							log.error("导入面试消息通知信息异常，用户不存在，用户名：{}，手机号：{}", messageNotice.getUserId(), messageNoticeExcelDTO.getUserPhone());
 							throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "报名登记表信息不存在");
 						}
 						messageNotice.setRegistrationId(registrationForm.getId());
 						messageNotice.setAdminId(admin.getId());
 						// 校验信息是否已经存在
 						LambdaQueryWrapper<MessageNotice> messageNoticeLambdaQueryWrapper = Wrappers.lambdaQuery(MessageNotice.class)
-								.eq(MessageNotice::getUserName, messageNotice.getUserName())
+								.eq(MessageNotice::getUserId, messageNotice.getUserId())
 								.eq(MessageNotice::getRegistrationId, registrationForm.getId());
 						MessageNotice oldMessageNotice = messageNoticeService.getOne(messageNoticeLambdaQueryWrapper);
 						if (oldMessageNotice != null) {
