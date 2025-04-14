@@ -1,7 +1,6 @@
 package com.henu.registration.controller;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.henu.registration.common.*;
 import com.henu.registration.common.exception.BusinessException;
@@ -51,10 +50,6 @@ public class MessageNoticeController {
 	@Resource
 	private MessagePushService messagePushService;
 	
-	@Resource
-	private MessageService messageService;
-	
-	
 	// region 增删改查
 	
 	/**
@@ -72,12 +67,6 @@ public class MessageNoticeController {
 		BeanUtils.copyProperties(messageNoticeAddRequest, messageNotice);
 		// 数据校验
 		messageNoticeService.validMessageNotice(messageNotice, true);
-		// 检查消息通知是够已经被创建, 已存在通知就更新
-		MessageNotice oldMessageNotice = messageNoticeService.getOne(Wrappers.lambdaQuery(MessageNotice.class)
-				.eq(MessageNotice::getRegistrationId, messageNotice.getRegistrationId()));
-		if (oldMessageNotice != null) {
-			messageNotice.setId(oldMessageNotice.getId());
-		}
 		// todo 填充默认值
 		Admin loginAdmin = adminService.getLoginAdmin(request);
 		messageNotice.setAdminId(loginAdmin.getId());
@@ -144,11 +133,6 @@ public class MessageNoticeController {
 			messageNotice.setUserId(user.getId());
 			messageNotice.setPushStatus(PushStatusEnum.NOT_PUSHED.getValue());
 			messageNoticeService.validMessageNotice(messageNotice, true);
-			MessageNotice oldMessageNotice = messageNoticeService.getOne(Wrappers.lambdaQuery(MessageNotice.class)
-					.eq(MessageNotice::getRegistrationId, registrationId));
-			if (oldMessageNotice != null) {
-				messageNotice.setId(oldMessageNotice.getId());
-			}
 			messageNotices.add(messageNotice);
 		}
 		// 写入数据库
