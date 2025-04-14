@@ -1,5 +1,6 @@
 package com.henu.registration.controller;
 
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.henu.registration.common.*;
@@ -7,27 +8,22 @@ import com.henu.registration.common.exception.BusinessException;
 import com.henu.registration.model.dto.messageNotice.MessageNoticeAddRequest;
 import com.henu.registration.model.dto.messageNotice.MessageNoticeQueryRequest;
 import com.henu.registration.model.dto.messageNotice.MessageNoticeUpdateRequest;
-import com.henu.registration.model.entity.Admin;
-import com.henu.registration.model.entity.MessageNotice;
-import com.henu.registration.model.entity.RegistrationForm;
-import com.henu.registration.model.entity.User;
+import com.henu.registration.model.entity.*;
 import com.henu.registration.model.enums.PushStatusEnum;
+import com.henu.registration.model.enums.PushTypeEnum;
 import com.henu.registration.model.enums.RegistrationStatueEnum;
 import com.henu.registration.model.vo.messageNotice.MessageNoticeVO;
-import com.henu.registration.service.AdminService;
-import com.henu.registration.service.MessageNoticeService;
-import com.henu.registration.service.RegistrationFormService;
-import com.henu.registration.service.UserService;
-import com.henu.registration.service.impl.UserServiceImpl;
+import com.henu.registration.service.*;
+import com.henu.registration.utils.rabbitmq.RabbitMqUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**
@@ -52,6 +48,12 @@ public class MessageNoticeController {
 	@Resource
 	private UserService userService;
 	
+	@Resource
+	private MessagePushService messagePushService;
+	
+	@Resource
+	private MessageService messageService;
+	
 	
 	// region 增删改查
 	
@@ -70,7 +72,7 @@ public class MessageNoticeController {
 		BeanUtils.copyProperties(messageNoticeAddRequest, messageNotice);
 		// 数据校验
 		messageNoticeService.validMessageNotice(messageNotice, true);
-		// 检查消息通知是够已经被创建
+		// 检查消息通知是够已经被创建, 已存在通知就更新
 		MessageNotice oldMessageNotice = messageNoticeService.getOne(Wrappers.lambdaQuery(MessageNotice.class)
 				.eq(MessageNotice::getRegistrationId, messageNotice.getRegistrationId()));
 		if (oldMessageNotice != null) {
@@ -81,7 +83,11 @@ public class MessageNoticeController {
 		messageNotice.setAdminId(loginAdmin.getId());
 		Long registrationId = messageNoticeAddRequest.getRegistrationId();
 		RegistrationForm registrationForm = registrationFormService.getById(registrationId);
-		messageNotice.setUserId(registrationForm.getUserId());
+		ThrowUtils.throwIf(registrationForm == null, ErrorCode.NOT_FOUND_ERROR, "报名信息不存在");
+		Long userId = registrationForm.getUserId();
+		User user = userService.getById(userId);
+		ThrowUtils.throwIf(user == null, ErrorCode.NOT_FOUND_ERROR, "用户不存在");
+		messageNotice.setUserId(userId);
 		messageNotice.setPushStatus(PushStatusEnum.NOT_PUSHED.getValue());
 		// 写入数据库
 		boolean result = messageNoticeService.saveOrUpdate(messageNotice);
@@ -93,6 +99,20 @@ public class MessageNoticeController {
 				.set(RegistrationForm::getRegistrationStatus, RegistrationStatueEnum.INTERVIEW.getValue())
 				.update();
 		ThrowUtils.throwIf(!update, ErrorCode.OPERATION_ERROR);
+		// 创建消息推送记录（短信）
+		MessagePush messagePush = new MessagePush();
+		messagePush.setUserId(registrationForm.getUserId());
+		messagePush.setMessageNoticeId(messageNotice.getId());
+		messagePush.setUserName(user.getUserName());
+		messagePush.setPushType(PushTypeEnum.SMS.getValue());
+		messagePush.setPushStatus(PushStatusEnum.NOT_PUSHED.getValue());
+		boolean save = messagePushService.save(messagePush);
+		ThrowUtils.throwIf(!save, ErrorCode.OPERATION_ERROR);
+		// 发送 MQ 消息
+		CompletableFuture.runAsync(() -> {
+			log.info("异步发送面试通知短信：{}", messagePush);
+			RabbitMqUtils.defaultSendMsg(messagePush);
+		});
 		// 返回新写入的数据 id
 		long newMessageNoticeId = messageNotice.getId();
 		return ResultUtils.success(newMessageNoticeId);
@@ -107,24 +127,25 @@ public class MessageNoticeController {
 	 */
 	@PostMapping("/add/batch")
 	public BaseResponse<List<Long>> addMessageNoticeByBatch(@RequestBody MessageNoticeAddRequest messageNoticeAddRequest, HttpServletRequest request) {
-		ThrowUtils.throwIf(messageNoticeAddRequest == null, ErrorCode.PARAMS_ERROR);
-		List<MessageNotice> messageNotices = new ArrayList<>();
-		
+		ThrowUtils.throwIf(messageNoticeAddRequest == null || CollectionUtils.isEmpty(messageNoticeAddRequest.getRegistrationIds()), ErrorCode.PARAMS_ERROR);
 		Admin loginAdmin = adminService.getLoginAdmin(request);
+		List<MessageNotice> messageNotices = new ArrayList<>();
+		List<MessagePush> messagePushList = new ArrayList<>();
 		for (Long registrationId : messageNoticeAddRequest.getRegistrationIds()) {
 			RegistrationForm registrationForm = registrationFormService.getById(registrationId);
 			ThrowUtils.throwIf(registrationForm == null, ErrorCode.NOT_FOUND_ERROR, "报名登记表不存在");
-			// todo 填充默认值
+			User user = userService.getById(registrationForm.getUserId());
+			ThrowUtils.throwIf(user == null, ErrorCode.NOT_FOUND_ERROR, "用户不存在");
+			// 构造通知
 			MessageNotice messageNotice = new MessageNotice();
 			BeanUtils.copyProperties(messageNoticeAddRequest, messageNotice);
 			messageNotice.setRegistrationId(registrationId);
 			messageNotice.setAdminId(loginAdmin.getId());
-			messageNotice.setUserId(registrationForm.getUserId());
+			messageNotice.setUserId(user.getId());
 			messageNotice.setPushStatus(PushStatusEnum.NOT_PUSHED.getValue());
 			messageNoticeService.validMessageNotice(messageNotice, true);
 			MessageNotice oldMessageNotice = messageNoticeService.getOne(Wrappers.lambdaQuery(MessageNotice.class)
 					.eq(MessageNotice::getRegistrationId, registrationId));
-			// 检查消息通知是够已经被创建
 			if (oldMessageNotice != null) {
 				messageNotice.setId(oldMessageNotice.getId());
 			}
@@ -139,6 +160,27 @@ public class MessageNoticeController {
 				.set(RegistrationForm::getRegistrationStatus, RegistrationStatueEnum.INTERVIEW.getValue())
 				.update();
 		ThrowUtils.throwIf(!update, ErrorCode.OPERATION_ERROR);
+		// 构造并写入 MessagePush 消息推送记录
+		for (MessageNotice notice : messageNotices) {
+			User user = userService.getById(notice.getUserId());
+			MessagePush messagePush = new MessagePush();
+			messagePush.setUserId(notice.getUserId());
+			messagePush.setUserName(user.getUserName());
+			messagePush.setMessageNoticeId(notice.getId());
+			messagePush.setPushType(PushTypeEnum.SMS.getValue());
+			messagePush.setPushStatus(PushStatusEnum.NOT_PUSHED.getValue());
+			messagePushList.add(messagePush);
+		}
+		boolean pushSaveResult = messagePushService.saveBatch(messagePushList);
+		ThrowUtils.throwIf(!pushSaveResult, ErrorCode.OPERATION_ERROR);
+		// 异步 MQ 推送
+		messagePushList.forEach(messagePush ->
+				CompletableFuture.runAsync(() -> {
+					log.info("异步发送面试通知短信：{}", messagePush);
+					RabbitMqUtils.defaultSendMsg(messagePush);
+				})
+		);
+		// 返回 ID 列表
 		List<Long> savedIds = messageNotices.stream()
 				.map(MessageNotice::getId)
 				.collect(Collectors.toList());

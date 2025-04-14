@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
  */
 @Getter
 @AllArgsConstructor
-public enum PushTyprEnum {
+public enum PushTypeEnum {
 	
 	WEBSOCKET("websocket", "websocket"),
 	SMS("短信", "sms");
@@ -37,13 +37,13 @@ public enum PushTyprEnum {
 	 * 根据 value 获取枚举
 	 *
 	 * @param value value
-	 * @return {@link PushTyprEnum}
+	 * @return {@link PushTypeEnum}
 	 */
-	public static PushTyprEnum getEnumByValue(String value) {
+	public static PushTypeEnum getEnumByValue(String value) {
 		if (ObjectUtils.isEmpty(value)) {
 			return null;
 		}
-		for (PushTyprEnum anEnum : PushTyprEnum.values()) {
+		for (PushTypeEnum anEnum : PushTypeEnum.values()) {
 			if (anEnum.value.equals(value)) {
 				return anEnum;
 			}

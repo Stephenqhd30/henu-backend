@@ -13,7 +13,7 @@ import com.henu.registration.model.dto.messagePush.MessagePushQueryRequest;
 import com.henu.registration.model.entity.MessageNotice;
 import com.henu.registration.model.entity.MessagePush;
 import com.henu.registration.model.entity.User;
-import com.henu.registration.model.enums.PushTyprEnum;
+import com.henu.registration.model.enums.PushTypeEnum;
 import com.henu.registration.model.vo.messagePush.MessagePushVO;
 import com.henu.registration.model.vo.user.UserVO;
 import com.henu.registration.service.MessageNoticeService;
@@ -76,7 +76,7 @@ public class MessagePushServiceImpl extends ServiceImpl<MessagePushMapper, Messa
 			ThrowUtils.throwIf(messageNotice == null, ErrorCode.PARAMS_ERROR, "消息通知不存在");
 		}
 		if (StringUtils.isNotBlank(pushType)) {
-			ThrowUtils.throwIf(PushTyprEnum.getEnumByValue(pushType) == null, ErrorCode.PARAMS_ERROR, "推送类型不存在");
+			ThrowUtils.throwIf(PushTypeEnum.getEnumByValue(pushType) == null, ErrorCode.PARAMS_ERROR, "推送类型不存在");
 		}
 	}
 	

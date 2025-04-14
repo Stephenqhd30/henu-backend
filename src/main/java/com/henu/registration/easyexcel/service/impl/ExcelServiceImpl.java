@@ -819,7 +819,7 @@ public class ExcelServiceImpl implements ExcelService {
 			Integer pushStatus = messagePush.getPushStatus();
 			User user = userService.getById(userId);
 			messagePushExcelVO.setUserName(user.getUserName());
-			messagePushExcelVO.setPushType(Objects.requireNonNull(PushTyprEnum.getEnumByValue(pushType)).getText());
+			messagePushExcelVO.setPushType(Objects.requireNonNull(PushTypeEnum.getEnumByValue(pushType)).getText());
 			messagePushExcelVO.setPushStatus(Objects.requireNonNull(PushStatusEnum.getEnumByValue(pushStatus)).getText());
 			return messagePushExcelVO;
 		})).toList();
