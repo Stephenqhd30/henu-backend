@@ -159,9 +159,11 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		// todo 补充需要的查询条件
 		// 多字段查询
 		if (CollUtil.isNotEmpty(studentLeaders)) {
-			for (String leader : studentLeaders) {
-				queryWrapper.like("student_leaders", "\"" + leader + "\"");
-			}
+			queryWrapper.and(wrapper -> {
+				for (String leader : studentLeaders) {
+					wrapper.or().like("student_leaders", "\"" + leader + "\"");
+				}
+			});
 		}
 		// 模糊查询
 		queryWrapper.like(StringUtils.isNotBlank(userName), "user_name", userName);
@@ -169,7 +171,7 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		queryWrapper.like(StringUtils.isNotBlank(studentAwards), "student_awards", studentAwards);
 		queryWrapper.gt(ObjUtil.isNotEmpty(birthDate), "birth_date", birthDate);
 		// 精确查询
-		queryWrapper.ne(ObjectUtils.isNotEmpty(notId), "review_status", notId);
+		queryWrapper.ne(ObjectUtils.isNotEmpty(notId), "registration_status", notId);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(id), "id", id);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(userId), "user_id", userId);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(userGender), "user_gender", userGender);
@@ -221,9 +223,11 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		// todo 补充需要的查询条件
 		// 多字段查询
 		if (CollUtil.isNotEmpty(studentLeaders)) {
-			for (String leader : studentLeaders) {
-				queryWrapper.like("student_leaders", "\"" + leader + "\"");
-			}
+			queryWrapper.and(wrapper -> {
+				for (String leader : studentLeaders) {
+					wrapper.or().like("student_leaders", "\"" + leader + "\"");
+				}
+			});
 		}
 		// 模糊查询
 		queryWrapper.like(StringUtils.isNotBlank(userName), "user_name", userName);
@@ -231,7 +235,7 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		queryWrapper.like(StringUtils.isNotBlank(studentAwards), "student_awards", studentAwards);
 		queryWrapper.gt(ObjUtil.isNotEmpty(birthDate), "birth_date", birthDate);
 		// 精确查询
-		queryWrapper.ne(ObjectUtils.isNotEmpty(notId), "review_status", notId);
+		queryWrapper.ne(ObjectUtils.isNotEmpty(notId), "registration_status", notId);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(id), "id", id);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(userGender), "user_gender", userGender);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(marryStatus), "marry_status", marryStatus);

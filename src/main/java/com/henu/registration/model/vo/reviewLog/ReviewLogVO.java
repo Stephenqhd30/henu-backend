@@ -1,19 +1,12 @@
 package com.henu.registration.model.vo.reviewLog;
 
-import cn.hutool.json.JSONUtil;
 import com.henu.registration.model.entity.ReviewLog;
-import com.henu.registration.model.vo.admin.AdminVO;
-import com.henu.registration.model.vo.registrationForm.RegistrationFormVO;
-import com.henu.registration.model.vo.user.UserVO;
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
-import cn.hutool.core.collection.CollUtil;
 import org.springframework.beans.BeanUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
 
 /**
  * 审核记录视图
@@ -64,11 +57,6 @@ public class ReviewLogVO implements Serializable {
      * 更新时间
      */
     private Date updateTime;
-    
-    /**
-     * 报名登记表信息
-     */
-    private RegistrationFormVO registrationFormVO;
 
     /**
      * 封装类转对象
