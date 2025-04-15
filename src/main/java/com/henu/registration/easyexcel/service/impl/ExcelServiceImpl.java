@@ -461,10 +461,10 @@ public class ExcelServiceImpl implements ExcelService {
 				registrationFormExcelVO.setPoliticalStatus(Objects.requireNonNull(PoliticalStatusEnum.getEnumByValue(registrationForm.getPoliticalStatus())).getText());
 				registrationFormExcelVOList.add(registrationFormExcelVO);
 			} else {
+				RegistrationFormExcelVO registrationFormExcelVO = new RegistrationFormExcelVO();
+				BeanUtils.copyProperties(registrationForm, registrationFormExcelVO);
 				// 如果有教育经历，为每条教育经历生成一行数据
 				for (Education education : educationList) {
-					RegistrationFormExcelVO registrationFormExcelVO = new RegistrationFormExcelVO();
-					BeanUtils.copyProperties(registrationForm, registrationFormExcelVO);
 					School school = schoolService.getById(education.getSchoolId());
 					registrationFormExcelVO.setUserGender(Objects.requireNonNull(UserGenderEnum.getEnumByValue(registrationForm.getUserGender())).getText());
 					registrationFormExcelVO.setMarryStatus(Objects.requireNonNull(MarryStatueEnum.getEnumByValue(registrationForm.getMarryStatus())).getText());
@@ -474,14 +474,35 @@ public class ExcelServiceImpl implements ExcelService {
 					registrationFormExcelVO.setRegistrationStatus(Objects.requireNonNull(RegistrationStatueEnum.getEnumByValue(registrationForm.getRegistrationStatus())).getText());
 					registrationFormExcelVO.setPoliticalStatus(Objects.requireNonNull(PoliticalStatusEnum.getEnumByValue(registrationForm.getPoliticalStatus())).getText());
 					// 填充教育经历字段
-					registrationFormExcelVO.setEducationalStage(education.getEducationalStage());
-					registrationFormExcelVO.setSchoolName(school.getSchoolName());
-					registrationFormExcelVO.setMajor(education.getMajor());
-					registrationFormExcelVO.setStudyTime(education.getStudyTime());
-					registrationFormExcelVO.setCertifier(education.getCertifier());
-					registrationFormExcelVO.setCertifierPhone(education.getCertifierPhone());
-					registrationFormExcelVOList.add(registrationFormExcelVO);
+					// 本科
+					if (EducationalStageEnum.getEnumByValue(education.getEducationalStage()) == EducationalStageEnum.UNDERGRADUATE_COURSE) {
+						registrationFormExcelVO.setUndergraduateEducationalStage(Objects.requireNonNull(EducationalStageEnum.getEnumByValue(education.getEducationalStage())).getText());
+						registrationFormExcelVO.setUndergraduateSchoolName(school.getSchoolName());
+						registrationFormExcelVO.setUndergraduateMajor(education.getMajor());
+						registrationFormExcelVO.setUndergraduateStudyTime(education.getStudyTime());
+						registrationFormExcelVO.setUndergraduateCertifier(education.getCertifier());
+						registrationFormExcelVO.setUndergraduateCertifierPhone(education.getCertifierPhone());
+					}
+					// 硕士
+					if (EducationalStageEnum.getEnumByValue(education.getEducationalStage()) == EducationalStageEnum.POSTGRADUATE) {
+						registrationFormExcelVO.setPostgraduateMajor(Objects.requireNonNull(EducationalStageEnum.getEnumByValue(education.getEducationalStage())).getText());
+						registrationFormExcelVO.setPostgraduateSchoolName(school.getSchoolName());
+						registrationFormExcelVO.setPostgraduateMajor(education.getMajor());
+						registrationFormExcelVO.setPostgraduateStudyTime(education.getStudyTime());
+						registrationFormExcelVO.setPostgraduateCertifier(education.getCertifier());
+						registrationFormExcelVO.setPostgraduateCertifierPhone(education.getCertifierPhone());
+					}
+					// 博士
+					if (EducationalStageEnum.getEnumByValue(education.getEducationalStage()) == EducationalStageEnum.DOCTOR_DEGREE) {
+						registrationFormExcelVO.setDoctorEducationalStage(Objects.requireNonNull(EducationalStageEnum.getEnumByValue(education.getEducationalStage())).getText());
+						registrationFormExcelVO.setDoctorSchoolName(school.getSchoolName());
+						registrationFormExcelVO.setDoctorMajor(education.getMajor());
+						registrationFormExcelVO.setDoctorStudyTime(education.getStudyTime());
+						registrationFormExcelVO.setDoctorCertifier(education.getCertifier());
+						registrationFormExcelVO.setDoctorCertifierPhone(education.getCertifierPhone());
+					}
 				}
+				registrationFormExcelVOList.add(registrationFormExcelVO);
 			}
 			// 返回该用户的所有行数据
 			return registrationFormExcelVOList;
@@ -513,42 +534,63 @@ public class ExcelServiceImpl implements ExcelService {
 				.map(registrationForm -> CompletableFuture.supplyAsync(() -> {
 					Job job = jobService.getById(registrationForm.getJobId());
 					List<Education> educationList = educationService.list(Wrappers.lambdaQuery(Education.class).eq(Education::getUserId, registrationForm.getUserId()));
-					List<RegistrationFormExcelVO> voList = new ArrayList<>();
+					List<RegistrationFormExcelVO> registrationFormExcelVOList = new ArrayList<>();
 					if (educationList.isEmpty()) {
-						RegistrationFormExcelVO vo = new RegistrationFormExcelVO();
-						BeanUtils.copyProperties(registrationForm, vo);
-						vo.setUserGender(Objects.requireNonNull(UserGenderEnum.getEnumByValue(registrationForm.getUserGender())).getText());
-						vo.setMarryStatus(Objects.requireNonNull(MarryStatueEnum.getEnumByValue(registrationForm.getMarryStatus())).getText());
-						vo.setUserIdCard(userService.getDecryptIdCard(registrationForm.getUserIdCard()));
-						vo.setSubmitter(registrationForm.getUserName());
-						vo.setJobName(job.getJobName());
-						vo.setRegistrationStatus(Objects.requireNonNull(RegistrationStatueEnum.getEnumByValue(registrationForm.getRegistrationStatus())).getText());
-						vo.setPoliticalStatus(Objects.requireNonNull(PoliticalStatusEnum.getEnumByValue(registrationForm.getPoliticalStatus())).getText());
-						voList.add(vo);
+						RegistrationFormExcelVO registrationFormExcelVO = new RegistrationFormExcelVO();
+						BeanUtils.copyProperties(registrationForm, registrationFormExcelVO);
+						registrationFormExcelVO.setUserGender(Objects.requireNonNull(UserGenderEnum.getEnumByValue(registrationForm.getUserGender())).getText());
+						registrationFormExcelVO.setMarryStatus(Objects.requireNonNull(MarryStatueEnum.getEnumByValue(registrationForm.getMarryStatus())).getText());
+						registrationFormExcelVO.setUserIdCard(userService.getDecryptIdCard(registrationForm.getUserIdCard()));
+						registrationFormExcelVO.setSubmitter(registrationForm.getUserName());
+						registrationFormExcelVO.setJobName(job.getJobName());
+						registrationFormExcelVO.setRegistrationStatus(Objects.requireNonNull(RegistrationStatueEnum.getEnumByValue(registrationForm.getRegistrationStatus())).getText());
+						registrationFormExcelVO.setPoliticalStatus(Objects.requireNonNull(PoliticalStatusEnum.getEnumByValue(registrationForm.getPoliticalStatus())).getText());
+						registrationFormExcelVOList.add(registrationFormExcelVO);
 					} else {
+						RegistrationFormExcelVO registrationFormExcelVO = new RegistrationFormExcelVO();
+						BeanUtils.copyProperties(registrationForm, registrationFormExcelVO);
 						for (Education education : educationList) {
-							RegistrationFormExcelVO vo = new RegistrationFormExcelVO();
-							BeanUtils.copyProperties(registrationForm, vo);
 							School school = schoolService.getById(education.getSchoolId());
-							vo.setUserGender(Objects.requireNonNull(UserGenderEnum.getEnumByValue(registrationForm.getUserGender())).getText());
-							vo.setMarryStatus(Objects.requireNonNull(MarryStatueEnum.getEnumByValue(registrationForm.getMarryStatus())).getText());
-							vo.setUserIdCard(userService.getDecryptIdCard(registrationForm.getUserIdCard()));
-							vo.setSubmitter(registrationForm.getUserName());
-							vo.setJobName(job.getJobName());
-							vo.setRegistrationStatus(Objects.requireNonNull(RegistrationStatueEnum.getEnumByValue(registrationForm.getRegistrationStatus())).getText());
-							vo.setPoliticalStatus(Objects.requireNonNull(PoliticalStatusEnum.getEnumByValue(registrationForm.getPoliticalStatus())).getText());
-							// 教育经历字段
-							vo.setEducationalStage(education.getEducationalStage());
-							vo.setSchoolName(school != null ? school.getSchoolName() : "");
-							vo.setMajor(education.getMajor());
-							vo.setStudyTime(education.getStudyTime());
-							vo.setCertifier(education.getCertifier());
-							vo.setCertifierPhone(education.getCertifierPhone());
-							voList.add(vo);
+							registrationFormExcelVO.setUserGender(Objects.requireNonNull(UserGenderEnum.getEnumByValue(registrationForm.getUserGender())).getText());
+							registrationFormExcelVO.setMarryStatus(Objects.requireNonNull(MarryStatueEnum.getEnumByValue(registrationForm.getMarryStatus())).getText());
+							registrationFormExcelVO.setUserIdCard(userService.getDecryptIdCard(registrationForm.getUserIdCard()));
+							registrationFormExcelVO.setSubmitter(registrationForm.getUserName());
+							registrationFormExcelVO.setJobName(job.getJobName());
+							registrationFormExcelVO.setRegistrationStatus(Objects.requireNonNull(RegistrationStatueEnum.getEnumByValue(registrationForm.getRegistrationStatus())).getText());
+							registrationFormExcelVO.setPoliticalStatus(Objects.requireNonNull(PoliticalStatusEnum.getEnumByValue(registrationForm.getPoliticalStatus())).getText());
+							// 填充教育经历字段
+							// 本科
+							if (EducationalStageEnum.getEnumByValue(education.getEducationalStage()) == EducationalStageEnum.UNDERGRADUATE_COURSE) {
+								registrationFormExcelVO.setUndergraduateEducationalStage(Objects.requireNonNull(EducationalStageEnum.getEnumByValue(education.getEducationalStage())).getText());
+								registrationFormExcelVO.setUndergraduateSchoolName(school.getSchoolName());
+								registrationFormExcelVO.setUndergraduateMajor(education.getMajor());
+								registrationFormExcelVO.setUndergraduateStudyTime(education.getStudyTime());
+								registrationFormExcelVO.setUndergraduateCertifier(education.getCertifier());
+								registrationFormExcelVO.setUndergraduateCertifierPhone(education.getCertifierPhone());
+							}
+							// 硕士
+							if (EducationalStageEnum.getEnumByValue(education.getEducationalStage()) == EducationalStageEnum.POSTGRADUATE) {
+								registrationFormExcelVO.setPostgraduateMajor(Objects.requireNonNull(EducationalStageEnum.getEnumByValue(education.getEducationalStage())).getText());
+								registrationFormExcelVO.setPostgraduateSchoolName(school.getSchoolName());
+								registrationFormExcelVO.setPostgraduateMajor(education.getMajor());
+								registrationFormExcelVO.setPostgraduateStudyTime(education.getStudyTime());
+								registrationFormExcelVO.setPostgraduateCertifier(education.getCertifier());
+								registrationFormExcelVO.setPostgraduateCertifierPhone(education.getCertifierPhone());
+							}
+							// 博士
+							if (EducationalStageEnum.getEnumByValue(education.getEducationalStage()) == EducationalStageEnum.DOCTOR_DEGREE) {
+								registrationFormExcelVO.setDoctorEducationalStage(Objects.requireNonNull(EducationalStageEnum.getEnumByValue(education.getEducationalStage())).getText());
+								registrationFormExcelVO.setDoctorSchoolName(school.getSchoolName());
+								registrationFormExcelVO.setDoctorMajor(education.getMajor());
+								registrationFormExcelVO.setDoctorStudyTime(education.getStudyTime());
+								registrationFormExcelVO.setDoctorCertifier(education.getCertifier());
+								registrationFormExcelVO.setDoctorCertifierPhone(education.getCertifierPhone());
+							}
 						}
+						registrationFormExcelVOList.add(registrationFormExcelVO);
 					}
 					
-					return voList;
+					return registrationFormExcelVOList;
 				})).toList();
 		
 		List<RegistrationFormExcelVO> exportList = futures.stream().flatMap(f -> f.join().stream()).collect(Collectors.toList());

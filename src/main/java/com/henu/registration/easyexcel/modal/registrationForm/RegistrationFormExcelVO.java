@@ -131,44 +131,128 @@ public class RegistrationFormExcelVO implements Serializable {
 	private String registrationStatus;
 	
 	/**
-	 * 教育阶段
+	 * 本科教育阶段
 	 */
 	@ColumnWidth(20)
-	@ExcelProperty("教育阶段")
-	private String educationalStage;
+	@ExcelProperty("本科教育阶段")
+	private String undergraduateEducationalStage;
 	
 	/**
-	 * 高校名称
+	 * 本科高校名称
 	 */
 	@ColumnWidth(40)
-	@ExcelProperty("高校名称")
-	private String schoolName;
+	@ExcelProperty("本科高校名称")
+	private String undergraduateSchoolName;
 	
 	/**
-	 * 专业
+	 * 本科专业
 	 */
 	@ColumnWidth(20)
-	@ExcelProperty("专业")
-	private String major;
+	@ExcelProperty("本科专业")
+	private String undergraduateMajor;
 	
 	/**
-	 * 学习起止年月
+	 * 本科学习起止年月
 	 */
 	@ColumnWidth(40)
-	@ExcelProperty("学习起止年月")
-	private String studyTime;
+	@ExcelProperty("本科学习起止年月")
+	private String undergraduateStudyTime;
 	
 	/**
-	 * 证明人
+	 * 本科证明人
 	 */
 	@ColumnWidth(20)
-	@ExcelProperty("证明人")
-	private String certifier;
+	@ExcelProperty("本科证明人")
+	private String undergraduateCertifier;
 	
 	/**
-	 * 证明人联系电话
+	 * 本科证明人联系电话
 	 */
 	@ColumnWidth(20)
-	@ExcelProperty("证明人联系电话")
-	private String certifierPhone;
+	@ExcelProperty("本科证明人联系电话")
+	private String undergraduateCertifierPhone;
+	
+	/**
+	 * 硕士教育阶段
+	 */
+	@ColumnWidth(20)
+	@ExcelProperty("硕士教育阶段")
+	private String postgraduateEducationalStage;
+	
+	/**
+	 * 硕士高校名称
+	 */
+	@ColumnWidth(40)
+	@ExcelProperty("硕士高校名称")
+	private String postgraduateSchoolName;
+	
+	/**
+	 * 硕士专业
+	 */
+	@ColumnWidth(20)
+	@ExcelProperty("硕士专业")
+	private String postgraduateMajor;
+	
+	/**
+	 * 硕士学习起止年月
+	 */
+	@ColumnWidth(40)
+	@ExcelProperty("硕士学习起止年月")
+	private String postgraduateStudyTime;
+	
+	/**
+	 * 硕士证明人
+	 */
+	@ColumnWidth(20)
+	@ExcelProperty("硕士证明人")
+	private String postgraduateCertifier;
+	
+	/**
+	 * 硕士证明人联系电话
+	 */
+	@ColumnWidth(20)
+	@ExcelProperty("硕士证明人联系电话")
+	private String postgraduateCertifierPhone;
+	
+	/**
+	 * 博士教育阶段
+	 */
+	@ColumnWidth(20)
+	@ExcelProperty("博士教育阶段")
+	private String doctorEducationalStage;
+	
+	/**
+	 * 博士高校名称
+	 */
+	@ColumnWidth(40)
+	@ExcelProperty("博士高校名称")
+	private String doctorSchoolName;
+	
+	/**
+	 * 博士专业
+	 */
+	@ColumnWidth(20)
+	@ExcelProperty("博士专业")
+	private String doctorMajor;
+	
+	/**
+	 * 博士学习起止年月
+	 */
+	@ColumnWidth(40)
+	@ExcelProperty("博士学习起止年月")
+	private String doctorStudyTime;
+	
+	/**
+	 * 博士证明人
+	 */
+	@ColumnWidth(20)
+	@ExcelProperty("博士证明人")
+	private String doctorCertifier;
+	
+	/**
+	 * 博士证明人联系电话
+	 */
+	@ColumnWidth(20)
+	@ExcelProperty("博士证明人联系电话")
+	private String doctorCertifierPhone;
 }
