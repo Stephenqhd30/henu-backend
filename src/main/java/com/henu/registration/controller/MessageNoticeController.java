@@ -16,6 +16,7 @@ import com.henu.registration.service.*;
 import com.henu.registration.utils.rabbitmq.RabbitMqUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -60,6 +61,7 @@ public class MessageNoticeController {
 	 * @return {@link BaseResponse<Long>}
 	 */
 	@PostMapping("/add")
+	@Transactional(rollbackFor = Exception.class)
 	public BaseResponse<Long> addMessageNotice(@RequestBody MessageNoticeAddRequest messageNoticeAddRequest, HttpServletRequest request) {
 		ThrowUtils.throwIf(messageNoticeAddRequest == null, ErrorCode.PARAMS_ERROR);
 		// todo 在此处将实体类和 DTO 进行转换
@@ -115,6 +117,7 @@ public class MessageNoticeController {
 	 * @return {@link BaseResponse<List<Long>>}
 	 */
 	@PostMapping("/add/batch")
+	@Transactional(rollbackFor = Exception.class)
 	public BaseResponse<List<Long>> addMessageNoticeByBatch(@RequestBody MessageNoticeAddRequest messageNoticeAddRequest, HttpServletRequest request) {
 		ThrowUtils.throwIf(messageNoticeAddRequest == null || CollectionUtils.isEmpty(messageNoticeAddRequest.getRegistrationIds()), ErrorCode.PARAMS_ERROR);
 		Admin loginAdmin = adminService.getLoginAdmin(request);
