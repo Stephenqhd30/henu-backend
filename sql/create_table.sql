@@ -247,22 +247,25 @@ create table review_log
 -- 消息通知表
 create table message_notice
 (
-    id                 bigint auto_increment comment 'id'
+    id              bigint auto_increment comment 'id'
         primary key,
-    registration_id    bigint                               not null comment '报名登记表id',
-    interview_time     datetime                             not null comment '面试时间',
-    interview_location varchar(512)
-                                            not null comment '面试地点',
-    push_status        tinyint(1) default 0 not null comment '推送状态(0-未推送,1-成功,2-失败,3-重试中)',
-    admin_id           bigint                               null comment '管理员id',
-    create_time        datetime   default CURRENT_TIMESTAMP not null comment '创建时间',
-    update_time        datetime   default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
-    is_delete          tinyint(1) default 0                 not null comment '是否逻辑删除(0-否,1-是)',
+    registration_id bigint                               not null comment '报名登记表id',
+    content         longtext                             not null comment '面试内容',
+    push_status     tinyint(1) default 0                 not null comment '推送状态(0-未推送,1-成功,2-失败,3-重试中)',
+    user_id         bigint                               not null comment '通知用户id',
+    admin_id        bigint                               null comment '管理员id',
+    create_time     datetime   default CURRENT_TIMESTAMP not null comment '创建时间',
+    update_time     datetime   default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+    is_delete       tinyint(1) default 0                 not null comment '是否逻辑删除(0-否,1-是)',
     constraint message_notice_registration_form_id_fk
         foreign key (registration_id) references registration_form (id)
             on update cascade on delete cascade
 )
     comment '消息通知表';
+
+create index message_notice_push_status_index
+    on message_notice (push_status);
+
 
 -- 消息推送表（存发送情况）
 CREATE TABLE message_push
@@ -295,3 +298,17 @@ create table system_messages
     is_delete   tinyint(1) default 0                 not null comment '是否逻辑删除(0-否,1-是)'
 )
     comment '系统消息表' row_format = DYNAMIC;
+
+-- 消息通知表
+create table message
+(
+    id          bigint auto_increment comment 'id'
+        primary key,
+    title       varchar(1024)                        not null comment '通知主题',
+    content     longtext                             not null comment '通知内容',
+    admin_id    bigint                               null comment '创建人id',
+    create_time datetime   default CURRENT_TIMESTAMP not null comment '创建时间',
+    update_time datetime   default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+    is_delete   tinyint(1) default 0                 not null comment '是否删除'
+)
+    comment '消息通知表';

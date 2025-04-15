@@ -48,6 +48,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -439,74 +440,127 @@ public class ExcelServiceImpl implements ExcelService {
 	 */
 	@Override
 	public void exportRegistrationForm(HttpServletResponse response) throws IOException {
-		List<CompletableFuture<RegistrationFormExcelVO>> futures = registrationFormService.list().stream().map(registrationForm -> CompletableFuture.supplyAsync(() -> {
-			RegistrationFormExcelVO registrationFormExcelVO = new RegistrationFormExcelVO();
-			BeanUtils.copyProperties(registrationForm, registrationFormExcelVO);
-			registrationFormExcelVO.setUserGender(Objects.requireNonNull(UserGenderEnum.getEnumByValue(registrationForm.getUserGender())).getText());
-			registrationFormExcelVO.setMarryStatus(Objects.requireNonNull(MarryStatueEnum.getEnumByValue(registrationForm.getMarryStatus())).getText());
-			User user = userService.getById(registrationForm.getUserId());
-			registrationFormExcelVO.setUserIdCard(userService.getDecryptIdCard(user.getUserIdCard()));
-			registrationFormExcelVO.setSubmitter(user.getUserName());
+		// 使用 CompletableFuture 异步处理
+		List<CompletableFuture<List<RegistrationFormExcelVO>>> futures = registrationFormService.list().stream().map(registrationForm -> CompletableFuture.supplyAsync(() -> {
+			// 查找用户及工作岗位
 			Job job = jobService.getById(registrationForm.getJobId());
-			registrationFormExcelVO.setJobName(job.getJobName());
-			registrationFormExcelVO.setRegistrationStatus(Objects.requireNonNull(RegistrationStatueEnum.getEnumByValue(registrationForm.getRegistrationStatus())).getText());
-			registrationFormExcelVO.setPoliticalStatus(Objects.requireNonNull(PoliticalStatusEnum.getEnumByValue(registrationForm.getPoliticalStatus())).getText());
-			return registrationFormExcelVO;
+			// 查询该用户的所有教育经历
+			List<Education> educationList = educationService.list(Wrappers.lambdaQuery(Education.class).eq(Education::getUserId, registrationForm.getUserId()));
+			// 用于保存该用户的所有 Excel 行数据
+			List<RegistrationFormExcelVO> registrationFormExcelVOList = new ArrayList<>();
+			// 如果没有教育经历，生成一行数据
+			if (educationList.isEmpty()) {
+				RegistrationFormExcelVO registrationFormExcelVO = new RegistrationFormExcelVO();
+				BeanUtils.copyProperties(registrationForm, registrationFormExcelVO);
+				registrationFormExcelVO.setUserGender(Objects.requireNonNull(UserGenderEnum.getEnumByValue(registrationForm.getUserGender())).getText());
+				registrationFormExcelVO.setMarryStatus(Objects.requireNonNull(MarryStatueEnum.getEnumByValue(registrationForm.getMarryStatus())).getText());
+				registrationFormExcelVO.setUserIdCard(userService.getDecryptIdCard(registrationForm.getUserIdCard()));
+				registrationFormExcelVO.setSubmitter(registrationForm.getUserName());
+				registrationFormExcelVO.setJobName(job.getJobName());
+				registrationFormExcelVO.setRegistrationStatus(Objects.requireNonNull(RegistrationStatueEnum.getEnumByValue(registrationForm.getRegistrationStatus())).getText());
+				registrationFormExcelVO.setPoliticalStatus(Objects.requireNonNull(PoliticalStatusEnum.getEnumByValue(registrationForm.getPoliticalStatus())).getText());
+				registrationFormExcelVOList.add(registrationFormExcelVO);
+			} else {
+				// 如果有教育经历，为每条教育经历生成一行数据
+				for (Education education : educationList) {
+					RegistrationFormExcelVO registrationFormExcelVO = new RegistrationFormExcelVO();
+					BeanUtils.copyProperties(registrationForm, registrationFormExcelVO);
+					School school = schoolService.getById(education.getSchoolId());
+					registrationFormExcelVO.setUserGender(Objects.requireNonNull(UserGenderEnum.getEnumByValue(registrationForm.getUserGender())).getText());
+					registrationFormExcelVO.setMarryStatus(Objects.requireNonNull(MarryStatueEnum.getEnumByValue(registrationForm.getMarryStatus())).getText());
+					registrationFormExcelVO.setUserIdCard(userService.getDecryptIdCard(registrationForm.getUserIdCard()));
+					registrationFormExcelVO.setSubmitter(registrationForm.getUserName());
+					registrationFormExcelVO.setJobName(job.getJobName());
+					registrationFormExcelVO.setRegistrationStatus(Objects.requireNonNull(RegistrationStatueEnum.getEnumByValue(registrationForm.getRegistrationStatus())).getText());
+					registrationFormExcelVO.setPoliticalStatus(Objects.requireNonNull(PoliticalStatusEnum.getEnumByValue(registrationForm.getPoliticalStatus())).getText());
+					// 填充教育经历字段
+					registrationFormExcelVO.setEducationalStage(education.getEducationalStage());
+					registrationFormExcelVO.setSchoolName(school.getSchoolName());
+					registrationFormExcelVO.setMajor(education.getMajor());
+					registrationFormExcelVO.setStudyTime(education.getStudyTime());
+					registrationFormExcelVO.setCertifier(education.getCertifier());
+					registrationFormExcelVO.setCertifierPhone(education.getCertifierPhone());
+					registrationFormExcelVOList.add(registrationFormExcelVO);
+				}
+			}
+			// 返回该用户的所有行数据
+			return registrationFormExcelVOList;
 		})).toList();
-		// 等待所有 CompletableFuture 执行完毕，并收集结果
-		List<RegistrationFormExcelVO> jobExcelVOList = futures.stream().map(CompletableFuture::join).collect(Collectors.toList());
+		// 等待所有 CompletableFuture 执行完毕，并合并所有数据
+		List<RegistrationFormExcelVO> exportList = futures.stream().flatMap(f -> f.join().stream()).collect(Collectors.toList());
+		
 		// 写入 Excel 文件
 		try {
-			ExcelUtils.exportHttpServletResponse(jobExcelVOList, ExcelConstant.REGISTRATION_FROM, RegistrationFormExcelVO.class, response);
-			log.info("报名登记表信息导出成功，导出数量：{}", jobExcelVOList.size());
+			ExcelUtils.exportHttpServletResponse(exportList, ExcelConstant.REGISTRATION_FROM, RegistrationFormExcelVO.class, response);
+			log.info("报名登记表信息导出成功，导出数量：{}", exportList.size());
 		} catch (Exception e) {
 			log.error("报名登记表信息导出失败: {}", e.getMessage());
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "报名登记表信息导出失败");
 		}
-		
 	}
 	
 	/**
-	 * 导出报名登记表信息到 Excel
-	 *
-	 * @param response HttpServletResponse
-	 */
-	/**
-	 * 导出报名登记表信息到 Excel
+	 * 批量导出报名登记表信息到 Excel（支持教育经历多行）
 	 *
 	 * @param userIds  userIds
 	 * @param response response
 	 */
 	@Override
 	public void exportRegistrationFormByUserId(List<Long> userIds, HttpServletResponse response) throws IOException {
-		List<CompletableFuture<RegistrationFormExcelVO>> futures = registrationFormService
+		List<CompletableFuture<List<RegistrationFormExcelVO>>> futures = registrationFormService
 				.list(Wrappers.lambdaQuery(RegistrationForm.class).in(RegistrationForm::getUserId, userIds))
 				.stream()
 				.map(registrationForm -> CompletableFuture.supplyAsync(() -> {
-					RegistrationFormExcelVO registrationFormExcelVO = new RegistrationFormExcelVO();
-					BeanUtils.copyProperties(registrationForm, registrationFormExcelVO);
-					registrationFormExcelVO.setUserGender(Objects.requireNonNull(UserGenderEnum.getEnumByValue(registrationForm.getUserGender())).getText());
-					registrationFormExcelVO.setMarryStatus(Objects.requireNonNull(MarryStatueEnum.getEnumByValue(registrationForm.getMarryStatus())).getText());
-					User user = userService.getById(registrationForm.getUserId());
-					registrationFormExcelVO.setUserIdCard(userService.getDecryptIdCard(user.getUserIdCard()));
-					registrationFormExcelVO.setSubmitter(user.getUserName());
 					Job job = jobService.getById(registrationForm.getJobId());
-					registrationFormExcelVO.setJobName(job.getJobName());
-					registrationFormExcelVO.setRegistrationStatus(Objects.requireNonNull(RegistrationStatueEnum.getEnumByValue(registrationForm.getRegistrationStatus())).getText());
-					registrationFormExcelVO.setPoliticalStatus(Objects.requireNonNull(PoliticalStatusEnum.getEnumByValue(registrationForm.getPoliticalStatus())).getText());
-					return registrationFormExcelVO;
+					List<Education> educationList = educationService.list(Wrappers.lambdaQuery(Education.class).eq(Education::getUserId, registrationForm.getUserId()));
+					List<RegistrationFormExcelVO> voList = new ArrayList<>();
+					if (educationList.isEmpty()) {
+						RegistrationFormExcelVO vo = new RegistrationFormExcelVO();
+						BeanUtils.copyProperties(registrationForm, vo);
+						vo.setUserGender(Objects.requireNonNull(UserGenderEnum.getEnumByValue(registrationForm.getUserGender())).getText());
+						vo.setMarryStatus(Objects.requireNonNull(MarryStatueEnum.getEnumByValue(registrationForm.getMarryStatus())).getText());
+						vo.setUserIdCard(userService.getDecryptIdCard(registrationForm.getUserIdCard()));
+						vo.setSubmitter(registrationForm.getUserName());
+						vo.setJobName(job.getJobName());
+						vo.setRegistrationStatus(Objects.requireNonNull(RegistrationStatueEnum.getEnumByValue(registrationForm.getRegistrationStatus())).getText());
+						vo.setPoliticalStatus(Objects.requireNonNull(PoliticalStatusEnum.getEnumByValue(registrationForm.getPoliticalStatus())).getText());
+						voList.add(vo);
+					} else {
+						for (Education education : educationList) {
+							RegistrationFormExcelVO vo = new RegistrationFormExcelVO();
+							BeanUtils.copyProperties(registrationForm, vo);
+							School school = schoolService.getById(education.getSchoolId());
+							vo.setUserGender(Objects.requireNonNull(UserGenderEnum.getEnumByValue(registrationForm.getUserGender())).getText());
+							vo.setMarryStatus(Objects.requireNonNull(MarryStatueEnum.getEnumByValue(registrationForm.getMarryStatus())).getText());
+							vo.setUserIdCard(userService.getDecryptIdCard(registrationForm.getUserIdCard()));
+							vo.setSubmitter(registrationForm.getUserName());
+							vo.setJobName(job.getJobName());
+							vo.setRegistrationStatus(Objects.requireNonNull(RegistrationStatueEnum.getEnumByValue(registrationForm.getRegistrationStatus())).getText());
+							vo.setPoliticalStatus(Objects.requireNonNull(PoliticalStatusEnum.getEnumByValue(registrationForm.getPoliticalStatus())).getText());
+							// 教育经历字段
+							vo.setEducationalStage(education.getEducationalStage());
+							vo.setSchoolName(school != null ? school.getSchoolName() : "");
+							vo.setMajor(education.getMajor());
+							vo.setStudyTime(education.getStudyTime());
+							vo.setCertifier(education.getCertifier());
+							vo.setCertifierPhone(education.getCertifierPhone());
+							voList.add(vo);
+						}
+					}
+					
+					return voList;
 				})).toList();
-		// 等待所有 CompletableFuture 执行完毕，并收集结果
-		List<RegistrationFormExcelVO> jobExcelVOList = futures.stream().map(CompletableFuture::join).collect(Collectors.toList());
-		// 写入 Excel 文件
+		
+		List<RegistrationFormExcelVO> exportList = futures.stream().flatMap(f -> f.join().stream()).collect(Collectors.toList());
+		
+		// 写入 Excel
 		try {
-			ExcelUtils.exportHttpServletResponse(jobExcelVOList, ExcelConstant.REGISTRATION_FROM, RegistrationFormExcelVO.class, response);
-			log.info("报名登记表信息导出成功，导出数量：{}", jobExcelVOList.size());
+			ExcelUtils.exportHttpServletResponse(exportList, ExcelConstant.REGISTRATION_FROM, RegistrationFormExcelVO.class, response);
+			log.info("报名登记表信息导出成功，导出数量：{}", exportList.size());
 		} catch (Exception e) {
 			log.error("报名登记表信息导出失败: {}", e.getMessage());
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "报名登记表信息导出失败");
 		}
-		
 	}
 	
 	/**

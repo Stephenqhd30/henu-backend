@@ -311,13 +311,6 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		List<FileLog> fileLogList = fileLogService.list(fileLogLambdaQueryWrapper);
 		List<FileLogVO> fileLogVOList = fileLogList.stream().map(FileLogVO::objToVo).toList();
 		registrationFormVO.setFileLogVOList(fileLogVOList);
-		// 4. 关联查看面试通知信息
-		MessageNotice messageNotice = messageNoticeService.getOne(Wrappers.lambdaQuery(MessageNotice.class).eq(MessageNotice::getRegistrationId, registrationForm.getId()));
-		if (messageNotice != null) {
-			// 获取面试通知封装
-			MessageNoticeVO messageNoticeVO = messageNoticeService.getMessageNoticeVO(messageNotice, request);
-			registrationFormVO.setMessageNoticeVO(messageNoticeVO);
-		}
 		// endregion
 		return registrationFormVO;
 	}
@@ -374,13 +367,6 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 			registrationFormVO.setEducationVOList(Optional.ofNullable(userIdEducationListMap.get(registrationFormVO.getUserId())).orElse(Collections.emptyList()).stream().map(education -> educationService.getEducationVO(education, request)).toList());
 			registrationFormVO.setFamilyVOList(Optional.ofNullable(userIdFamilyListMap.get(registrationFormVO.getUserId())).orElse(Collections.emptyList()).stream().map(family -> familyService.getFamilyVO(family, request)).toList());
 			registrationFormVO.setFileLogVOList(Optional.ofNullable(userIdFileLogListMap.get(registrationFormVO.getUserId())).orElse(Collections.emptyList()).stream().map(fileLog -> fileLogService.getFileLogVO(fileLog, request)).toList());
-			MessageNotice messageNotice = messageNoticeService.getOne(
-					Wrappers.lambdaQuery(MessageNotice.class).eq(MessageNotice::getRegistrationId, registrationFormVO.getId()));
-			if (messageNotice != null) {
-				// 获取面试通知封装
-				MessageNoticeVO messageNoticeVO = messageNoticeService.getMessageNoticeVO(messageNotice, request);
-				registrationFormVO.setMessageNoticeVO(messageNoticeVO);
-			}
 		});
 		// endregion
 		registrationFormVOPage.setRecords(registrationFormVOList);

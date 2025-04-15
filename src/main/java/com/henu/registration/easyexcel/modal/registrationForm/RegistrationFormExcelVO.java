@@ -19,6 +19,13 @@ public class RegistrationFormExcelVO implements Serializable {
 	private static final long serialVersionUID = -4562133149585501968L;
 	
 	/**
+	 * 岗位名
+	 */
+	@ColumnWidth(20)
+	@ExcelProperty("岗位名")
+	private String jobName;
+	
+	/**
 	 * 姓名
 	 */
 	@ColumnWidth(20)
@@ -38,27 +45,6 @@ public class RegistrationFormExcelVO implements Serializable {
 	@ColumnWidth(20)
 	@ExcelProperty("性别")
 	private String userGender;
-	
-	/**
-	 * 证件照
-	 */
-	@ColumnWidth(40)
-	@ExcelProperty("证件照")
-	private String userAvatar;
-	
-	/**
-	 * 生活照
-	 */
-	@ColumnWidth(40)
-	@ExcelProperty("生活照")
-	private String userLifePhoto;
-	
-	/**
-	 * 报名登记表文件
-	 */
-	@ColumnWidth(40)
-	@ExcelProperty("报名登记表文件")
-	private String registrationForm;
 	
 	/**
 	 * 民族
@@ -138,16 +124,51 @@ public class RegistrationFormExcelVO implements Serializable {
 	private String submitter;
 	
 	/**
-	 * 岗位名
-	 */
-	@ColumnWidth(20)
-	@ExcelProperty("岗位名")
-	private String jobName;
-	
-	/**
 	 * 报名状态(0-待报名,1-已报名,2-待面试,3-已发送面试通知)
 	 */
 	@ColumnWidth(20)
 	@ExcelProperty("报名状态")
 	private String registrationStatus;
+	
+	/**
+	 * 教育阶段
+	 */
+	@ColumnWidth(20)
+	@ExcelProperty("教育阶段")
+	private String educationalStage;
+	
+	/**
+	 * 高校名称
+	 */
+	@ColumnWidth(40)
+	@ExcelProperty("高校名称")
+	private String schoolName;
+	
+	/**
+	 * 专业
+	 */
+	@ColumnWidth(20)
+	@ExcelProperty("专业")
+	private String major;
+	
+	/**
+	 * 学习起止年月
+	 */
+	@ColumnWidth(40)
+	@ExcelProperty("学习起止年月")
+	private String studyTime;
+	
+	/**
+	 * 证明人
+	 */
+	@ColumnWidth(20)
+	@ExcelProperty("证明人")
+	private String certifier;
+	
+	/**
+	 * 证明人联系电话
+	 */
+	@ColumnWidth(20)
+	@ExcelProperty("证明人联系电话")
+	private String certifierPhone;
 }

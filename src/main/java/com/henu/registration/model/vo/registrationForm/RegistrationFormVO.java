@@ -194,11 +194,6 @@ public class RegistrationFormVO implements Serializable {
 	private List<FileLogVO> fileLogVOList;
 	
 	/**
-	 * 面试通知信息
-	 */
-	private MessageNoticeVO messageNoticeVO;
-	
-	/**
 	 * 封装类转对象
 	 *
 	 * @param registrationFormVO registrationFormVO

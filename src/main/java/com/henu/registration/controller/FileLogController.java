@@ -212,8 +212,9 @@ public class FileLogController {
 						String filePath = fileLog.getFilePath();
 						// 获取文件流并写入 zip
 						try (InputStream fileInputStream = MinioUtils.getFileStream(filePath)) {
-							if (fileInputStream == null) continue;
-							
+							if (fileInputStream == null) {
+								continue;
+							}
 							userZip.putNextEntry(new ZipEntry(fileName));
 							byte[] buffer = new byte[8192];
 							int len;
