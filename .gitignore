@@ -153,3 +153,4 @@ src/main/resources/template
 src/main/java/com/henu/registration/generate
 src/main/java/com/henu/registration/constants/SaltConstant.java
 src/main/java/com/henu/registration/constants/SmsConstant.java
+src/main/java/com/henu/registration/constants/FileConstant.java

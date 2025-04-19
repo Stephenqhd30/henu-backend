@@ -24,12 +24,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -105,49 +103,38 @@ public class FileLogController {
 	}
 	
 	/**
-	 * 文件下载（将用户所有上传文件打包为 ZIP，通过 MinIO 获取）
+	 * 文件下载
 	 *
-	 * @param downloadFileRequest DownloadFileRequest
-	 * @param response            HttpServletResponse
+	 * @param response HttpServletResponse
 	 */
-	@PostMapping("/download")
-	public void downloadFile(@RequestBody DownloadFileRequest downloadFileRequest, HttpServletResponse response) {
-		// 1. 参数校验
-		if (downloadFileRequest == null || downloadFileRequest.getUserId() == null || downloadFileRequest.getUserId() <= 0) {
-			throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数错误");
-		}
-		Long userId = downloadFileRequest.getUserId();
-		// 2. 获取用户信息
-		User user = userService.getById(userId);
-		ThrowUtils.throwIf(user == null, ErrorCode.NOT_FOUND_ERROR, "用户不存在");
-		
+	@GetMapping("/download")
+	public void downloadFile(HttpServletResponse response) {
 		// 3. 获取用户的文件上传记录
-		List<FileLog> fileLogList = fileLogService.list(Wrappers.lambdaQuery(FileLog.class)
-				.eq(FileLog::getUserId, userId));
+		List<FileLog> fileLogList = fileLogService.list();
 		ThrowUtils.throwIf(fileLogList == null || fileLogList.isEmpty(), ErrorCode.NOT_FOUND_ERROR);
 		// 4. 设置响应头（ZIP 文件下载）
 		response.setContentType("application/zip");
-		String zipFileName = URLEncoder.encode(user.getUserName() + ".zip", StandardCharsets.UTF_8).replaceAll("\\+", "%20");
+		String zipFileName = URLEncoder.encode("附件信息" + ".zip", StandardCharsets.UTF_8).replaceAll("\\+", "%20");
 		response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + zipFileName);
+		response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
 		// 5. 创建 Zip 输出流并写入文件
-		try (OutputStream outputStream = response.getOutputStream();
-		     ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream)) {
+		try (ServletOutputStream outputStream = response.getOutputStream(); BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream); ZipOutputStream zipOutputStream = new ZipOutputStream(bufferedOutputStream)) {
+			byte[] buffer = new byte[8192];
 			for (FileLog fileLog : fileLogList) {
 				Long fileTypeId = fileLog.getFileTypeId();
 				FileType fileType = fileTypeService.getById(fileTypeId);
+				Long userId = fileLog.getUserId();
+				User user = userService.getById(userId);
+				ThrowUtils.throwIf(user == null, ErrorCode.NOT_FOUND_ERROR, "用户不存在");
 				String fileName = user.getUserName() + "-" + fileType.getTypeName();
 				fileName += fileLog.getFileName().substring(fileLog.getFileName().lastIndexOf("."));
 				String filePath = fileLog.getFilePath();
 				// 从 MinIO 获取文件流
-				try (InputStream fileInputStream = MinioUtils.getFileStream(filePath)) {
-					if (fileInputStream == null) {
-						continue;
-					}
+				try (InputStream fileInputStream = MinioUtils.getFileStream(filePath); BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream)) {
 					// 创建 ZIP 条目并写入文件内容
 					zipOutputStream.putNextEntry(new ZipEntry(fileName));
-					byte[] buffer = new byte[4096];
 					int length;
-					while ((length = fileInputStream.read(buffer)) > 0) {
+					while ((length = bufferedInputStream.read(buffer)) > 0) {
 						zipOutputStream.write(buffer, 0, length);
 					}
 					zipOutputStream.closeEntry();
@@ -157,7 +144,7 @@ public class FileLogController {
 				}
 			}
 			zipOutputStream.finish();
-			outputStream.flush();
+			zipOutputStream.flush();
 		} catch (IOException e) {
 			log.error("压缩文件输出失败", e);
 			throw new BusinessException(ErrorCode.OPERATION_ERROR, "文件下载失败");
@@ -165,7 +152,62 @@ public class FileLogController {
 	}
 	
 	/**
-	 * 文件下载（将用户所有上传文件打包为 ZIP，通过 MinIO 获取）
+	 * 文件下载(将指定用户所有上传文件打包为 ZIP)
+	 *
+	 * @param downloadFileRequest DownloadFileRequest
+	 * @param response            HttpServletResponse
+	 */
+	@PostMapping("/download/user")
+	public void downloadFileByUserId(@RequestBody DownloadFileRequest downloadFileRequest, HttpServletResponse response) {
+		// 1. 参数校验
+		if (downloadFileRequest == null || downloadFileRequest.getUserId() == null || downloadFileRequest.getUserId() <= 0) {
+			throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数错误");
+		}
+		Long userId = downloadFileRequest.getUserId();
+		User user = userService.getById(userId);
+		ThrowUtils.throwIf(user == null, ErrorCode.NOT_FOUND_ERROR, "用户不存在");
+		// 3. 获取用户的文件上传记录
+		List<FileLog> fileLogList = fileLogService.list(Wrappers.lambdaQuery(FileLog.class)
+				.eq(FileLog::getUserId, userId));
+		ThrowUtils.throwIf(fileLogList == null || fileLogList.isEmpty(), ErrorCode.NOT_FOUND_ERROR);
+		// 4. 设置响应头（ZIP 文件下载）
+		response.setContentType("application/zip");
+		String zipFileName = URLEncoder.encode(user.getUserName() + ".zip", StandardCharsets.UTF_8).replaceAll("\\+", "%20");
+		response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + zipFileName);
+		response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
+		// 5. 创建 Zip 输出流并写入文件
+		try (ServletOutputStream outputStream = response.getOutputStream(); BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream); ZipOutputStream zipOutputStream = new ZipOutputStream(bufferedOutputStream)) {
+			byte[] buffer = new byte[8192];
+			for (FileLog fileLog : fileLogList) {
+				Long fileTypeId = fileLog.getFileTypeId();
+				FileType fileType = fileTypeService.getById(fileTypeId);
+				String fileName = user.getUserName() + "-" + fileType.getTypeName();
+				fileName += fileLog.getFileName().substring(fileLog.getFileName().lastIndexOf("."));
+				String filePath = fileLog.getFilePath();
+				// 从 MinIO 获取文件流
+				try (InputStream fileInputStream = MinioUtils.getFileStream(filePath); BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream)) {
+					// 创建 ZIP 条目并写入文件内容
+					zipOutputStream.putNextEntry(new ZipEntry(fileName));
+					int length;
+					while ((length = bufferedInputStream.read(buffer)) > 0) {
+						zipOutputStream.write(buffer, 0, length);
+					}
+					zipOutputStream.closeEntry();
+				} catch (IOException e) {
+					// 单个文件下载失败，不中断整体流程
+					log.warn("下载文件失败: {}", filePath, e);
+				}
+			}
+			zipOutputStream.finish();
+			zipOutputStream.flush();
+		} catch (IOException e) {
+			log.error("压缩文件输出失败", e);
+			throw new BusinessException(ErrorCode.OPERATION_ERROR, "文件下载失败");
+		}
+	}
+	
+	/**
+	 * 文件下载（批量将用户所有上传文件打包为 ZIP）
 	 *
 	 * @param downloadFileRequest DownloadFileRequest
 	 * @param response            HttpServletResponse
@@ -178,12 +220,7 @@ public class FileLogController {
 		}
 		// 设置总 ZIP 响应头
 		response.setContentType("application/zip");
-		String zipFileName = "全部用户文件.zip";
-		try {
-			zipFileName = URLEncoder.encode(zipFileName, StandardCharsets.UTF_8).replaceAll("\\+", "%20");
-		} catch (Exception e) {
-			log.warn("ZIP 文件名编码失败", e);
-		}
+		String zipFileName = URLEncoder.encode("用户文件.zip", StandardCharsets.UTF_8).replaceAll("\\+", "%20");
 		response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + zipFileName);
 		try (OutputStream outputStream = response.getOutputStream();
 		     ZipOutputStream mainZipOutput = new ZipOutputStream(outputStream)) {
