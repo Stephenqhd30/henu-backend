@@ -104,6 +104,11 @@ public class FileLogController {
 		
 	}
 	
+	/**
+	 * 文件下载
+	 *
+	 * @param response HttpServletResponse
+	 */
 	@GetMapping("/download")
 	public void downloadFile(HttpServletResponse response) {
 		// 获取所有文件记录
@@ -111,7 +116,6 @@ public class FileLogController {
 		ThrowUtils.throwIf(fileLogList == null || fileLogList.isEmpty(), ErrorCode.NOT_FOUND_ERROR);
 		Map<Long, List<FileLog>> userFileMap = fileLogList.stream()
 				.collect(Collectors.groupingBy(FileLog::getUserId));
-		
 		// 设置主 ZIP 响应头
 		response.setContentType("application/zip");
 		String zipFileName = URLEncoder.encode("附件信息.zip", StandardCharsets.UTF_8).replaceAll("\\+", "%20");
