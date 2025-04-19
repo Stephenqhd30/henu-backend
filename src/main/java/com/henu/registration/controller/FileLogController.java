@@ -107,7 +107,7 @@ public class FileLogController {
 	/**
 	 * 文件下载（将用户所有上传文件打包为 ZIP，通过 MinIO 获取）
 	 *
-	 * @param downloadFileRequest 请求体，包含 userId
+	 * @param downloadFileRequest DownloadFileRequest
 	 * @param response            HttpServletResponse
 	 */
 	@PostMapping("/download")
@@ -167,7 +167,7 @@ public class FileLogController {
 	/**
 	 * 文件下载（将用户所有上传文件打包为 ZIP，通过 MinIO 获取）
 	 *
-	 * @param downloadFileRequest 请求体，包含 userId
+	 * @param downloadFileRequest DownloadFileRequest
 	 * @param response            HttpServletResponse
 	 */
 	@PostMapping("/download/batch")

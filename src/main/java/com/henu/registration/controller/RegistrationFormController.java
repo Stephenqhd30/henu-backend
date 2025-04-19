@@ -239,8 +239,12 @@ public class RegistrationFormController {
 			// 数据库
 			if (!cacheHit) {
 				QueryWrapper<SchoolSchoolType> queryWrapper = new QueryWrapper<>();
-				for (String schoolTypeName : schoolTypes) {
-					queryWrapper.like("school_types", "\"" + schoolTypeName + "\"");
+				if (CollUtil.isNotEmpty(schoolTypes)) {
+					queryWrapper.and(wrapper -> {
+						for (String schoolTypeName : schoolTypes) {
+							wrapper.or().like("school_types", "\"" + schoolTypeName + "\"");
+						}
+					});
 				}
 				schoolIdList = schoolSchoolTypeService.list(queryWrapper).stream()
 						.map(SchoolSchoolType::getSchoolId)

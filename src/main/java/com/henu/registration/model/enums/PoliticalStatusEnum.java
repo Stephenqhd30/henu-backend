@@ -16,9 +16,7 @@ import java.util.Objects;
 public enum PoliticalStatusEnum {
 	
 	COMMUNIST_PARTY_MEMBER("党员", "communist_party_member"),
-	PROBATIONARY_PARTY_MEMBER("预备党员", "probationary_party_member"),
-	LEAGUE_MEMBER("团员", "league_member"),
-	PUBLIC_PEOPLE("群众", "public_people");
+	PROBATIONARY_PARTY_MEMBER("预备党员", "probationary_party_member");
 	
 	private final String text;
 	
