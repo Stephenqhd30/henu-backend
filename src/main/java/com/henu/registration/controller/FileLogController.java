@@ -292,7 +292,7 @@ public class FileLogController {
 		if (deleteRequest == null || deleteRequest.getId() <= 0) {
 			throw new BusinessException(ErrorCode.PARAMS_ERROR);
 		}
-		User user = userService.getLoginUser(request);
+		User user = userService.getLoginUserPermitNull(request);
 		long id = deleteRequest.getId();
 		// 判断是否存在
 		FileLog oldFileLog = fileLogService.getById(id);

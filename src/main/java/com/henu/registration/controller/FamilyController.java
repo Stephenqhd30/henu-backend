@@ -86,7 +86,7 @@ public class FamilyController {
 		if (deleteRequest == null || deleteRequest.getId() <= 0) {
 			throw new BusinessException(ErrorCode.PARAMS_ERROR);
 		}
-		User user = userService.getLoginUser(request);
+		User user = userService.getLoginUserPermitNull(request);
 		long id = deleteRequest.getId();
 		// 判断是否存在
 		Family oldFamily = familyService.getById(id);

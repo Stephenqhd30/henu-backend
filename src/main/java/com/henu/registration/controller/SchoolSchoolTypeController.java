@@ -98,7 +98,6 @@ public class SchoolSchoolTypeController {
 		if (deleteRequest == null || deleteRequest.getId() <= 0) {
 			throw new BusinessException(ErrorCode.PARAMS_ERROR);
 		}
-		Admin admin = adminService.getLoginAdmin(request);
 		long id = deleteRequest.getId();
 		// 判断是否存在
 		SchoolSchoolType oldSchoolSchoolType = schoolSchoolTypeService.getById(id);
