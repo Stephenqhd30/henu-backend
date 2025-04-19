@@ -109,15 +109,15 @@ public class FileLogController {
 	 */
 	@GetMapping("/download")
 	public void downloadFile(HttpServletResponse response) {
-		// 3. 获取用户的文件上传记录
+		// 获取用户的文件上传记录
 		List<FileLog> fileLogList = fileLogService.list();
 		ThrowUtils.throwIf(fileLogList == null || fileLogList.isEmpty(), ErrorCode.NOT_FOUND_ERROR);
-		// 4. 设置响应头（ZIP 文件下载）
+		// 设置响应头（ZIP 文件下载）
 		response.setContentType("application/zip");
 		String zipFileName = URLEncoder.encode("附件信息" + ".zip", StandardCharsets.UTF_8).replaceAll("\\+", "%20");
 		response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + zipFileName);
 		response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
-		// 5. 创建 Zip 输出流并写入文件
+		// 创建 Zip 输出流并写入文件
 		try (ServletOutputStream outputStream = response.getOutputStream(); BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream); ZipOutputStream zipOutputStream = new ZipOutputStream(bufferedOutputStream)) {
 			byte[] buffer = new byte[8192];
 			for (FileLog fileLog : fileLogList) {
@@ -159,23 +159,23 @@ public class FileLogController {
 	 */
 	@PostMapping("/download/user")
 	public void downloadFileByUserId(@RequestBody DownloadFileRequest downloadFileRequest, HttpServletResponse response) {
-		// 1. 参数校验
+		// 参数校验
 		if (downloadFileRequest == null || downloadFileRequest.getUserId() == null || downloadFileRequest.getUserId() <= 0) {
 			throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数错误");
 		}
 		Long userId = downloadFileRequest.getUserId();
 		User user = userService.getById(userId);
 		ThrowUtils.throwIf(user == null, ErrorCode.NOT_FOUND_ERROR, "用户不存在");
-		// 3. 获取用户的文件上传记录
+		// 获取用户的文件上传记录
 		List<FileLog> fileLogList = fileLogService.list(Wrappers.lambdaQuery(FileLog.class)
 				.eq(FileLog::getUserId, userId));
 		ThrowUtils.throwIf(fileLogList == null || fileLogList.isEmpty(), ErrorCode.NOT_FOUND_ERROR);
-		// 4. 设置响应头（ZIP 文件下载）
+		// 设置响应头（ZIP 文件下载）
 		response.setContentType("application/zip");
 		String zipFileName = URLEncoder.encode(user.getUserName() + ".zip", StandardCharsets.UTF_8).replaceAll("\\+", "%20");
 		response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + zipFileName);
 		response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
-		// 5. 创建 Zip 输出流并写入文件
+		// 创建 Zip 输出流并写入文件
 		try (ServletOutputStream outputStream = response.getOutputStream(); BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream); ZipOutputStream zipOutputStream = new ZipOutputStream(bufferedOutputStream)) {
 			byte[] buffer = new byte[8192];
 			for (FileLog fileLog : fileLogList) {
