@@ -15,8 +15,7 @@ import java.util.Objects;
 @AllArgsConstructor
 public enum PoliticalStatusEnum {
 	
-	COMMUNIST_PARTY_MEMBER("党员", "communist_party_member"),
-	PROBATIONARY_PARTY_MEMBER("预备党员", "probationary_party_member");
+	COMMUNIST_PARTY_MEMBER("党员(预备党员)", "communist_party_member");
 	
 	private final String text;
 	
