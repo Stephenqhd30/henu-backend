@@ -205,7 +205,7 @@ public class SchoolController {
 			log.error("更新缓存失败, cacheKey: {}", cacheKey, e);
 		}
 		// 获取封装类
-		return ResultUtils.success(schoolService.getSchoolVOPage(schoolPage, request));
+		return ResultUtils.success(schoolVOPage);
 	}
 	
 	/**

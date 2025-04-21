@@ -16,8 +16,8 @@ import java.util.Objects;
 @AllArgsConstructor
 public enum MarryStatueEnum {
 	
-	NO("否", 0),
-	YES("是", 1);
+	NO("未婚", 0),
+	YES("已婚", 1);
 	private final String text;
 	
 	private final Integer value;
