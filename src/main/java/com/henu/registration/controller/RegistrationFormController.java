@@ -209,8 +209,6 @@ public class RegistrationFormController {
 	                                                                           HttpServletRequest request) {
 		long current = registrationFormQueryRequest.getCurrent();
 		long size = registrationFormQueryRequest.getPageSize();
-		// 限制爬虫
-		ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
 		List<String> schoolTypes = registrationFormQueryRequest.getSchoolTypes();
 		List<Long> schoolIdList = null;
 		// 获取符合条件的学校 ID 列表
