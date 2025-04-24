@@ -441,7 +441,11 @@ public class ExcelServiceImpl implements ExcelService {
 	@Override
 	public void exportRegistrationForm(HttpServletResponse response) throws IOException {
 		// 使用 CompletableFuture 异步处理
-		List<CompletableFuture<List<RegistrationFormExcelVO>>> futures = registrationFormService.list().stream().map(registrationForm -> CompletableFuture.supplyAsync(() -> {
+		List<CompletableFuture<List<RegistrationFormExcelVO>>> futures = registrationFormService
+				.list()
+				.stream()
+				.filter(registrationForm -> !Objects.equals(registrationForm.getRegistrationStatus(), RegistrationStatueEnum.NO.getValue()))
+				.map(registrationForm -> CompletableFuture.supplyAsync(() -> {
 			try {
 				// 查找用户及工作岗位
 				Job job = jobService.getById(registrationForm.getJobId());
@@ -450,31 +454,20 @@ public class ExcelServiceImpl implements ExcelService {
 				// 用于保存该用户的所有 Excel 行数据
 				List<RegistrationFormExcelVO> registrationFormExcelVOList = new ArrayList<>();
 				// 如果没有教育经历，生成一行数据
-				if (educationList.isEmpty()) {
-					RegistrationFormExcelVO registrationFormExcelVO = new RegistrationFormExcelVO();
-					BeanUtils.copyProperties(registrationForm, registrationFormExcelVO);
-					registrationFormExcelVO.setUserGender(Objects.requireNonNull(UserGenderEnum.getEnumByValue(registrationForm.getUserGender())).getText());
-					registrationFormExcelVO.setMarryStatus(Objects.requireNonNull(MarryStatueEnum.getEnumByValue(registrationForm.getMarryStatus())).getText());
-					registrationFormExcelVO.setUserIdCard(userService.getDecryptIdCard(registrationForm.getUserIdCard()));
-					registrationFormExcelVO.setSubmitter(registrationForm.getUserName());
-					registrationFormExcelVO.setJobName(job.getJobName());
-					registrationFormExcelVO.setRegistrationStatus(Objects.requireNonNull(RegistrationStatueEnum.getEnumByValue(registrationForm.getRegistrationStatus())).getText());
-					registrationFormExcelVO.setPoliticalStatus(Objects.requireNonNull(PoliticalStatusEnum.getEnumByValue(registrationForm.getPoliticalStatus())).getText());
-					registrationFormExcelVOList.add(registrationFormExcelVO);
-				} else {
-					RegistrationFormExcelVO registrationFormExcelVO = new RegistrationFormExcelVO();
-					BeanUtils.copyProperties(registrationForm, registrationFormExcelVO);
+				RegistrationFormExcelVO registrationFormExcelVO = new RegistrationFormExcelVO();
+				BeanUtils.copyProperties(registrationForm, registrationFormExcelVO);
+				registrationFormExcelVO.setId(String.valueOf(registrationForm.getId()));
+				registrationFormExcelVO.setUserGender(Objects.requireNonNull(UserGenderEnum.getEnumByValue(registrationForm.getUserGender())).getText());
+				registrationFormExcelVO.setMarryStatus(Objects.requireNonNull(MarryStatueEnum.getEnumByValue(registrationForm.getMarryStatus())).getText());
+				registrationFormExcelVO.setUserIdCard(userService.getDecryptIdCard(registrationForm.getUserIdCard()));
+				registrationFormExcelVO.setSubmitter(registrationForm.getUserName());
+				registrationFormExcelVO.setJobName(job.getJobName());
+				registrationFormExcelVO.setRegistrationStatus(Objects.requireNonNull(RegistrationStatueEnum.getEnumByValue(registrationForm.getRegistrationStatus())).getText());
+				registrationFormExcelVO.setPoliticalStatus(Objects.requireNonNull(PoliticalStatusEnum.getEnumByValue(registrationForm.getPoliticalStatus())).getText());
+				if (!educationList.isEmpty()) {
 					// 如果有教育经历，为每条教育经历生成一行数据
 					for (Education education : educationList) {
 						School school = schoolService.getById(education.getSchoolId());
-						registrationFormExcelVO.setUserGender(Objects.requireNonNull(UserGenderEnum.getEnumByValue(registrationForm.getUserGender())).getText());
-						registrationFormExcelVO.setMarryStatus(Objects.requireNonNull(MarryStatueEnum.getEnumByValue(registrationForm.getMarryStatus())).getText());
-						registrationFormExcelVO.setUserIdCard(userService.getDecryptIdCard(registrationForm.getUserIdCard()));
-						registrationFormExcelVO.setSubmitter(registrationForm.getUserName());
-						registrationFormExcelVO.setJobName(job.getJobName());
-						registrationFormExcelVO.setRegistrationStatus(Objects.requireNonNull(RegistrationStatueEnum.getEnumByValue(registrationForm.getRegistrationStatus())).getText());
-						registrationFormExcelVO.setPoliticalStatus(Objects.requireNonNull(PoliticalStatusEnum.getEnumByValue(registrationForm.getPoliticalStatus())).getText());
-						// 填充教育经历字段
 						// 本科
 						if (EducationalStageEnum.getEnumByValue(education.getEducationalStage()) == EducationalStageEnum.UNDERGRADUATE_COURSE) {
 							registrationFormExcelVO.setUndergraduateEducationalStage(Objects.requireNonNull(EducationalStageEnum.getEnumByValue(education.getEducationalStage())).getText());
@@ -503,8 +496,8 @@ public class ExcelServiceImpl implements ExcelService {
 							registrationFormExcelVO.setDoctorCertifierPhone(education.getCertifierPhone());
 						}
 					}
-					registrationFormExcelVOList.add(registrationFormExcelVO);
 				}
+				registrationFormExcelVOList.add(registrationFormExcelVO);
 				// 返回该用户的所有行数据
 				return registrationFormExcelVOList;
 			} catch (Exception e) {
@@ -536,35 +529,25 @@ public class ExcelServiceImpl implements ExcelService {
 		List<CompletableFuture<List<RegistrationFormExcelVO>>> futures = registrationFormService
 				.list(Wrappers.lambdaQuery(RegistrationForm.class).in(RegistrationForm::getUserId, userIds))
 				.stream()
+				.filter(registrationForm -> !Objects.equals(registrationForm.getRegistrationStatus(), RegistrationStatueEnum.NO.getValue()))
 				.map(registrationForm -> CompletableFuture.supplyAsync(() -> {
 					try {
 						Job job = jobService.getById(registrationForm.getJobId());
 						List<Education> educationList = educationService.list(Wrappers.lambdaQuery(Education.class).eq(Education::getUserId, registrationForm.getUserId()));
 						List<RegistrationFormExcelVO> registrationFormExcelVOList = new ArrayList<>();
-						if (educationList.isEmpty()) {
-							RegistrationFormExcelVO registrationFormExcelVO = new RegistrationFormExcelVO();
-							BeanUtils.copyProperties(registrationForm, registrationFormExcelVO);
-							registrationFormExcelVO.setUserGender(Objects.requireNonNull(UserGenderEnum.getEnumByValue(registrationForm.getUserGender())).getText());
-							registrationFormExcelVO.setMarryStatus(Objects.requireNonNull(MarryStatueEnum.getEnumByValue(registrationForm.getMarryStatus())).getText());
-							registrationFormExcelVO.setUserIdCard(userService.getDecryptIdCard(registrationForm.getUserIdCard()));
-							registrationFormExcelVO.setSubmitter(registrationForm.getUserName());
-							registrationFormExcelVO.setJobName(job.getJobName());
-							registrationFormExcelVO.setRegistrationStatus(Objects.requireNonNull(RegistrationStatueEnum.getEnumByValue(registrationForm.getRegistrationStatus())).getText());
-							registrationFormExcelVO.setPoliticalStatus(Objects.requireNonNull(PoliticalStatusEnum.getEnumByValue(registrationForm.getPoliticalStatus())).getText());
-							registrationFormExcelVOList.add(registrationFormExcelVO);
-						} else {
-							RegistrationFormExcelVO registrationFormExcelVO = new RegistrationFormExcelVO();
-							BeanUtils.copyProperties(registrationForm, registrationFormExcelVO);
+						RegistrationFormExcelVO registrationFormExcelVO = new RegistrationFormExcelVO();
+						BeanUtils.copyProperties(registrationForm, registrationFormExcelVO);
+						registrationFormExcelVO.setId(String.valueOf(registrationForm.getId()));
+						registrationFormExcelVO.setUserGender(Objects.requireNonNull(UserGenderEnum.getEnumByValue(registrationForm.getUserGender())).getText());
+						registrationFormExcelVO.setMarryStatus(Objects.requireNonNull(MarryStatueEnum.getEnumByValue(registrationForm.getMarryStatus())).getText());
+						registrationFormExcelVO.setUserIdCard(userService.getDecryptIdCard(registrationForm.getUserIdCard()));
+						registrationFormExcelVO.setSubmitter(registrationForm.getUserName());
+						registrationFormExcelVO.setJobName(job.getJobName());
+						registrationFormExcelVO.setRegistrationStatus(Objects.requireNonNull(RegistrationStatueEnum.getEnumByValue(registrationForm.getRegistrationStatus())).getText());
+						registrationFormExcelVO.setPoliticalStatus(Objects.requireNonNull(PoliticalStatusEnum.getEnumByValue(registrationForm.getPoliticalStatus())).getText());
+						if (!educationList.isEmpty()) {
 							for (Education education : educationList) {
 								School school = schoolService.getById(education.getSchoolId());
-								registrationFormExcelVO.setUserGender(Objects.requireNonNull(UserGenderEnum.getEnumByValue(registrationForm.getUserGender())).getText());
-								registrationFormExcelVO.setMarryStatus(Objects.requireNonNull(MarryStatueEnum.getEnumByValue(registrationForm.getMarryStatus())).getText());
-								registrationFormExcelVO.setUserIdCard(userService.getDecryptIdCard(registrationForm.getUserIdCard()));
-								registrationFormExcelVO.setSubmitter(registrationForm.getUserName());
-								registrationFormExcelVO.setJobName(job.getJobName());
-								registrationFormExcelVO.setRegistrationStatus(Objects.requireNonNull(RegistrationStatueEnum.getEnumByValue(registrationForm.getRegistrationStatus())).getText());
-								registrationFormExcelVO.setPoliticalStatus(Objects.requireNonNull(PoliticalStatusEnum.getEnumByValue(registrationForm.getPoliticalStatus())).getText());
-								// 填充教育经历字段
 								// 本科
 								if (EducationalStageEnum.getEnumByValue(education.getEducationalStage()) == EducationalStageEnum.UNDERGRADUATE_COURSE) {
 									registrationFormExcelVO.setUndergraduateEducationalStage(Objects.requireNonNull(EducationalStageEnum.getEnumByValue(education.getEducationalStage())).getText());
@@ -593,9 +576,8 @@ public class ExcelServiceImpl implements ExcelService {
 									registrationFormExcelVO.setDoctorCertifierPhone(education.getCertifierPhone());
 								}
 							}
-							registrationFormExcelVOList.add(registrationFormExcelVO);
 						}
-						
+						registrationFormExcelVOList.add(registrationFormExcelVO);
 						return registrationFormExcelVOList;
 					} catch (Exception e) {
 						log.error("导出报名登记表信息失败: {}", e.getMessage());

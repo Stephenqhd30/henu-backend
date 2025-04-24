@@ -19,6 +19,13 @@ public class RegistrationFormExcelVO implements Serializable {
 	private static final long serialVersionUID = -4562133149585501968L;
 	
 	/**
+	 * 报名编号
+	 */
+	@ColumnWidth(40)
+	@ExcelProperty("报名编号")
+	private String id;
+	
+	/**
 	 * 岗位名
 	 */
 	@ColumnWidth(20)
@@ -45,6 +52,27 @@ public class RegistrationFormExcelVO implements Serializable {
 	@ColumnWidth(20)
 	@ExcelProperty("性别")
 	private String userGender;
+	
+	/**
+	 * 邮箱地址
+	 */
+	@ColumnWidth(40)
+	@ExcelProperty("邮箱地址")
+	private String userEmail;
+	
+	/**
+	 * 联系电话
+	 */
+	@ColumnWidth(40)
+	@ExcelProperty("联系电话")
+	private String userPhone;
+	
+	/**
+	 * 紧急联系电话
+	 */
+	@ColumnWidth(40)
+	@ExcelProperty("紧急联系电话")
+	private String emergencyPhone;
 	
 	/**
 	 * 民族
@@ -168,7 +196,7 @@ public class RegistrationFormExcelVO implements Serializable {
 	/**
 	 * 本科证明人联系电话
 	 */
-	@ColumnWidth(20)
+	@ColumnWidth(40)
 	@ExcelProperty("本科证明人联系电话")
 	private String undergraduateCertifierPhone;
 	
@@ -210,7 +238,7 @@ public class RegistrationFormExcelVO implements Serializable {
 	/**
 	 * 硕士证明人联系电话
 	 */
-	@ColumnWidth(20)
+	@ColumnWidth(40)
 	@ExcelProperty("硕士证明人联系电话")
 	private String postgraduateCertifierPhone;
 	
@@ -252,7 +280,7 @@ public class RegistrationFormExcelVO implements Serializable {
 	/**
 	 * 博士证明人联系电话
 	 */
-	@ColumnWidth(20)
+	@ColumnWidth(40)
 	@ExcelProperty("博士证明人联系电话")
 	private String doctorCertifierPhone;
 }

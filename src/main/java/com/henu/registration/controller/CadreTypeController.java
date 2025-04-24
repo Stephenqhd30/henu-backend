@@ -3,6 +3,7 @@ package com.henu.registration.controller;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.henu.registration.common.*;
 import com.henu.registration.common.exception.BusinessException;
@@ -59,10 +60,15 @@ public class CadreTypeController {
 		// 数据校验
 		cadreTypeService.validCadreType(cadreType, true);
 		// todo 填充默认值
+		CadreType oldCadreType = cadreTypeService.getById(Wrappers.lambdaQuery(CadreType.class)
+				.eq(CadreType::getType, cadreType.getType()));
+		if (oldCadreType != null) {
+			cadreType.setId(oldCadreType.getId());
+		}
 		Admin loginAdmin = adminService.getLoginAdmin(request);
 		cadreType.setAdminId(loginAdmin.getId());
 		// 写入数据库
-		boolean result = cadreTypeService.save(cadreType);
+		boolean result = cadreTypeService.saveOrUpdate(cadreType);
 		ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
 		// 返回新写入的数据 id
 		long newCadreTypeId = cadreType.getId();
@@ -160,7 +166,7 @@ public class CadreTypeController {
 	public BaseResponse<Page<CadreTypeVO>> listCadreTypeVOByPage(@RequestBody CadreTypeQueryRequest cadreTypeQueryRequest,
 	                                                             HttpServletRequest request) {
 		long current = cadreTypeQueryRequest.getCurrent();
-		long size = 100L;
+		long size = cadreTypeQueryRequest.getPageSize();
 		// 使用多级缓存优化查询
 		// 构建缓存 key（基于查询条件的 MD5 哈希值）
 		String queryCondition = JSONUtil.toJsonStr(cadreTypeQueryRequest);

@@ -44,8 +44,6 @@ public class CadreTypeServiceImpl extends ServiceImpl<CadreTypeMapper, CadreType
 		ThrowUtils.throwIf(cadreType == null, ErrorCode.PARAMS_ERROR);
 		// todo 从对象中取值
 		String type = cadreType.getType();
-		
-		
 		// 创建数据时，参数不能为空
 		if (add) {
 			// todo 补充校验规则
