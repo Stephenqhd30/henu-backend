@@ -13,7 +13,9 @@ import com.henu.registration.constants.CommonConstant;
 import com.henu.registration.mapper.RegistrationFormMapper;
 import com.henu.registration.model.dto.registrationForm.RegistrationFormQueryRequest;
 import com.henu.registration.model.entity.*;
+import com.henu.registration.model.enums.MarryStatueEnum;
 import com.henu.registration.model.enums.PoliticalStatusEnum;
+import com.henu.registration.model.enums.UserGenderEnum;
 import com.henu.registration.model.vo.education.EducationVO;
 import com.henu.registration.model.vo.family.FamilyVO;
 import com.henu.registration.model.vo.fileLog.FileLogVO;
@@ -96,16 +98,17 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 			ThrowUtils.throwIf(ObjectUtils.isEmpty(userGender), ErrorCode.PARAMS_ERROR, "性别不能为空");
 			ThrowUtils.throwIf(ObjectUtils.isEmpty(marryStatus), ErrorCode.PARAMS_ERROR, "婚姻状况不能为空");
 			ThrowUtils.throwIf(ObjectUtils.isEmpty(jobId), ErrorCode.PARAMS_ERROR, "岗位信息不能为空");
-			RegistrationForm isRegistered = this.getOne(Wrappers.lambdaQuery(RegistrationForm.class)
-					.eq(RegistrationForm::getUserPhone, userPhone)
-					.eq(RegistrationForm::getUserName, userName)
-					.eq(RegistrationForm::getJobId, jobId));
-			ThrowUtils.throwIf(isRegistered != null, ErrorCode.PARAMS_ERROR, "该用户已报名");
 		}
 		// 修改数据时，有参数则校验
 		// todo 补充校验规则
 		if (StringUtils.isNotBlank(userName)) {
 			ThrowUtils.throwIf(userName.length() > 20, ErrorCode.PARAMS_ERROR, "姓名输入有误");
+		}
+		if (ObjectUtils.isNotEmpty(userGender)) {
+			ThrowUtils.throwIf(UserGenderEnum.getEnumByValue(userGender) == null, ErrorCode.PARAMS_ERROR, "性别输入有误");
+		}
+		if (ObjectUtils.isNotEmpty(marryStatus)) {
+			ThrowUtils.throwIf(MarryStatueEnum.getEnumByValue(marryStatus) == null, ErrorCode.PARAMS_ERROR, "婚姻状况输入有误");
 		}
 		if (StringUtils.isNotBlank(userIdCard)) {
 			ThrowUtils.throwIf(!RegexUtils.checkIdCard(userIdCard), ErrorCode.PARAMS_ERROR, "身份证号输入有误");

@@ -11,7 +11,7 @@
  Target Server Version : 80036 (8.0.36)
  File Encoding         : 65001
 
- Date: 25/04/2025 18:23:57
+ Date: 25/04/2025 18:31:42
 */
 
 SET NAMES utf8mb4;
@@ -172,18 +172,15 @@ DROP TABLE IF EXISTS `message_notice`;
 CREATE TABLE `message_notice` (
   `id` bigint NOT NULL AUTO_INCREMENT COMMENT 'id',
   `registration_id` bigint NOT NULL COMMENT '报名登记表id',
-  `content` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '面试内容',
+  `content` longtext NOT NULL COMMENT '面试内容',
   `push_status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '推送状态(0-未推送,1-成功,2-失败,3-重试中)',
   `user_id` bigint NOT NULL COMMENT '通知用户id',
   `admin_id` bigint DEFAULT NULL COMMENT '管理员id',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   `is_delete` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否逻辑删除(0-否,1-是)',
-  PRIMARY KEY (`id`) USING BTREE,
-  KEY `message_notice_registration_form_id_fk` (`registration_id`) USING BTREE,
-  KEY `message_notice_push_status_index` (`push_status`) USING BTREE,
-  CONSTRAINT `message_notice_registration_form_id_fk` FOREIGN KEY (`registration_id`) REFERENCES `registration_form` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=1912102364374929411 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci ROW_FORMAT=DYNAMIC COMMENT='消息通知表';
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1915715116284899330 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='消息通知表';
 
 -- ----------------------------
 -- Table structure for message_push
@@ -191,22 +188,18 @@ CREATE TABLE `message_notice` (
 DROP TABLE IF EXISTS `message_push`;
 CREATE TABLE `message_push` (
   `id` bigint NOT NULL AUTO_INCREMENT COMMENT 'id',
-  `user_id` bigint DEFAULT NULL COMMENT '用户id',
+  `user_name` varchar(256) NOT NULL COMMENT '用户姓名',
+  `user_id` bigint NOT NULL COMMENT '用户id',
   `message_notice_id` bigint NOT NULL COMMENT '消息通知id',
-  `user_name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '通知用户名',
-  `push_type` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '推送方式(websocket/email/sms/other)',
+  `push_type` varchar(128) NOT NULL COMMENT '推送方式(websocket/email/sms/other)',
   `push_status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '推送状态(0-未推送,1-成功,2-失败,3-重试中)',
-  `push_message` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci COMMENT '推送消息内容',
+  `push_message` text COMMENT '推送消息内容',
   `retry_count` int NOT NULL DEFAULT '0' COMMENT '失败重试次数',
-  `error_message` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '失败原因',
+  `error_message` varchar(500) DEFAULT NULL COMMENT '失败原因',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE KEY `message_push_pk` (`user_id`,`message_notice_id`) USING BTREE,
-  KEY `fk_message_push_notice` (`message_notice_id`) USING BTREE,
-  CONSTRAINT `fk_message_push_notice` FOREIGN KEY (`message_notice_id`) REFERENCES `message_notice` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `fk_message_push_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE=InnoDB AUTO_INCREMENT=1912102364446232579 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci ROW_FORMAT=DYNAMIC COMMENT='消息推送表';
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1915715116356202498 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='消息推送表';
 
 -- ----------------------------
 -- Table structure for operation_log
@@ -223,7 +216,7 @@ CREATE TABLE `operation_log` (
   `user_agent` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '用户代理（浏览器信息）',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '操作时间',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=1915713283445280770 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci ROW_FORMAT=DYNAMIC COMMENT='操作日志表';
+) ENGINE=InnoDB AUTO_INCREMENT=1915715217120161795 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci ROW_FORMAT=DYNAMIC COMMENT='操作日志表';
 
 -- ----------------------------
 -- Table structure for registration_form
@@ -261,7 +254,7 @@ CREATE TABLE `registration_form` (
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   `is_delete` tinyint NOT NULL DEFAULT '0' COMMENT '是否逻辑删除(0-否,1-是)',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=1912094118650097666 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci ROW_FORMAT=DYNAMIC COMMENT='报名登记表';
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci ROW_FORMAT=DYNAMIC COMMENT='报名登记表';
 
 -- ----------------------------
 -- Table structure for review_log
@@ -270,17 +263,15 @@ DROP TABLE IF EXISTS `review_log`;
 CREATE TABLE `review_log` (
   `id` bigint NOT NULL AUTO_INCREMENT COMMENT 'id',
   `registration_id` bigint NOT NULL COMMENT '报名登记表id',
-  `reviewer` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '审核人',
+  `reviewer` varchar(128) NOT NULL COMMENT '审核人',
   `review_status` tinyint NOT NULL COMMENT '审核状态(0-待审核,1-审核通过,2-审核不通过)',
-  `review_comments` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci COMMENT '审核意见',
+  `review_comments` text COMMENT '审核意见',
   `review_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '审核时间',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   `is_delete` tinyint NOT NULL DEFAULT '0' COMMENT '是否逻辑删除(0-否,1-是)',
-  PRIMARY KEY (`id`) USING BTREE,
-  KEY `fk_review_log_registration` (`registration_id`) USING BTREE,
-  CONSTRAINT `fk_review_log_registration` FOREIGN KEY (`registration_id`) REFERENCES `registration_form` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE=InnoDB AUTO_INCREMENT=1915711487242977282 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci ROW_FORMAT=DYNAMIC COMMENT='审核记录表';
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1915714269891055618 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci ROW_FORMAT=DYNAMIC COMMENT='审核记录表';
 
 -- ----------------------------
 -- Table structure for school
