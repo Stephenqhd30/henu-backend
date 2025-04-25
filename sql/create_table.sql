@@ -266,9 +266,7 @@ create table review_log
     review_time     datetime default CURRENT_TIMESTAMP not null comment '审核时间',
     create_time     datetime default CURRENT_TIMESTAMP not null comment '创建时间',
     update_time     datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
-    is_delete tinyint default 0 not null comment '是否逻辑删除(0-否,1-是)',
-    constraint fk_review_log_registration
-        foreign key (registration_id) references registration_form (id)
+    is_delete tinyint default 0 not null comment '是否逻辑删除(0-否,1-是)'
 )
     comment '审核记录表' row_format = DYNAMIC;
 
@@ -289,20 +287,22 @@ create table message_notice
     comment '消息通知表';
 
 -- 消息推送表（存发送情况）
-CREATE TABLE message_push
+create table message_push
 (
-    id          BIGINT AUTO_INCREMENT COMMENT 'id' PRIMARY KEY,
-    user_id           BIGINT                               NOT NULL COMMENT '用户id',
-    message_notice_id BIGINT                               NOT NULL COMMENT '消息通知id',
-    push_type         VARCHAR(128)                         NOT NULL COMMENT '推送方式(websocket/email/sms/other)',
-    push_status tinyint(1) default 0 not null comment '推送状态(0-未推送,1-成功,2-失败,3-重试中)',
-    push_message      TEXT                                 NULL COMMENT '推送消息内容',
-    retry_count       INT        DEFAULT 0                 NOT NULL COMMENT '失败重试次数',
-    error_message     VARCHAR(500)                         NULL COMMENT '失败原因',
-    create_time       DATETIME   DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT '创建时间',
-    update_time       DATETIME   DEFAULT CURRENT_TIMESTAMP NOT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'
+    id                bigint auto_increment comment 'id'
+        primary key,
+    user_name         varchar(256)                         not null comment '用户姓名',
+    user_id           bigint                               not null comment '用户id',
+    message_notice_id bigint                               not null comment '消息通知id',
+    push_type         varchar(128)                         not null comment '推送方式(websocket/email/sms/other)',
+    push_status       tinyint(1) default 0                 not null comment '推送状态(0-未推送,1-成功,2-失败,3-重试中)',
+    push_message      text                                 null comment '推送消息内容',
+    retry_count       int        default 0                 not null comment '失败重试次数',
+    error_message     varchar(500)                         null comment '失败原因',
+    create_time       datetime   default CURRENT_TIMESTAMP not null comment '创建时间',
+    update_time       datetime   default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间'
 )
-    COMMENT '消息推送表';
+    comment '消息推送表';
 
 -- 系统消息表
 create table system_messages
