@@ -32,6 +32,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 报名登记接口
@@ -88,7 +89,11 @@ public class RegistrationFormController {
 				registrationForm.setId(oldRegistrationForm.getId());
 			}
 			// 对身份证号进行加密
-			registrationForm.setUserIdCard(userService.getEncryptIdCard(registrationForm.getUserIdCard()));
+			String encryptIdCard = userService.getEncryptIdCard(registrationForm.getUserIdCard());
+			RegistrationForm one = registrationFormService.getOne(Wrappers.lambdaQuery(RegistrationForm.class)
+					.eq(RegistrationForm::getUserIdCard, encryptIdCard));
+			ThrowUtils.throwIf(one != null, ErrorCode.OPERATION_ERROR, "该身份证号已存在");
+			registrationForm.setUserIdCard(encryptIdCard);
 			// 写入数据库
 			boolean result = registrationFormService.saveOrUpdate(registrationForm);
 			ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
@@ -323,7 +328,11 @@ public class RegistrationFormController {
 		// 对身份证号进行加密
 		String userIdCard = registrationForm.getUserIdCard();
 		if (StringUtils.isNotBlank(userIdCard)) {
-			registrationForm.setUserIdCard(userService.getEncryptIdCard(userIdCard));
+			String encryptIdCard = userService.getEncryptIdCard(userIdCard);
+			RegistrationForm one = registrationFormService.getOne(Wrappers.lambdaQuery(RegistrationForm.class)
+					.eq(RegistrationForm::getUserIdCard, encryptIdCard));
+			ThrowUtils.throwIf(one != null && !Objects.equals(one.getUserId(), loginUser.getId()), ErrorCode.OPERATION_ERROR, "该身份证号已存在");
+			registrationForm.setUserIdCard(encryptIdCard);
 		}
 		// 操作数据库
 		boolean result = registrationFormService.updateById(registrationForm);
