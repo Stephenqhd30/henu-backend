@@ -92,7 +92,7 @@ public class RegistrationFormController {
 			String encryptIdCard = userService.getEncryptIdCard(registrationForm.getUserIdCard());
 			RegistrationForm one = registrationFormService.getOne(Wrappers.lambdaQuery(RegistrationForm.class)
 					.eq(RegistrationForm::getUserIdCard, encryptIdCard));
-			ThrowUtils.throwIf(one != null, ErrorCode.OPERATION_ERROR, "该身份证号已存在");
+			ThrowUtils.throwIf(one != null && !Objects.equals(one.getId(), registrationForm.getUserId()), ErrorCode.OPERATION_ERROR, "该身份证号已存在");
 			registrationForm.setUserIdCard(encryptIdCard);
 			// 写入数据库
 			boolean result = registrationFormService.saveOrUpdate(registrationForm);
