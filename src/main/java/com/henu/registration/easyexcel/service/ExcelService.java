@@ -51,6 +51,14 @@ public interface ExcelService {
 	void exportUser(HttpServletResponse response) throws IOException;
 	
 	/**
+	 * 导入干部类型信息
+	 *
+	 * @param file file
+	 * @return String
+	 */
+	String importCadreType(MultipartFile file, HttpServletRequest request);
+	
+	/**
 	 * 导出干部类型信息到 Excel
 	 *
 	 * @param response HttpServletResponse

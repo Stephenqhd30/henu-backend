@@ -12,6 +12,7 @@ import com.henu.registration.easyexcel.constants.ExcelConstant;
 import com.henu.registration.easyexcel.listener.*;
 import com.henu.registration.easyexcel.modal.admin.AdminExcelDTO;
 import com.henu.registration.easyexcel.modal.admin.AdminExcelVO;
+import com.henu.registration.easyexcel.modal.cadreType.CadreTypeExcelDTO;
 import com.henu.registration.easyexcel.modal.cadreType.CadreTypeExcelVO;
 import com.henu.registration.easyexcel.modal.deadline.DeadlineExcelVO;
 import com.henu.registration.easyexcel.modal.education.EducationExcelVO;
@@ -243,6 +244,38 @@ public class ExcelServiceImpl implements ExcelService {
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "用户信息导出失败");
 		}
 		
+	}
+	
+	/**
+	 * 导入干部类型信息
+	 *
+	 * @param file file
+	 * @return String
+	 */
+	@Override
+	public String importCadreType(MultipartFile file, HttpServletRequest request) {
+		// 获取当前登录的admin
+		Admin admin = adminService.getLoginAdmin(request);
+		try (InputStream inputStream = file.getInputStream()) {
+			// 使用 SchoolExcelListener 解析 Excel
+			CadreTypeExcelListener listener = new CadreTypeExcelListener();
+			ExcelResult<CadreTypeExcelDTO> excelResult = ExcelUtils.importStreamAndCloseWithListener(inputStream, CadreTypeExcelDTO.class, listener);
+			// 将 DTO 转换为实体对象
+			List<CadreType> cadreTypeList = excelResult.getList().stream()
+					.map(cadreTypeExcelDTO -> {
+						CadreType cadreType = new CadreType();
+						BeanUtils.copyProperties(cadreTypeExcelDTO, cadreType);
+						cadreType.setAdminId(admin.getId());
+						return cadreType;
+					})
+					.toList();
+			// 存入数据库
+			cadreTypeService.saveBatch(cadreTypeList);
+			return "干部类型信息导入成功，导入数量：" + cadreTypeList.size();
+		} catch (IOException e) {
+			log.error("导入干部类型信息异常", e);
+			throw new BusinessException(ErrorCode.EXCEL_ERROR, "导入干部类型信息异常");
+		}
 	}
 	
 	/**

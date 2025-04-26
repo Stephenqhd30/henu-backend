@@ -1,12 +1,10 @@
 package com.henu.registration.easyexcel.controller;
 
-import cn.dev33.satoken.annotation.SaCheckRole;
 import com.henu.registration.common.BaseResponse;
 import com.henu.registration.common.ErrorCode;
 import com.henu.registration.common.ResultUtils;
 import com.henu.registration.common.ThrowUtils;
 import com.henu.registration.common.exception.BusinessException;
-import com.henu.registration.constants.AdminConstant;
 import com.henu.registration.easyexcel.constants.ExcelConstant;
 import com.henu.registration.easyexcel.modal.registrationForm.ExportRegistrationFormRequest;
 import com.henu.registration.easyexcel.service.ExcelService;
@@ -83,6 +81,27 @@ public class ExcelController {
 	@GetMapping("/export/user")
 	public void exportUser(HttpServletResponse response) throws IOException {
 		excelService.exportUser(response);
+	}
+	
+	
+	/**
+	 * 从 Excel 中导入干部类型信息
+	 *
+	 * @param file file
+	 * @return BaseResponse<String>
+	 */
+	@PostMapping("/import/cadre/type")
+	public BaseResponse<String> importCadreTypeExcel(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
+		ThrowUtils.throwIf(file.isEmpty(), ErrorCode.EXCEL_ERROR, "文件为空");
+		try {
+			// 校验 Excel 文件格式
+			excelService.validExcel(file);
+			// 导入干部类型信息
+			String result = excelService.importCadreType(file, request);
+			return ResultUtils.success(result);
+		} catch (Exception e) {
+			throw new BusinessException(ErrorCode.EXCEL_ERROR, "导入失败：" + e.getMessage());
+		}
 	}
 	
 	/**
