@@ -93,6 +93,8 @@ public interface ExcelService {
 	 */
 	void exportFileLog(HttpServletResponse response) throws IOException;
 	
+	String importFileType(MultipartFile file, HttpServletRequest request);
+	
 	/**
 	 * 导出文件类型信息到 Excel
 	 *

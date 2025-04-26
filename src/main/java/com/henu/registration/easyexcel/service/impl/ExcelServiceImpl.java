@@ -18,6 +18,7 @@ import com.henu.registration.easyexcel.modal.deadline.DeadlineExcelVO;
 import com.henu.registration.easyexcel.modal.education.EducationExcelVO;
 import com.henu.registration.easyexcel.modal.family.FamilyExcelVO;
 import com.henu.registration.easyexcel.modal.fileLog.FileLogExcelVO;
+import com.henu.registration.easyexcel.modal.fileType.FileTypeExcelDTO;
 import com.henu.registration.easyexcel.modal.fileType.FileTypeExcelVO;
 import com.henu.registration.easyexcel.modal.job.JobExcelVO;
 import com.henu.registration.easyexcel.modal.messageNotice.MessageNoticeExcelDTO;
@@ -414,6 +415,40 @@ public class ExcelServiceImpl implements ExcelService {
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "文件上传日志信息导出失败");
 		}
 		
+	}
+	
+	/**
+	 * 导入文件类型信息
+	 *
+	 * @param file file
+	 * @return String
+	 */
+	@Override
+	public String importFileType(MultipartFile file, HttpServletRequest request) {
+		// 获取当前登录的admin
+		Admin admin = adminService.getLoginAdmin(request);
+		try (InputStream inputStream = file.getInputStream()) {
+			FileTypeExcelListener listener = new FileTypeExcelListener();
+			ExcelResult<FileTypeExcelDTO> excelResult =
+					ExcelUtils.importStreamAndCloseWithListener(inputStream, FileTypeExcelDTO.class, listener);
+			// 将 DTO 转换为实体对象
+			List<FileType> fileTypeList = excelResult.getList().stream()
+					.map(fileTypeExcelDTO -> {
+						FileType fileType = new FileType();
+						BeanUtils.copyProperties(fileTypeExcelDTO, fileType);
+						fileType.setAdminId(admin.getId());
+						// 将 MB 转换为字节
+						fileType.setMaxFileSize(10L * 1024 * 1024);
+						return fileType;
+					})
+					.toList();
+			// 批量保存到数据库
+			fileTypeService.saveBatch(fileTypeList);
+			return "文件类型信息导入成功，导入数量：" + fileTypeList.size();
+		} catch (IOException e) {
+			log.error("导入文件类型信息异常", e);
+			throw new BusinessException(ErrorCode.EXCEL_ERROR, "导入文件类型信息异常");
+		}
 	}
 	
 	/**
