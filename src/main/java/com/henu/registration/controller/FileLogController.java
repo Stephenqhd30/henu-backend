@@ -10,12 +10,10 @@ import com.henu.registration.model.dto.fileLog.FileLogQueryRequest;
 import com.henu.registration.model.dto.fileLog.UploadFileRequest;
 import com.henu.registration.model.entity.FileLog;
 import com.henu.registration.model.entity.FileType;
+import com.henu.registration.model.entity.RegistrationForm;
 import com.henu.registration.model.entity.User;
 import com.henu.registration.model.vo.fileLog.FileLogVO;
-import com.henu.registration.service.AdminService;
-import com.henu.registration.service.FileLogService;
-import com.henu.registration.service.FileTypeService;
-import com.henu.registration.service.UserService;
+import com.henu.registration.service.*;
 import com.henu.registration.utils.encrypt.MD5Utils;
 import com.henu.registration.utils.oss.MinioUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -57,6 +55,9 @@ public class FileLogController {
 	
 	@Resource
 	private AdminService adminService;
+	
+	@Resource
+	private RegistrationFormService registrationFormService;
 	
 	/**
 	 * 文件上传(使用Minio对象存储)
@@ -132,6 +133,11 @@ public class FileLogController {
 					log.warn("用户不存在：{}", userId);
 					continue;
 				}
+				RegistrationForm registrationForm = registrationFormService.getOne(Wrappers.lambdaQuery(RegistrationForm.class).eq(RegistrationForm::getUserId, userId));
+				if (registrationForm == null) {
+					log.warn("报名表不存在：{}", userId);
+					continue;
+				}
 				List<FileLog> userFiles = entry.getValue();
 				if (userFiles == null || userFiles.isEmpty()) {
 					continue;
@@ -161,7 +167,7 @@ public class FileLogController {
 					userZip.flush();
 				}
 				// 将用户 ZIP 写入主 ZIP
-				String userZipName = user.getUserName() + "_" + user.getId() + ".zip";
+				String userZipName = registrationFormService.generateRegistrationFormId(registrationForm.getId()) + "_" + user.getUserName() + ".zip";
 				mainZipOutput.putNextEntry(new ZipEntry(userZipName));
 				mainZipOutput.write(userZipByteArray.toByteArray());
 				mainZipOutput.closeEntry();
@@ -189,13 +195,16 @@ public class FileLogController {
 		Long userId = downloadFileRequest.getUserId();
 		User user = userService.getById(userId);
 		ThrowUtils.throwIf(user == null, ErrorCode.NOT_FOUND_ERROR, "用户不存在");
+		RegistrationForm registrationForm = registrationFormService.getOne(Wrappers.lambdaQuery(RegistrationForm.class).eq(RegistrationForm::getUserId, userId));
+		ThrowUtils.throwIf(registrationForm == null, ErrorCode.NOT_FOUND_ERROR, "报名表不存在");
 		// 获取用户的文件上传记录
 		List<FileLog> fileLogList = fileLogService.list(Wrappers.lambdaQuery(FileLog.class)
 				.eq(FileLog::getUserId, userId));
 		ThrowUtils.throwIf(fileLogList == null || fileLogList.isEmpty(), ErrorCode.NOT_FOUND_ERROR);
 		// 设置响应头（ZIP 文件下载）
 		response.setContentType("application/zip");
-		String zipFileName = URLEncoder.encode(user.getUserName() + ".zip", StandardCharsets.UTF_8).replaceAll("\\+", "%20");
+		String userZipName = registrationFormService.generateRegistrationFormId(registrationForm.getId()) + "_" + user.getUserName() + ".zip";
+		String zipFileName = URLEncoder.encode(userZipName, StandardCharsets.UTF_8).replaceAll("\\+", "%20");
 		response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + zipFileName);
 		response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
 		// 创建 Zip 输出流并写入文件
@@ -254,6 +263,11 @@ public class FileLogController {
 					log.warn("用户不存在：{}", userId);
 					continue;
 				}
+				RegistrationForm registrationForm = registrationFormService.getOne(Wrappers.lambdaQuery(RegistrationForm.class).eq(RegistrationForm::getUserId, userId));
+				if (registrationForm == null) {
+					log.warn("报名表不存在：{}", userId);
+					continue;
+				}
 				// 获取用户的文件上传记录
 				List<FileLog> fileLogs = fileLogService.list(Wrappers.lambdaQuery(FileLog.class)
 						.eq(FileLog::getUserId, userId));
@@ -290,7 +304,7 @@ public class FileLogController {
 					userZip.flush();
 				}
 				// 将该用户的 zip 文件作为主 ZIP 的一个条目
-				String userZipName = user.getUserName() + "_" + user.getId() + ".zip";
+				String userZipName = registrationFormService.generateRegistrationFormId(registrationForm.getId()) + "_" + user.getUserName() + ".zip";
 				mainZipOutput.putNextEntry(new ZipEntry(userZipName));
 				mainZipOutput.write(userZipByteArray.toByteArray());
 				mainZipOutput.closeEntry();

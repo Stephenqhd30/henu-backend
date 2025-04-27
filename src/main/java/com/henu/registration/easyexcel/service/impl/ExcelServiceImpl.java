@@ -524,7 +524,7 @@ public class ExcelServiceImpl implements ExcelService {
 				// 如果没有教育经历，生成一行数据
 				RegistrationFormExcelVO registrationFormExcelVO = new RegistrationFormExcelVO();
 				BeanUtils.copyProperties(registrationForm, registrationFormExcelVO);
-				registrationFormExcelVO.setId(String.valueOf(registrationForm.getId()));
+				registrationFormExcelVO.setId(registrationFormService.generateRegistrationFormId(registrationForm.getId()));
 				registrationFormExcelVO.setUserGender(Objects.requireNonNull(UserGenderEnum.getEnumByValue(registrationForm.getUserGender())).getText());
 				registrationFormExcelVO.setMarryStatus(Objects.requireNonNull(MarryStatueEnum.getEnumByValue(registrationForm.getMarryStatus())).getText());
 				registrationFormExcelVO.setUserIdCard(userService.getDecryptIdCard(registrationForm.getUserIdCard()));
@@ -605,7 +605,7 @@ public class ExcelServiceImpl implements ExcelService {
 						List<RegistrationFormExcelVO> registrationFormExcelVOList = new ArrayList<>();
 						RegistrationFormExcelVO registrationFormExcelVO = new RegistrationFormExcelVO();
 						BeanUtils.copyProperties(registrationForm, registrationFormExcelVO);
-						registrationFormExcelVO.setId(String.valueOf(registrationForm.getId()));
+						registrationFormExcelVO.setId(registrationFormService.generateRegistrationFormId(registrationForm.getId()));
 						registrationFormExcelVO.setUserGender(Objects.requireNonNull(UserGenderEnum.getEnumByValue(registrationForm.getUserGender())).getText());
 						registrationFormExcelVO.setMarryStatus(Objects.requireNonNull(MarryStatueEnum.getEnumByValue(registrationForm.getMarryStatus())).getText());
 						registrationFormExcelVO.setUserIdCard(userService.getDecryptIdCard(registrationForm.getUserIdCard()));

@@ -20,7 +20,6 @@ import com.henu.registration.model.vo.education.EducationVO;
 import com.henu.registration.model.vo.family.FamilyVO;
 import com.henu.registration.model.vo.fileLog.FileLogVO;
 import com.henu.registration.model.vo.job.JobVO;
-import com.henu.registration.model.vo.messageNotice.MessageNoticeVO;
 import com.henu.registration.model.vo.registrationForm.RegistrationFormVO;
 import com.henu.registration.service.*;
 import com.henu.registration.utils.regex.RegexUtils;
@@ -33,6 +32,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.time.Year;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -381,6 +381,19 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		// endregion
 		registrationFormVOPage.setRecords(registrationFormVOList);
 		return registrationFormVOPage;
+	}
+	
+	/**
+	 * 生成报名编号
+	 *
+	 * @param id id
+	 * @return String
+	 */
+	@Override
+	public String generateRegistrationFormId(Long id) {
+		String year = String.valueOf(Year.now().getValue());
+		String idStr = String.format("%05d", id);
+		return year + idStr;
 	}
 	
 }

@@ -62,4 +62,12 @@ public interface RegistrationFormService extends IService<RegistrationForm> {
 	 * @return {@link Page<RegistrationFormVO>}
 	 */
 	Page<RegistrationFormVO> getRegistrationFormVOPage(Page<RegistrationForm> registrationFormPage, HttpServletRequest request);
+	
+	/**
+	 * 生成报名编号
+	 *
+	 * @param id id
+	 * @return String
+	 */
+	String generateRegistrationFormId(Long id);
 }
