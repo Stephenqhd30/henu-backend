@@ -391,8 +391,8 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 	 */
 	@Override
 	public String generateRegistrationFormId(Long id) {
-		String year = String.valueOf(Year.now().getValue());
-		String idStr = String.format("%05d", id);
+		String year = String.valueOf(Year.now().getValue()).substring(2);
+		String idStr = String.format("%06d", id);
 		return year + idStr;
 	}
 	
