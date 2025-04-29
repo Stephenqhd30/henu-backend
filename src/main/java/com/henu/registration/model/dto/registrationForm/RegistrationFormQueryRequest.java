@@ -109,9 +109,9 @@ public class RegistrationFormQueryRequest extends PageRequest implements Seriali
 	private List<String> schoolTypes;
 	
 	/**
-	 * 教育阶段列表
+	 * 教育阶段
 	 */
-	private List<String> educationStages;
+	private String educationStages;
 	
 	@Serial
 	private static final long serialVersionUID = 1L;

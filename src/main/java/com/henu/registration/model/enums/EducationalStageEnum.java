@@ -15,12 +15,14 @@ import java.util.Objects;
 @AllArgsConstructor
 public enum EducationalStageEnum {
 	
-	UNDERGRADUATE_COURSE("本科", "本科"),
-	POSTGRADUATE("硕士", "硕士"),
-	DOCTOR_DEGREE("博士", "博士");
+	UNDERGRADUATE_COURSE("本科", "本科", 1),
+	POSTGRADUATE("硕士", "硕士", 2),
+	DOCTOR_DEGREE("博士", "博士", 3);
 	private final String text;
 	
 	private final String value;
+	
+	private final int rank;
 	
 	/**
 	 * 根据 value 获取枚举

@@ -2,6 +2,7 @@ package com.henu.registration.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -13,6 +14,7 @@ import com.henu.registration.constants.CommonConstant;
 import com.henu.registration.mapper.RegistrationFormMapper;
 import com.henu.registration.model.dto.registrationForm.RegistrationFormQueryRequest;
 import com.henu.registration.model.entity.*;
+import com.henu.registration.model.enums.EducationalStageEnum;
 import com.henu.registration.model.enums.MarryStatueEnum;
 import com.henu.registration.model.enums.PoliticalStatusEnum;
 import com.henu.registration.model.enums.UserGenderEnum;
@@ -61,10 +63,6 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 	
 	@Resource
 	private FamilyService familyService;
-	
-	@Resource
-	@Lazy
-	private MessageNoticeService messageNoticeService;
 	
 	@Resource
 	private ThreadPoolExecutor executor;
@@ -220,7 +218,7 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		Integer registrationStatus = registrationFormQueryRequest.getRegistrationStatus();
 		String birthDate = registrationFormQueryRequest.getBirthDate();
 		List<String> studentLeaders = registrationFormQueryRequest.getStudentLeaders();
-		List<String> educationStages = registrationFormQueryRequest.getEducationStages();
+		String educationStages = registrationFormQueryRequest.getEducationStages();
 		String studentAwards = registrationFormQueryRequest.getStudentAwards();
 		Long jobId = registrationFormQueryRequest.getJobId();
 		String sortField = registrationFormQueryRequest.getSortField();
@@ -251,22 +249,22 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		queryWrapper.eq(ObjectUtils.isNotEmpty(registrationStatus), "registration_status", registrationStatus);
 		queryWrapper.eq(ObjectUtils.isNotEmpty(politicalStatus), "political_status", politicalStatus);
 		// 过滤符合 schoolIdList 的用户
-		if (CollUtil.isNotEmpty(schoolIdList) || CollUtil.isNotEmpty(educationStages)) {
+		if (CollUtil.isNotEmpty(schoolIdList) || StrUtil.isNotBlank(educationStages)) {
 			// 构建 Education 查询条件
 			LambdaQueryWrapper<Education> educationWrapper = Wrappers.lambdaQuery(Education.class)
-					.select(Education::getUserId);
+					.select(Education::getUserId, Education::getEducationalStage);
 			if (CollUtil.isNotEmpty(schoolIdList)) {
 				educationWrapper.in(Education::getSchoolId, schoolIdList);
 			}
-			if (CollUtil.isNotEmpty(educationStages)) {
-				educationWrapper.in(Education::getEducationalStage, educationStages);
+			if (StrUtil.isNotBlank(educationStages)) {
+				educationWrapper.eq(Education::getEducationalStage, educationStages);
 			}
 			// 查询符合 schoolIdList 的用户 ID，并去重
 			List<Long> userIdList = educationService.list(educationWrapper).stream()
 					.map(Education::getUserId)
 					.distinct()
 					.collect(Collectors.toList());
-			// 如果没有匹配的用户 ID，则直接返回一个无效查询条件，确保返回空数据
+			// 如果没有匹配的用户，则直接返回一个无效查询条件返回空数据
 			if (CollUtil.isEmpty(userIdList)) {
 				queryWrapper.eq("id", -1);
 				return queryWrapper;
