@@ -27,8 +27,6 @@ public class MyBatisPlusConfiguration {
 	@Bean
 	public MybatisPlusInterceptor mybatisPlusInterceptor() {
 		MybatisPlusInterceptor mybatisPlusInterceptor = new MybatisPlusInterceptor();
-		// 防止全表更新与删除插件
-		mybatisPlusInterceptor.addInnerInterceptor(new BlockAttackInnerInterceptor());
 		// 分页插件，如果有多个插件，分页插件添加在最后
 		mybatisPlusInterceptor.addInnerInterceptor(new PaginationInnerInterceptor(DbType.MYSQL));
 		return mybatisPlusInterceptor;
