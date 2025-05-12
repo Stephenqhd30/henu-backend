@@ -97,9 +97,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 		}
 		if (StringUtils.isNotBlank(userPhone)) {
 			ThrowUtils.throwIf(!RegexUtils.checkMobile(userPhone), ErrorCode.PARAMS_ERROR, "用户手机号码有误");
-			User isRegistered = this.getOne(Wrappers.lambdaQuery(User.class)
-					.eq(User::getUserPhone, userPhone));
-			ThrowUtils.throwIf(isRegistered != null, ErrorCode.PARAMS_ERROR, "手机号码已注册");
 		}
 	}
 	
