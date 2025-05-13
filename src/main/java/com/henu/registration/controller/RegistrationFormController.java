@@ -262,9 +262,7 @@ public class RegistrationFormController {
 		Page<RegistrationForm> registrationFormPage = registrationFormService.page(new Page<>(current, size),
 				registrationFormService.getQueryWrapper(registrationFormQueryRequest, schoolIdList));
 		// 获取封装类
-		registrationFormPage.getRecords().forEach(registrationForm -> {
-			registrationForm.setUserIdCard(userService.getDecryptIdCard(registrationForm.getUserIdCard()));
-		});
+		registrationFormPage.getRecords().forEach(registrationForm -> registrationForm.setUserIdCard(userService.getDecryptIdCard(registrationForm.getUserIdCard())));
 		return ResultUtils.success(registrationFormService.getRegistrationFormVOPage(registrationFormPage, request));
 	}
 	

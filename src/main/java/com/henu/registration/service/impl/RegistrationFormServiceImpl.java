@@ -37,6 +37,7 @@ import java.time.Year;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 
@@ -249,43 +250,59 @@ public class RegistrationFormServiceImpl extends ServiceImpl<RegistrationFormMap
 		queryWrapper.eq(ObjectUtils.isNotEmpty(politicalStatus), "political_status", politicalStatus);
 		// 过滤符合学校要求的用户
 		if (CollUtil.isNotEmpty(schoolIdList) || StrUtil.isNotBlank(educationStages)) {
-			// 构建查询条件
-			LambdaQueryWrapper<Education> educationWrapper = Wrappers.lambdaQuery(Education.class)
-					.select(Education::getUserId, Education::getEducationalStage);
-			if (CollUtil.isNotEmpty(schoolIdList)) {
-				educationWrapper.in(Education::getSchoolId, schoolIdList);
-			}
-			// 查询出所有符合要求的用户教育经历信息
-			List<Education> educationList = educationService.list(educationWrapper);
-			// 将数据按用户分组并找出每个用户的最高学历
-			Map<Long, String> userMaxStageMap = educationList.stream()
+			// 查询所有教育经历
+			List<Education> educationList = educationService.list(
+					Wrappers.lambdaQuery(Education.class)
+							.select(Education::getUserId, Education::getEducationalStage, Education::getSchoolId)
+			);
+			
+			// 计算每个用户的真实最高学历
+			Map<Long, EducationalStageEnum> userMaxStageMap = educationList.stream()
 					.collect(Collectors.groupingBy(
 							Education::getUserId,
-							Collectors.collectingAndThen(
-									Collectors.mapping(Education::getEducationalStage, Collectors.toSet()),
-									educationStage -> educationStage.stream()
-											.map(EducationalStageEnum::getEnumByValue)
-											.filter(Objects::nonNull)
-											.max(Comparator.comparingInt(EducationalStageEnum::getRank))
-											.map(EducationalStageEnum::getValue)
-											.orElse(null)
+							Collectors.mapping(
+									edu -> EducationalStageEnum.getEnumByValue(edu.getEducationalStage()),
+									Collectors.collectingAndThen(
+											Collectors.toList(),
+											stages -> stages.stream()
+													.filter(Objects::nonNull)
+													.max(Comparator.comparingInt(EducationalStageEnum::getRank))
+													.orElse(null)
+									)
 							)
 					));
-			// 如果指定了学历筛选条件，则只保留最高学历等于该阶段的用户
-			Set<Long> matchedUserIds = Optional.ofNullable(educationStages)
+			// 判断是否满足学历条件
+			Set<Long> matchedByEducationStage = Optional.ofNullable(educationStages)
 					.filter(StrUtil::isNotBlank)
-					.map(educationStage -> userMaxStageMap.entrySet().stream()
-							.filter(entry -> educationStage.equals(entry.getValue()))
-							.map(Map.Entry::getKey)
-							.collect(Collectors.toSet())
-					)
+					.map(stage -> {
+						EducationalStageEnum targetStage = EducationalStageEnum.getEnumByValue(stage);
+						if (targetStage == null) {
+							return Collections.<Long>emptySet();
+						}
+						return userMaxStageMap.entrySet().stream()
+								.filter(entry -> targetStage.equals(entry.getValue()))
+								.map(Map.Entry::getKey)
+								.collect(Collectors.toSet());
+					})
+					.orElse(userMaxStageMap.keySet());
+			// 判断是否满足学校条件
+			Set<Long> matchedBySchool = Optional.ofNullable(schoolIdList)
+					.filter(CollUtil::isNotEmpty)
+					.map(list -> {
+						Predicate<Education> matchSchool = edu -> list.contains(edu.getSchoolId());
+						return educationList.stream()
+								.filter(matchSchool)
+								.map(Education::getUserId)
+								.collect(Collectors.toSet());
+					})
 					.orElseGet(userMaxStageMap::keySet);
-			// 如果没有匹配的用户，则直接返回一个无效查询条件返回空数据
-			if (CollUtil.isEmpty(matchedUserIds)) {
+			// 两者取交集
+			matchedByEducationStage.retainAll(matchedBySchool);
+			if (CollUtil.isEmpty(matchedByEducationStage)) {
 				queryWrapper.eq("id", -1);
 				return queryWrapper;
 			}
-			queryWrapper.in("user_id", matchedUserIds);
+			queryWrapper.in("user_id", matchedByEducationStage);
 		}
 		// 排序规则
 		queryWrapper.orderBy(SqlUtils.validSortField(sortField),
