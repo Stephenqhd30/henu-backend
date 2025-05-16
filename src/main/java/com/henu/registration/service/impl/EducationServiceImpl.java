@@ -20,7 +20,6 @@ import com.henu.registration.model.vo.user.UserVO;
 import com.henu.registration.service.EducationService;
 import com.henu.registration.service.SchoolService;
 import com.henu.registration.service.UserService;
-import com.henu.registration.utils.regex.RegexUtils;
 import com.henu.registration.utils.sql.SqlUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -81,12 +80,6 @@ public class EducationServiceImpl extends ServiceImpl<EducationMapper, Education
 		// todo 补充校验规则
 		if (ObjectUtils.isNotEmpty(educationalStage)) {
 			ThrowUtils.throwIf(EducationalStageEnum.getEnumByValue(educationalStage) == null, ErrorCode.PARAMS_ERROR, "教育阶段值不合法");
-		}
-		if (StringUtils.isNotBlank(certifierPhone)) {
-			ThrowUtils.throwIf(!RegexUtils.checkMobile(certifierPhone), ErrorCode.PARAMS_ERROR, "用户手机号码有误");
-		}
-		if (StringUtils.isNotBlank(certifierPhone)) {
-			ThrowUtils.throwIf(!RegexUtils.checkMobile(certifierPhone), ErrorCode.PARAMS_ERROR, "用户手机号码有误");
 		}
 	}
 	
