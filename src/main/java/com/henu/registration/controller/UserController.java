@@ -193,11 +193,11 @@ public class UserController {
 		long id = userUpdateRequest.getId();
 		User oldUser = userService.getById(id);
 		ThrowUtils.throwIf(oldUser == null, ErrorCode.NOT_FOUND_ERROR);
-		// 如果用户需要修改密码
+		// 如果用户需要修改身份证号
 		if (StringUtils.isNotBlank(userUpdateRequest.getUserIdCard())) {
 			// todo 身份证加密
-			String encryptPassword = userService.getEncryptIdCard(userUpdateRequest.getUserIdCard());
-			user.setUserIdCard(encryptPassword);
+			String encryptIdCard = userService.getEncryptIdCard(userUpdateRequest.getUserIdCard());
+			user.setUserIdCard(encryptIdCard);
 		}
 		// 操作数据库
 		boolean result = userService.updateById(user);
@@ -378,8 +378,7 @@ public class UserController {
 			if (!userPassword.equals(checkUserPassword)) {
 				return ResultUtils.error(ErrorCode.PARAMS_ERROR, "两次密码不一致");
 			}
-			LambdaQueryWrapper<User> eq = Wrappers.lambdaQuery(User.class).eq(User::getUserPhone, userPhone);
-			User user = userService.getOne(eq);
+			User user = userService.getOne(Wrappers.lambdaQuery(User.class).eq(User::getUserPhone, userPhone));
 			ThrowUtils.throwIf(user == null, ErrorCode.NOT_FOUND_ERROR, "该手机号未注册");
 			user.setUserPassword(userService.getEncryptPassword(userPassword));
 			boolean result = userService.updateById(user);
