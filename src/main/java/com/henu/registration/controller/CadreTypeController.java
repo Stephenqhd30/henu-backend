@@ -60,7 +60,7 @@ public class CadreTypeController {
 		// 数据校验
 		cadreTypeService.validCadreType(cadreType, true);
 		// todo 填充默认值
-		CadreType oldCadreType = cadreTypeService.getById(Wrappers.lambdaQuery(CadreType.class)
+		CadreType oldCadreType = cadreTypeService.getOne(Wrappers.lambdaQuery(CadreType.class)
 				.eq(CadreType::getType, cadreType.getType()));
 		if (oldCadreType != null) {
 			cadreType.setId(oldCadreType.getId());
