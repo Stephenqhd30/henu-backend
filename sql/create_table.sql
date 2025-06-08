@@ -317,7 +317,7 @@ create table system_messages
     update_time datetime   default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
     is_delete   tinyint(1) default 0                 not null comment '是否逻辑删除(0-否,1-是)'
 )
-    comment '系统消息表' row_format = DYNAMIC
+    comment '系统消息表' row_format = DYNAMIC;
 
 -- 消息通知表
 create table message
